@@ -1,0 +1,1799 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ธนาคารเศรษฐี</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* ---------- โทนสี ---------- */
+:root{
+  --ground:#e9ece5; --surface:#fbfbf6; --surface2:#f0f2ea; --ink:#1c2b2a; --muted:#5d6d68;
+  --line:#cdd4c9; --jade:#0f5b52; --jade-ink:#fff; --gold:#c98f0a; --danger:#c0392b; --ok:#1f8a4c;
+  --note:#fff6dc; --shadow:0 1px 2px rgba(20,40,35,.08),0 6px 22px rgba(20,40,35,.08);
+  --display:'Mitr',system-ui,sans-serif; --body:'IBM Plex Sans Thai',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ color-scheme:dark; --ground:#0d1514; --surface:#15211f; --surface2:#1c2b28; --ink:#e4ece8; --muted:#95a7a1;
+    --line:#2d3e3a; --jade:#3fb8a4; --jade-ink:#062522; --gold:#e8b33a; --danger:#ef6b5b; --ok:#4cc17e; --note:#2a2616; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35); }
+}
+:root[data-theme="dark"]{ color-scheme:dark; --ground:#0d1514; --surface:#15211f; --surface2:#1c2b28; --ink:#e4ece8; --muted:#95a7a1;
+  --line:#2d3e3a; --jade:#3fb8a4; --jade-ink:#062522; --gold:#e8b33a; --danger:#ef6b5b; --ok:#4cc17e; --note:#2a2616; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35); }
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px;padding-block:12px 40px}
+h1,h2,h3{font-family:var(--display);font-weight:500;margin:0;line-height:1.2;text-wrap:balance}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.5em 1em}
+button:hover:not(:disabled){background:var(--surface2)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button.primary{background:var(--jade);border-color:var(--jade);color:var(--jade-ink);font-weight:600}
+button.primary:hover:not(:disabled){background:var(--jade);filter:brightness(1.08)}
+button.gold{background:var(--gold);border-color:var(--gold);color:#1c1400;font-weight:600}
+button.gold:hover:not(:disabled){background:var(--gold);filter:brightness(1.06)}
+button.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,var(--line))}
+button.sm{padding:.25em .7em;font-size:13.5px;border-radius:8px}
+button.big{padding:.75em 1.2em;font-size:17px;border-radius:14px}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.55em .75em;min-width:0;width:100%}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stack{display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.field{display:grid;gap:4px}
+.field small{color:var(--muted);font-size:12.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+.tok{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;font-size:18px;border:2px solid var(--c);background:var(--surface);flex:none}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:1px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
+.badge.me{background:color-mix(in srgb,var(--jade) 16%,var(--surface));border-color:var(--jade)}
+.badge.bad{background:color-mix(in srgb,var(--danger) 14%,var(--surface));border-color:var(--danger);color:var(--danger)}
+.credit{font-family:var(--mono);font-weight:500;font-size:12px;padding:1px 8px;border-radius:6px;color:#fff;background:var(--cc)}
+.warn{font-size:13.5px;background:var(--note);border:1px dashed var(--gold);border-radius:10px;padding:10px 12px}
+
+/* ---------- หน้าแรก ---------- */
+.hero{display:grid;gap:6px;padding-top:3vh}
+.hero h1{font-size:clamp(34px,8vw,54px);font-weight:600}
+.hero h1 span{color:var(--gold)}
+.hero p{margin:0;color:var(--muted);max-width:60ch}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0;padding:0;list-style:none}
+.features li{display:grid;gap:2px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:13.5px}
+.features b{font-family:var(--display);font-weight:500;font-size:15px}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.tokpick{display:flex;gap:6px;flex-wrap:wrap}
+.tokpick button{font-size:21px;padding:3px 8px;line-height:1.3}
+.tokpick button[aria-pressed="true"]{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface));box-shadow:inset 0 0 0 1px var(--gold)}
+
+/* ---------- เกม ---------- */
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top h1{font-size:20px;margin-right:auto}
+.top h1 span{color:var(--gold)}
+.chip{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 11px;background:var(--surface)}
+.turn{display:grid;gap:12px;background:var(--jade);color:var(--jade-ink);border:0;position:relative;overflow:hidden}
+.turn::before{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;border:22px solid color-mix(in srgb,var(--jade-ink) 10%,transparent)}
+.turn .rnd{font-family:var(--mono);font-size:13px;opacity:.85}
+.turn .who{display:flex;align-items:center;gap:12px;font-family:var(--display);font-size:clamp(22px,6vw,30px);font-weight:500}
+.turn .who .tok{width:46px;height:46px;font-size:26px;border-color:var(--jade-ink)}
+.turn .next{font-size:13.5px;opacity:.85}
+.turn button{border-color:transparent}
+.turn button.ghost{background:color-mix(in srgb,var(--jade-ink) 14%,transparent);color:var(--jade-ink)}
+.effects{display:flex;gap:6px;flex-wrap:wrap}
+.effect{display:flex;align-items:center;gap:6px;font-size:13.5px;padding:5px 12px;border-radius:999px;background:var(--note);border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line))}
+.effect small{color:var(--muted);font-family:var(--mono)}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:12px;border:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{flex:1;border:0;background:transparent;padding:.5em .3em;font-size:14px;border-radius:9px;position:relative}
+.tabs button[aria-selected="true"]{background:var(--surface);box-shadow:var(--shadow);font-weight:600}
+.tabs .dot{position:absolute;top:4px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
+.who-pick{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.who-pick button{display:flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.who-pick button[aria-pressed="true"]{border-color:var(--jade);background:color-mix(in srgb,var(--jade) 14%,var(--surface))}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface2);border-radius:12px;padding:10px 12px;display:grid;gap:2px}
+.stat b{font-family:var(--mono);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+@media (max-width:340px){.stats{grid-template-columns:1fr 1fr}}
+.loan{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.loan.over{border-color:var(--danger);box-shadow:inset 4px 0 0 var(--danger)}
+.loan.offer{border-style:dashed;border-color:var(--gold);background:var(--note)}
+.loan .l1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.loan .amt{font-family:var(--mono);font-size:20px;font-weight:500;margin-left:auto}
+.loan .meta{font-size:13px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.bar{height:6px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--jade)}
+.loan.over .bar i{background:var(--danger)}
+.section-h{display:flex;align-items:center;gap:8px;margin-top:4px}
+.section-h h2{font-size:17px;margin-right:auto}
+.empty{color:var(--muted);font-size:14px;padding:10px 0}
+table{border-collapse:collapse;width:100%}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right}
+.tscroll{overflow-x:auto}
+.hist{display:grid;gap:8px}
+.hist .h{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.hist .ic{font-size:26px;line-height:1}
+.hist small{color:var(--muted);font-family:var(--mono)}
+.log{display:grid;gap:2px;font-size:13.5px}
+.log div{padding:5px 0;border-bottom:1px dashed var(--line);display:grid;grid-template-columns:34px 1fr;gap:6px}
+.log small{font-family:var(--mono);color:var(--muted)}
+
+/* ---------- ป๊อปอัป ---------- */
+.modal{position:fixed;inset:0;background:rgba(10,20,18,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.sheet{background:var(--surface);border-radius:18px;max-width:480px;width:100%;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.sheet .hd{padding:16px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.sheet .hd h2{font-size:19px;margin-right:auto}
+.sheet .bd{padding:16px 18px;display:grid;gap:12px}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.preview{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;gap:2px}
+/* การ์ดอีเว้นท์ */
+.evmodal{position:fixed;inset:0;background:rgba(8,16,14,.72);display:grid;place-items:center;padding:16px;z-index:60;perspective:1200px}
+.evcard{width:min(100%,380px);border-radius:22px;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;animation:flip .7s cubic-bezier(.2,.8,.2,1)}
+.evcard .evtop{background:repeating-linear-gradient(135deg,var(--gold) 0 14px,color-mix(in srgb,var(--gold) 80%,#fff) 14px 28px);padding:26px 20px 18px;display:grid;justify-items:center;gap:6px;color:#1c1400}
+.evcard .ic{font-size:64px;line-height:1;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25))}
+.evcard .kicker{font-size:12px;letter-spacing:.14em;font-weight:600}
+.evcard h2{font-size:28px;font-weight:600;text-align:center}
+.evcard .tx{padding:18px 20px;font-size:17px;line-height:1.6;text-align:center}
+.evcard .ft{padding:0 20px 20px}
+.evcard .ft button{width:100%}
+@keyframes flip{0%{transform:rotateY(90deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:12px;z-index:99;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+
+/* ---------- บัญชีธนาคาร ---------- */
+.count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--danger);color:#fff;font-size:12px;font-weight:600;font-family:var(--mono)}
+.check{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);cursor:pointer}
+.check input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--jade)}
+.check span{display:grid;gap:1px}
+.check small{color:var(--muted);font-size:12.5px}
+.card-bank{position:relative;overflow:hidden;border-radius:20px;padding:18px 20px;color:#f6f3e8;
+  background:radial-gradient(120% 140% at 100% 0%,#1d7a6d 0%,#0f4d45 45%,#0b3530 100%);box-shadow:var(--shadow);display:grid;gap:4px}
+.card-bank::after{content:"";position:absolute;right:-30px;bottom:-60px;width:180px;height:180px;border-radius:50%;border:26px solid rgba(232,179,58,.16)}
+.card-bank.neg{background:radial-gradient(120% 140% at 100% 0%,#8f3a2f 0%,#5d231d 55%,#3b1511 100%)}
+.cb-name{font-family:var(--display);font-size:16px}
+.cb-label{font-size:12.5px;letter-spacing:.04em;opacity:.8;margin-top:6px}
+.cb-bal{font-size:clamp(34px,10vw,46px);font-weight:500;line-height:1.1;letter-spacing:-.01em}
+.cb-foot{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;opacity:.9;margin-top:6px;position:relative;z-index:1}
+.cb-foot b{font-weight:500}
+.card-bank .credit{position:relative;z-index:1}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:420px){.actions{grid-template-columns:repeat(4,1fr);gap:6px}}
+.actions button{display:grid;justify-items:center;gap:4px;padding:10px 4px;font-size:12.5px;line-height:1.25;border-radius:14px}
+.actions button span{font-size:22px;line-height:1}
+.txlist{padding:4px 12px}
+.txr{display:grid;grid-template-columns:28px 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.txr:last-child{border-bottom:0}
+.tx-ic{grid-row:1/3;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:14px}
+.tx-ic.in{background:color-mix(in srgb,var(--ok) 16%,var(--surface));color:var(--ok)}
+.tx-ic.out{background:color-mix(in srgb,var(--danger) 13%,var(--surface));color:var(--danger)}
+.tx-main{font-size:14px;min-width:0;overflow-wrap:anywhere}
+.tx-main small{display:block;color:var(--muted);font-size:12px}
+.tx-amt{font-size:15px;text-align:right}
+.tx-amt.in{color:var(--ok)} .tx-amt.out{color:var(--danger)}
+.tx-r{grid-column:3;font-size:11.5px;text-align:right}
+.turn.mine{box-shadow:0 0 0 3px var(--gold),var(--shadow)}
+/* ---------- QR เชิญ ---------- */
+.invite{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+@media (max-width:380px){.invite{grid-template-columns:1fr}}
+.qrbox{background:#fff;border-radius:14px;padding:8px;width:148px;max-width:100%;border:1px solid var(--line)}
+.qr{display:block;width:100%;height:auto}
+/* ---------- ผลการแข่งขัน ---------- */
+.podium{display:grid;gap:8px}
+.rank{display:grid;grid-template-columns:34px auto 1fr auto;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.rank .pos{font-size:22px;text-align:center;font-family:var(--mono)}
+.rank .rk-name{display:grid;min-width:0}
+.rank .rk-name small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.rank .rk-net{font-size:18px}
+.rank > button{grid-column:3/5;justify-self:end}
+.rank.win{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--surface));box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 40%,transparent)}
+.hls{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.hl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.hl-ic{font-size:24px}
+.hl small{display:block;color:var(--muted);font-size:12px}
+.worth{border-color:var(--gold)}
+.cev{padding:6px 0;border-bottom:1px dashed var(--line)}
+.pm{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.pm:last-child{border-bottom:0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<div id="ev-root"></div>
+<div id="toast" hidden></div>
+
+<script>
+// ================================================================
+// 🔧 ตั้งค่า Firebase: วาง config ของโปรเจกต์คุณตรงนี้ (ดูวิธีใน README)
+//    ถ้าปล่อยเป็น null จะใช้ได้เฉพาะโหมด "มือถือเครื่องเดียววางกลางโต๊ะ"
+// ================================================================
+const FIREBASE_CONFIG = null;
+const ROOMS = 'boardbank_rooms'; // ชื่อ collection ใน Firestore
+</script>
+
+<script>
+// ================== ENGINE: ธนาคารเศรษฐี (ผู้ช่วยเศรษฐีกระดานจริง) ==================
+// เล่นกระดานจริง + เงินสดกระดาษ คู่กับบัญชีธนาคารในแอป
+// แอปทำหน้าที่: บัญชีธนาคาร (ฝาก/ถอน/โอน), นับตา/รอบ, กู้ยืม, อีเว้นท์พิเศษ, แอดมิน, สรุปผล
+// ฟังก์ชันล้วน: รับ state + คำสั่ง -> คืน state ใหม่ (ใช้ได้ทั้งออนไลน์/เครื่องเดียว)
+
+const MAX_PLAYERS = 8;
+const TOKENS = [
+  { icon: '🛺', color: '#e4572e' }, { icon: '🚕', color: '#2e86ab' }, { icon: '🐘', color: '#7b5ea7' },
+  { icon: '🍜', color: '#3d9a50' }, { icon: '🛵', color: '#d99a00' }, { icon: '🦆', color: '#c2185b' },
+  { icon: '🐯', color: '#8d6e63' }, { icon: '🚀', color: '#455a64' },
+];
+// ระดับเครดิต: ปรับดอกเบี้ย (+/- %) และวงเงินกู้ (×)
+const CREDIT = [
+  { name: 'D',   adj: +4, cap: 0.3, color: '#c0392b' },
+  { name: 'C',   adj: +2, cap: 0.6, color: '#e67e22' },
+  { name: 'B',   adj: 0,  cap: 1.0, color: '#7f8c8d' },
+  { name: 'A',   adj: -1, cap: 1.3, color: '#27ae60' },
+  { name: 'AAA', adj: -2, cap: 1.6, color: '#c98f0a' },
+];
+const DEFAULT_SETTINGS = {
+  start: 15000,       // เงินเริ่มต้นบนกระดาน (ใช้คำนวณสัดส่วนเงินในอีเว้นท์)
+  rate: 5,            // ดอกเบี้ยเงินกู้ธนาคาร %/รอบ
+  capPct: 50,         // วงเงินกู้ธนาคาร % ของเงินเริ่มต้น
+  penalty: 10,        // ค่าปรับค้างชำระ %
+  eventMode: 'every', // ความถี่อีเว้นท์
+  startBal: 0,        // ยอดเงินในบัญชีตอนเริ่มเกม
+  goSalary: 2000,     // เงินผ่านจุดเริ่มต้น (กดรับเข้าบัญชี)
+  autoPay: true,      // อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ
+  cashConfirm: true,  // ฝาก/ถอนเงินสดต้องให้แอดมินยืนยัน
+};
+const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
+const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร' };
+
+const fmt = n => Number(n).toLocaleString('en-US');
+const clone = o => JSON.parse(JSON.stringify(o));
+class GameError extends Error {}
+const need = (c, m) => { if (!c) throw new GameError(m); };
+const shuffle = (a, rng) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const posInt = (x, msg) => { const v = Math.round(+x); need(Number.isFinite(v) && v > 0, msg || 'จำนวนเงินไม่ถูกต้อง'); return v; };
+
+// หน่วยเงินปัดเศษ: กระดาน 1,500 -> ปัดทีละ 10, กระดาน 15,000 -> ปัดทีละ 100
+const unitOf = s => Math.max(1, Math.pow(10, Math.floor(Math.log10(s.settings.start / 150))));
+// แปลงยอดเงินฐาน (อิงกระดาน 1,500) ให้เข้ากับกระดานจริง
+const money = (s, base) => { const u = unitOf(s); return Math.max(u, Math.round(base * s.settings.start / 1500 / u) * u); };
+const roundUnit = (s, x, up) => { const u = unitOf(s); return (up ? Math.ceil(x / u) : Math.round(x / u)) * u; };
+
+function log(s, msg) { s.log.push({ r: s.round || 0, m: msg }); if (s.log.length > 150) s.log.splice(0, s.log.length - 150); }
+const nm = (s, i) => i == null ? 'ธนาคาร' : s.players[i].name;
+const active = s => s.order.filter(i => !s.players[i].out);
+const hasEffect = (s, key) => (s.effects || []).some(e => e.key === key);
+// ---------- แอดมิน (กรรมการ): เจ้าของห้อง + ใครก็ตามที่ใส่ PIN ถูก ไม่ต้องเป็นผู้เล่นก็ได้ ----------
+const genPin = () => String(Math.floor(1000 + Math.random() * 9000));
+const isAdminUid = (s, uid) => uid === s.hostUid || (s.admins || []).includes(uid);
+// ---------- แบงก์เกอร์: คนถือเงินสดธนาคาร มีรหัส PIN แยกจากแอดมิน ทำได้แค่ยืนยันฝาก/ถอน/รับเงิน (แอดมินทำแทนได้เสมอ) ----------
+const isBankerUid = (s, uid) => isAdminUid(s, uid) || (s.bankers || []).includes(uid);
+
+// ---------- บัญชีธนาคาร ----------
+// บันทึกรายการเงิน (from/to = seat หรือ null = ธนาคาร)
+function addTx(s, kind, from, to, amt, note) {
+  s.tx.push({ id: s.nextTx++, k: kind, f: from, t: to, a: amt, n: note || '', r: s.round });
+  if (s.tx.length > 300) s.tx.splice(0, s.tx.length - 300);
+}
+// เปลี่ยนยอดบัญชี (ยอมให้ติดลบได้เฉพาะที่ระบบสั่ง เช่น อีเว้นท์ = เบิกเกินบัญชี)
+function credit(s, seat, amt, kind, note, from = null) { s.players[seat].bal += amt; addTx(s, kind, from, seat, amt, note); }
+function debit(s, seat, amt, kind, note, to = null) { s.players[seat].bal -= amt; addTx(s, kind, seat, to, amt, note); }
+function xfer(s, from, to, amt, kind, note) { s.players[from].bal -= amt; s.players[to].bal += amt; addTx(s, kind, from, to, amt, note); }
+
+// ---------- ดอกเบี้ย / วงเงิน ----------
+function bankRate(s, seat) {
+  if (hasEffect(s, 'rate0')) return 0;
+  let r = Math.max(1, s.settings.rate + CREDIT[s.players[seat].credit].adj);
+  if (hasEffect(s, 'rateX2')) r *= 2;
+  if (hasEffect(s, 'rateHalf')) r = Math.max(1, Math.round(r / 2));
+  return r;
+}
+const loanRate = (s, L) => (L.lender == null ? bankRate(s, L.borrower) : L.rate) + (L.overdue ? 2 : 0);
+function bankCap(s, seat) { return roundUnit(s, s.settings.start * s.settings.capPct / 100 * CREDIT[s.players[seat].credit].cap); }
+const bankDebt = (s, seat) => s.loans.filter(L => L.lender == null && L.borrower === seat && L.status === 'active').reduce((a, L) => a + L.balance, 0);
+const debtOf = (s, seat) => s.loans.filter(L => L.borrower === seat && L.status === 'active').reduce((a, L) => a + L.balance, 0);
+const lentOf = (s, seat) => s.loans.filter(L => L.lender === seat && L.status === 'active').reduce((a, L) => a + L.balance, 0);
+function bumpCredit(s, seat, d) {
+  const p = s.players[seat], old = p.credit;
+  p.credit = Math.max(0, Math.min(CREDIT.length - 1, p.credit + d));
+  if (p.credit !== old) log(s, `${d > 0 ? '📈' : '📉'} เครดิตของ ${p.name} ${d > 0 ? 'ขึ้น' : 'ลด'}เป็น ${CREDIT[p.credit].name}`);
+}
+
+// ---------- ความมั่งคั่งสุทธิ (ใช้จัดอันดับ) ----------
+// = ยอดบัญชี + เงินสดกระดาษที่แจ้ง + มูลค่าทรัพย์สินที่แจ้ง + เงินที่คนอื่นติดเรา − หนี้ของเรา
+function netWorth(s, seat) {
+  const p = s.players[seat];
+  return p.bal + (p.cash || 0) + (p.assets || 0) + lentOf(s, seat) - debtOf(s, seat);
+}
+function gameStats(s, seat) {
+  const mine = s.loans.filter(L => L.borrower === seat && ['active', 'paid', 'forgiven'].includes(L.status));
+  const sent = s.tx.filter(t => t.f === seat && t.t != null && t.k === 'transfer').reduce((a, t) => a + t.a, 0);
+  const got = s.tx.filter(t => t.t === seat && t.k === 'transfer').reduce((a, t) => a + t.a, 0);
+  const lent = s.loans.filter(L => L.lender === seat && ['active', 'paid', 'forgiven'].includes(L.status)).reduce((a, L) => a + L.principal, 0);
+  return { borrowed: mine.reduce((a, L) => a + L.principal, 0), interest: mine.reduce((a, L) => a + L.interest, 0), sent, got, lent };
+}
+
+// ================== อีเว้นท์พิเศษ ==================
+// fx(s, api) คืนข้อความ / api มีตัวช่วยสุ่มผู้เล่น ทอยเต๋า เพิ่มผลต่อเนื่อง และจ่ายเงินเข้า/ออกบัญชี (ถ้าเปิด autoPay)
+const EVENTS = [
+  // ---- ทุกคน (ทันที) ----
+  { id: 'bonus', icon: '🎁', title: 'โบนัสสิ้นปี', fx: (s, a) => { a.all().forEach(i => a.give(i, 100)); return `ทุกคนรับเงินจากธนาคารคนละ ${a.m(100)}`; } },
+  { id: 'flood', icon: '🌊', title: 'น้ำท่วมกรุง', fx: (s, a) => `ทุกคนจ่ายค่าซ่อมให้ธนาคาร บ้านละ ${a.m(25)} โรงแรมละ ${a.m(100)} (นับบ้านบนกระดาน แล้วจ่ายเงินสดหรือกด "จ่ายธนาคาร")` },
+  { id: 'richtax', icon: '💼', title: 'ภาษีคนรวย', fx: (s, a) => { const r = a.all().slice().sort((p, q) => s.players[q].bal - s.players[p].bal)[0];
+      const tax = roundUnit(s, Math.max(0, s.players[r].bal) * 0.1);
+      if (tax > 0) { a.take(r, tax); return `${a.n(r)} มียอดในบัญชีมากที่สุด เสียภาษี 10% = ${fmt(tax)}`; }
+      return 'ไม่มีใครมีเงินในบัญชี รอดตัวทุกคน 😅'; } },
+  { id: 'angpao', icon: '🧧', title: 'แจกอั่งเปา', fx: (s, a) => { const L = a.all(); if (L.length > 1) L.forEach((i, k) => a.pay(i, L[(k + 1) % L.length], 50)); return `ทุกคนให้อั่งเปาคนถัดไปตามลำดับเล่น คนละ ${a.m(50)}`; } },
+  { id: 'songkran', icon: '💦', title: 'สงกรานต์สาดเงิน', fx: (s, a) => { const L = a.all(); if (L.length > 1) L.forEach((i, k) => a.pay(i, L[(k - 1 + L.length) % L.length], 20));
+      const low = L.slice().sort((p, q) => s.players[p].bal - s.players[q].bal)[0]; a.give(low, 100);
+      return `ทุกคนส่งเงิน ${a.m(20)} ให้คนก่อนหน้าตามลำดับ แล้ว ${a.n(low)} (ยอดบัญชีน้อยสุด) รับเพิ่ม ${a.m(100)}`; } },
+  { id: 'boom', icon: '📊', title: 'เศรษฐกิจบูม', fx: (s, a) => `ทุกคนรับจากธนาคาร ${a.m(20)} ต่อโฉนด 1 ใบที่ถืออยู่ (สูงสุด ${a.m(200)}) — นับโฉนดแล้วรับเงินสดจากธนาคาร` },
+  { id: 'lottery', icon: '🎰', title: 'หวยออก', fx: (s, a) => { const r = a.all().map(i => [i, a.roll() + a.roll()]); const top = Math.max(...r.map(x => x[1])); const w = r.filter(x => x[1] === top).map(x => x[0]);
+      w.forEach(i => a.give(i, 200));
+      return `แอปทอยเต๋าให้ทุกคน: ${r.map(([i, v]) => `${a.n(i)} ${v}`).join(' · ')} — ${w.map(a.n).join(', ')} ได้แต้มสูงสุด รับ${w.length > 1 ? 'คนละ' : ''} ${a.m(200)}`; } },
+  { id: 'relief', icon: '🕊️', title: 'รัฐบาลพักหนี้', fx: (s, a) => { let n = 0; for (const L of s.loans) if (L.status === 'active' && L.lender == null) { L.balance = roundUnit(s, L.balance * 0.8); n++; }
+      return n ? `หนี้ธนาคารของทุกคนลด 20% อัตโนมัติ (${n} สัญญา)` : 'ตอนนี้ไม่มีใครมีหนี้ธนาคาร ทุกคนได้แต่ยิ้ม 😅'; } },
+  { id: 'crash', icon: '📉', title: 'ตลาดหุ้นล่ม', fx: (s, a) => { let n = 0; for (const L of s.loans) if (L.status === 'active') { L.balance += roundUnit(s, L.balance * 0.1, true); n++; }
+      a.all().filter(i => debtOf(s, i) === 0).forEach(i => a.give(i, 50));
+      return n ? `หนี้ทุกสัญญาเพิ่มขึ้น 10% ทันที (${n} สัญญา) ส่วนคนไม่มีหนี้รับ ${a.m(50)}` : `ไม่มีใครมีหนี้ ทุกคนรับ ${a.m(50)}`; } },
+  { id: 'jailbreak', icon: '🔓', title: 'คุกแตก', fx: () => 'ทุกคนที่อยู่ในคุกออกมาได้ฟรีทันที' },
+  { id: 'slap', icon: '✋', title: 'ตบโต๊ะไว', fx: (s, a) => `นับ 3 แล้วทุกคนตบโต๊ะ! คนสุดท้ายจ่าย ${a.m(50)} ให้ธนาคาร` },
+  { id: 'charity', icon: '🙏', title: 'ทำบุญร่วมกัน', fx: (s, a) => `ทุกคนจ่ายเงินสด ${a.m(30)} ลงกองกลาง (วางกลางกระดาน) คนแรกที่ตกช่องจอดฟรีเก็บทั้งหมด` },
+  // ---- เจาะจงผู้เล่น ----
+  { id: 'jackpot', icon: '🏆', title: 'ถูกรางวัลที่ 1', fx: (s, a) => { const [x] = a.pick(1); a.give(x, 300); return `${a.n(x)} รับ ${a.m(300)} จากธนาคาร`; } },
+  { id: 'scam', icon: '📱', title: 'โดนแก๊งคอลเซ็นเตอร์', fx: (s, a) => { const [x] = a.pick(1); a.take(x, 100); return `${a.n(x)} โดนหลอกโอน ${a.m(100)} ให้ธนาคาร`; } },
+  { id: 'thief', icon: '🦹', title: 'ขโมยขึ้นบ้าน', fx: (s, a) => { const [x, y] = a.pick(2); if (y == null) return 'ไม่มีเหยื่อ ข้าม'; a.pay(y, x, 100); return `${a.n(x)} แอบขโมยเงิน ${a.m(100)} จาก ${a.n(y)}`; } },
+  { id: 'birthday', icon: '🎂', title: 'วันเกิดเซอร์ไพรส์', fx: (s, a) => { const [x] = a.pick(1); a.all().filter(i => i !== x).forEach(i => a.pay(i, x, 40)); return `ทุกคนให้ของขวัญ ${a.n(x)} คนละ ${a.m(40)}`; } },
+  { id: 'audit', icon: '🧾', title: 'สรรพากรตรวจย้อนหลัง', fx: (s, a) => { const x = a.richestLender(); a.take(x, 150); return `${a.n(x)} จ่ายภาษีย้อนหลัง ${a.m(150)} ให้ธนาคาร`; } },
+  { id: 'warp', icon: '🌀', title: 'ประตูมิติ', fx: (s, a) => { const [x] = a.pick(1); return `${a.n(x)} ย้ายตัวเดินไปจุดเริ่มต้นทันที แล้วกด "ผ่านจุดเริ่มต้น" รับเงินเดือนได้เลย`; } },
+  { id: 'swap', icon: '🔄', title: 'สลับร่าง', fx: (s, a) => { const [x, y] = a.pick(2); return y == null ? 'มีผู้เล่นคนเดียว ข้ามอีเว้นท์นี้' : `${a.n(x)} กับ ${a.n(y)} สลับตำแหน่งตัวเดินบนกระดาน (ไม่ต้องทำตามช่องที่ไปอยู่)`; } },
+  { id: 'traffic', icon: '🚦', title: 'รถติดสุดขีด', fx: (s, a) => { const [x] = a.pick(1); a.skip(x); return `${a.n(x)} ต้องข้ามตาถัดไป 1 ตา (แอปจะข้ามให้อัตโนมัติ)`; } },
+  { id: 'turbo', icon: '⚡', title: 'รถไฟฟ้าสายใหม่', fx: (s, a) => { const [x] = a.pick(1); return `${a.n(x)} เดินหน้าเพิ่มทันที ${a.roll()} ช่อง (แอปทอยให้แล้ว) และทำตามช่องที่ตก`; } },
+  { id: 'duel', icon: '🎲', title: 'ดวลเต๋า', fx: (s, a) => { const [x, y] = a.pick(2); if (y == null) return 'ไม่มีคู่ดวล ข้าม';
+      let rx, ry; do { rx = a.roll(); ry = a.roll(); } while (rx === ry);
+      const [w, l] = rx > ry ? [x, y] : [y, x];
+      a.pay(l, w, 100);
+      return `${a.n(x)} ทอยได้ ${rx} · ${a.n(y)} ทอยได้ ${ry} — ${a.n(l)} แพ้ จ่าย ${a.m(100)} ให้ ${a.n(w)}`; } },
+  { id: 'rps', icon: '✊', title: 'เป่ายิ้งฉุบชิงเงิน', fx: (s, a) => { const [x, y] = a.pick(2); return y == null ? 'ไม่มีคู่แข่ง ข้าม' : `${a.n(x)} กับ ${a.n(y)} เป่ายิ้งฉุบ 2 ใน 3 คนแพ้จ่าย ${a.m(80)} ให้คนชนะ (โอนในแอปหรือเงินสดก็ได้)`; } },
+  { id: 'rescue', icon: '🛟', title: 'กองทุนช่วยเหลือ', fx: (s, a) => { const x = a.mostDebt(); if (x == null) { const [y] = a.pick(1); a.give(y, 100); return `ไม่มีใครเป็นหนี้ ${a.n(y)} รับ ${a.m(100)} จากธนาคารแทน`; }
+      const L = s.loans.filter(L => L.borrower === x && L.status === 'active').sort((p, q) => q.balance - p.balance)[0]; const cut = Math.min(L.balance, money(s, 150)); L.balance -= cut;
+      if (L.balance <= 0) { L.status = 'paid'; L.paidRound = s.round; }
+      if (L.lender != null) credit(s, L.lender, cut, 'event', 'กองทุนช่วยเหลือจ่ายแทน');
+      return `${a.n(x)} หนี้มากที่สุด ได้ลดหนี้ ${fmt(cut)}${L.lender == null ? '' : ' (กองทุนจ่ายเข้าบัญชี ' + a.n(L.lender) + ' แทน)'}`; } },
+  { id: 'upgrade', icon: '⭐', title: 'ธนาคารเลื่อนชั้นลูกค้า', fx: (s, a) => { const [x] = a.pick(1); bumpCredit(s, x, 1); return `${a.n(x)} ได้เครดิตเพิ่ม 1 ขั้น เป็น ${CREDIT[s.players[x].credit].name}`; } },
+  { id: 'savings', icon: '🐷', title: 'ดอกเบี้ยเงินฝาก', fx: (s, a) => { let n = 0; a.all().forEach(i => { const b = s.players[i].bal; if (b > 0) { const x = roundUnit(s, b * 0.05); if (x > 0) { a.giveRaw(i, x); n++; } } });
+      return n ? `ทุกคนที่มีเงินในบัญชีได้ดอกเบี้ยเงินฝาก 5% เข้าบัญชี (${n} คน)` : 'ยังไม่มีใครมีเงินฝากในบัญชี เลยไม่ได้ดอกเบี้ย'; } },
+  // ---- ผลต่อเนื่องหลายรอบ ----
+  { id: 'rateup', icon: '🔥', title: 'ดอกเบี้ยพุ่ง', fx: (s, a) => { a.effect('rateX2', 'ดอกเบี้ยธนาคาร ×2', 2); return 'ดอกเบี้ยเงินกู้ธนาคาร ×2 เป็นเวลา 2 รอบ (ใช้กับหนี้เดิมด้วย)'; } },
+  { id: 'rate0', icon: '💚', title: 'ธนาคารใจดี', fx: (s, a) => { a.effect('rate0', 'ดอกเบี้ยธนาคาร 0%', 1); return 'รอบนี้ดอกเบี้ยเงินกู้ธนาคาร 0% กู้ตอนนี้คุ้มสุด!'; } },
+  { id: 'sale', icon: '🏷️', title: 'อสังหาลดราคา', fx: (s, a) => { a.effect('sale', 'ซื้อที่ดินลด 50%', 1); return 'รอบนี้ซื้อที่ดินจากธนาคารลด 50%'; } },
+  { id: 'rent2', icon: '🏙️', title: 'ค่าเช่าพุ่ง', fx: (s, a) => { a.effect('rent2', 'ค่าเช่า ×2', 1); return 'รอบนี้ค่าเช่าทุกช่อง ×2'; } },
+  { id: 'holiday', icon: '🏖️', title: 'วันหยุดยาว', fx: (s, a) => { a.effect('norent', 'ไม่ต้องจ่ายค่าเช่า', 1); return 'รอบนี้ไม่มีใครต้องจ่ายค่าเช่า'; } },
+  { id: 'build', icon: '🏗️', title: 'เทศกาลก่อสร้าง', fx: (s, a) => { a.effect('build50', 'สร้างบ้าน/โรงแรมลด 50%', 2); return 'สร้างบ้านและโรงแรมลด 50% เป็นเวลา 2 รอบ'; } },
+  { id: 'salary', icon: '💰', title: 'ขึ้นเงินเดือน', fx: (s, a) => { a.effect('go2', 'ผ่านจุดเริ่มต้นรับ ×2', 1); return 'รอบนี้ผ่านจุดเริ่มต้นรับเงิน ×2 (ปุ่ม "ผ่านจุดเริ่มต้น" คิดให้อัตโนมัติ)'; } },
+  { id: 'ratecut', icon: '🏦', title: 'แบงก์ชาติลดดอกเบี้ย', fx: (s, a) => { a.effect('rateHalf', 'ดอกเบี้ยธนาคารครึ่งเดียว', 3); return 'ดอกเบี้ยเงินกู้ธนาคารเหลือครึ่งเดียว เป็นเวลา 3 รอบ'; } },
+];
+const EVENT_BY_ID = Object.fromEntries(EVENTS.map(e => [e.id, e]));
+
+// อีเว้นท์ที่แอดมินสร้างเอง: target = all | random | seat, amount บวก = รับจากธนาคาร / ลบ = จ่ายธนาคาร
+function customFx(c) {
+  return (s, a) => {
+    let who = [];
+    if (c.target === 'all') who = a.all();
+    else if (c.target === 'random') who = a.pick(1);
+    else if (c.target === 'seat' && s.players[c.seat] && !s.players[c.seat].out) who = [c.seat];
+    const amt = Math.round(c.amount || 0);
+    who.forEach(i => { if (amt > 0) a.giveRaw(i, amt); else if (amt < 0) a.takeRaw(i, -amt); });
+    const names = who.map(a.n).join(', ') || '—';
+    const raw = String(c.text || '');
+    let text = raw.replace(/\{ชื่อ\}/g, names).replace(/\{เงิน\}/g, fmt(Math.abs(amt)));
+    if (amt && !/\{เงิน\}/.test(raw)) {
+      const tail = `${amt > 0 ? 'รับ' : 'จ่าย'} ${fmt(Math.abs(amt))}${c.target === 'all' ? ' คนละเท่ากัน' : ''}`;
+      text += /\{ชื่อ\}/.test(raw) ? ` (${tail})` : `${text ? ' — ' : ''}${names} ${tail}`;
+    } else if (!raw && who.length) text = names;
+    return text || c.title;
+  };
+}
+const findEvent = (s, id) => EVENT_BY_ID[id] || (s.customEvents || []).map(c => ({ id: c.id, icon: c.icon, title: c.title, fx: customFx(c), custom: true })).find(e => e.id === id);
+
+function drawEvent(s, rng, forceId, adhoc) {
+  if (!active(s).length) return;
+  const deckIds = () => shuffle([...EVENTS.map(e => e.id), ...(s.customEvents || []).filter(c => c.inDeck).map(c => c.id)], rng);
+  if (!s.eventDeck || !s.eventDeck.length) s.eventDeck = deckIds();
+  let e;
+  if (adhoc) e = adhoc;
+  else {
+    let id = forceId;
+    if (id) s.eventDeck = s.eventDeck.filter(x => x !== id); // เลือกเอง: ไม่ให้ใบเดิมซ้ำในสำรับ
+    else {
+      do { id = s.eventDeck.shift(); if (!s.eventDeck.length && !findEvent(s, id)) s.eventDeck = deckIds(); } while (!findEvent(s, id)); // ข้ามใบที่ถูกลบไปแล้ว
+    }
+    e = findEvent(s, id);
+  }
+  const all = () => active(s);
+  let moved = false;
+  const auto = s.settings.autoPay;
+  const api = {
+    m: b => fmt(money(s, b)),
+    n: i => s.players[i].name,
+    all,
+    roll: () => 1 + Math.floor(rng() * 6),
+    pick: k => shuffle(all().slice(), rng).slice(0, k),
+    skip: i => { s.skip[i] = (s.skip[i] || 0) + 1; },
+    effect: (key, label, rounds) => { s.effects = s.effects.filter(x => x.key !== key); s.effects.push({ key, label, icon: e.icon, until: s.round + rounds - 1 }); },
+    mostDebt: () => { const d = all().map(i => [i, debtOf(s, i)]).filter(x => x[1] > 0).sort((p, q) => q[1] - p[1]); return d.length ? d[0][0] : null; },
+    richestLender: () => { const l = all().map(i => [i, lentOf(s, i)]).sort((p, q) => q[1] - p[1]); return l[0][1] > 0 ? l[0][0] : api.pick(1)[0]; },
+    // เงินเข้า/ออกบัญชีตามอีเว้นท์ (ยอดฐานอิงกระดาน 1,500 จะถูกปรับสัดส่วนให้)
+    give: (i, base) => { if (auto) { credit(s, i, money(s, base), 'event', e.title); moved = true; } },
+    take: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); moved = true; } },
+    pay: (from, to, base) => { if (auto && from !== to) { xfer(s, from, to, money(s, base), 'event', e.title); moved = true; } },
+    giveRaw: (i, amt) => { if (auto) { credit(s, i, amt, 'event', e.title); moved = true; } },
+    takeRaw: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); moved = true; } },
+  };
+  let text = e.fx(s, api);
+  if (moved) text += ' 💳 ตัด/เติมเงินในบัญชีให้แล้ว';
+  s.event = { n: (s.event ? s.event.n : 0) + 1, id: e.id, icon: e.icon, title: e.title, text, round: s.round };
+  s.eventHistory.unshift({ icon: e.icon, title: e.title, text, round: s.round });
+  if (s.eventHistory.length > 40) s.eventHistory.length = 40;
+  log(s, `${e.icon} อีเว้นท์: ${e.title} — ${text}`);
+}
+
+// ================== รอบใหม่: คิดดอกเบี้ย เช็คครบกำหนด ==================
+function newRound(s, rng) {
+  s.round++;
+  log(s, `🔔 เริ่มรอบที่ ${s.round}`);
+  s.effects = s.effects.filter(e => e.until >= s.round);
+  for (const L of s.loans) {
+    if (L.status !== 'active') continue;
+    const r = loanRate(s, L);
+    const add = r > 0 ? roundUnit(s, L.balance * r / 100, true) : 0;
+    if (add) { L.balance += add; L.interest += add; }
+    if (s.round > L.dueRound && !L.overdue) {
+      L.overdue = true;
+      const pen = roundUnit(s, L.balance * s.settings.penalty / 100, true);
+      L.balance += pen; L.interest += pen;
+      log(s, `🚨 ${nm(s, L.borrower)} ค้างชำระหนี้${L.lender == null ? 'ธนาคาร' : 'ของ ' + nm(s, L.lender)} โดนค่าปรับ ${fmt(pen)} ยอดค้าง ${fmt(L.balance)}`);
+      bumpCredit(s, L.borrower, -1);
+    }
+  }
+  // เบิกเกินบัญชี (ยอดติดลบ) คิดดอกเบี้ยเท่าดอกเบี้ยเงินกู้ธนาคาร
+  for (const i of active(s)) {
+    const p = s.players[i];
+    if (p.bal >= 0) continue;
+    const r = bankRate(s, i);
+    const add = r > 0 ? roundUnit(s, -p.bal * r / 100, true) : 0;
+    if (add) { debit(s, i, add, 'overdraft', `ดอกเบี้ยเบิกเกินบัญชี ${r}%`); log(s, `🔴 ${p.name} บัญชีติดลบ โดนดอกเบี้ย ${fmt(add)}`); }
+  }
+  const m = s.settings.eventMode;
+  if (m === 'every' || (m === 'every2' && s.round % 2 === 0) || (m === 'chance' && rng() < 0.5)) drawEvent(s, rng);
+}
+
+function nextTurn(s, rng) {
+  const act = active(s);
+  if (!act.length) return;
+  let idx = s.order.indexOf(s.turn);
+  for (let guard = 0; guard < 50; guard++) {
+    idx = (idx + 1) % s.order.length;
+    if (idx === 0) newRound(s, rng);
+    const seat = s.order[idx];
+    if (s.players[seat].out) continue;
+    if (s.skip[seat] > 0) { s.skip[seat]--; log(s, `🚦 ${s.players[seat].name} ข้ามตานี้ (รถติด)`); continue; }
+    s.turn = seat; break;
+  }
+  s.goCount = 0;
+  log(s, `▶️ ตาของ ${s.players[s.turn].name}`);
+}
+
+// ================== ตัวหลัก ==================
+function newRoom(hostUid) {
+  return { v: 3, status: 'lobby', hostUid, pin: genPin(), admins: [], bankPin: genPin(), bankers: [], players: [], settings: { ...DEFAULT_SETTINGS }, log: [], seq: 0 };
+}
+
+// คำสั่งเหล่านี้เป็นของแอดมิน/แบงก์เกอร์ (กรรมการ) ไม่จำเป็นต้องเป็นผู้เล่นในห้องก็สั่งได้
+const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
+  'setRound', 'resetPin', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary'];
+
+function applyAction(state, uid, act, rng = Math.random) {
+  const s = clone(state);
+  s.seq = (s.seq || 0) + 1;
+
+  if (act.type === 'join') {
+    const seat0 = s.players.findIndex(p => p.uid === uid);
+    const name = String(act.name || '').trim().slice(0, 16);
+    need(name, 'กรุณาใส่ชื่อ');
+    const same = s.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+    if (s.status !== 'lobby') {
+      need(same >= 0, 'เกมเริ่มไปแล้ว (เข้ากลับได้ด้วยชื่อเดิมเท่านั้น)');
+      if (s.players[same].uid === s.hostUid) s.hostUid = uid;
+      s.players[same].uid = uid; log(s, `🔌 ${name} กลับเข้าห้อง`); return s;
+    }
+    if (seat0 >= 0) { need(same < 0 || same === seat0, 'ชื่อนี้มีคนใช้แล้ว'); s.players[seat0].name = name; return s; }
+    need(s.players.length < MAX_PLAYERS, `ห้องเต็มแล้ว (สูงสุด ${MAX_PLAYERS} คน)`);
+    need(same < 0, 'ชื่อนี้มีคนใช้แล้ว');
+    const used = s.players.map(p => p.token);
+    const token = Number.isInteger(act.token) && !used.includes(act.token) ? act.token : TOKENS.findIndex((_, i) => !used.includes(i));
+    s.players.push({ uid, name, token, credit: 2, out: false, bal: 0, cash: null, assets: null });
+    log(s, `👋 ${name} เข้าห้อง`);
+    return s;
+  }
+  if (act.type === 'claimAdmin') {
+    need(String(act.pin || '').trim() === s.pin, 'รหัส PIN ไม่ถูกต้อง');
+    s.admins = s.admins || [];
+    if (uid !== s.hostUid && !s.admins.includes(uid)) { s.admins.push(uid); log(s, `🛡️ มีคนเข้าสู่โหมดแอดมินด้วยรหัส PIN`); }
+    return s;
+  }
+  if (act.type === 'claimBanker') {
+    need(String(act.pin || '').trim() === s.bankPin, 'รหัส PIN ไม่ถูกต้อง');
+    s.bankers = s.bankers || [];
+    if (!isBankerUid(s, uid) && !s.bankers.includes(uid)) { s.bankers.push(uid); log(s, `🏧 มีคนเข้าสู่โหมดแบงก์เกอร์ด้วยรหัส PIN`); }
+    return s;
+  }
+
+  const seat = s.players.findIndex(p => p.uid === uid);
+  const me = seat >= 0 ? s.players[seat] : null;
+  const isHost = s.hostUid === uid;
+  const isAdmin = isAdminUid(s, uid);
+  const isBanker = isBankerUid(s, uid);
+  if (!ADMIN_NO_SEAT.includes(act.type)) need(seat >= 0, 'คุณไม่ได้อยู่ในห้องนี้');
+
+  switch (act.type) {
+    case 'leave':
+      need(s.status === 'lobby', 'ออกระหว่างเกมไม่ได้ ให้แอดมินตั้งเป็น "ออกจากเกม" แทน');
+      s.players.splice(seat, 1);
+      if (isHost && s.players.length) s.hostUid = s.players[0].uid;
+      log(s, `🚪 ${me.name} ออกจากห้อง`);
+      break;
+    case 'pickToken':
+      need(s.status === 'lobby', 'เปลี่ยนตัวเดินได้เฉพาะก่อนเริ่ม');
+      need(!s.players.some((p, i) => i !== seat && p.token === act.token), 'มีคนใช้ตัวนี้แล้ว');
+      me.token = act.token; break;
+    case 'settings': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const v = act.settings || {};
+      const st = s.settings;
+      if (v.start != null) { const x = Math.round(+v.start); need(x >= 100 && x <= 10000000, 'เงินเริ่มต้นไม่ถูกต้อง'); st.start = x; }
+      if (v.rate != null) { const x = Math.round(+v.rate); need(x >= 0 && x <= 50, 'ดอกเบี้ยต้องอยู่ระหว่าง 0–50%'); st.rate = x; }
+      if (v.capPct != null) { const x = Math.round(+v.capPct); need(x >= 10 && x <= 300, 'วงเงินต้องอยู่ระหว่าง 10–300%'); st.capPct = x; }
+      if (v.penalty != null) { const x = Math.round(+v.penalty); need(x >= 0 && x <= 100, 'ค่าปรับต้องอยู่ระหว่าง 0–100%'); st.penalty = x; }
+      if (v.eventMode != null) { need(EVENT_MODES[v.eventMode], 'โหมดอีเว้นท์ไม่ถูกต้อง'); st.eventMode = v.eventMode; }
+      if (v.startBal != null) { const x = Math.round(+v.startBal); need(x >= 0 && x <= 100000000, 'ยอดเริ่มต้นไม่ถูกต้อง'); st.startBal = x; }
+      if (v.goSalary != null) { const x = Math.round(+v.goSalary); need(x >= 0 && x <= 100000000, 'เงินผ่านจุดเริ่มต้นไม่ถูกต้อง'); st.goSalary = x; }
+      if (v.autoPay != null) st.autoPay = !!v.autoPay;
+      if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
+      if (s.status === 'playing') log(s, `⚙️ แอดมินปรับการตั้งค่า`);
+      break;
+    }
+    case 'reorder': {
+      need(isAdmin && s.status === 'lobby', 'จัดลำดับได้เฉพาะแอดมินก่อนเริ่ม');
+      const i = act.seat, j = i + act.dir;
+      need(s.players[i] && s.players[j], 'ย้ายไม่ได้');
+      [s.players[i], s.players[j]] = [s.players[j], s.players[i]];
+      break;
+    }
+    case 'start':
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      need(s.status === 'lobby', 'เริ่มไปแล้ว');
+      need(s.players.length >= 2, 'ต้องมีผู้เล่นอย่างน้อย 2 คน');
+      if (act.shuffle) shuffle(s.players, rng);
+      Object.assign(s, { status: 'playing', order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0 });
+      s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null; if (s.settings.startBal > 0) credit(s, i, s.settings.startBal, 'start', 'ยอดเริ่มต้น'); });
+      log(s, `🎲 เริ่มเกม! ลำดับ: ${s.players.map(p => p.name).join(' → ')}`);
+      log(s, `▶️ ตาของ ${s.players[0].name}`);
+      break;
+    case 'resetPin':
+      need(isHost, 'เฉพาะเจ้าของห้องเท่านั้น');
+      s.pin = genPin(); s.admins = [];
+      log(s, `🛡️ เจ้าของห้องสร้างรหัส PIN แอดมินใหม่ (แอดมินคนอื่นหลุดสถานะ)`);
+      break;
+    case 'resetBankPin':
+      need(isHost, 'เฉพาะเจ้าของห้องเท่านั้น');
+      s.bankPin = genPin(); s.bankers = [];
+      log(s, `🏧 เจ้าของห้องสร้างรหัส PIN แบงก์เกอร์ใหม่ (แบงก์เกอร์คนอื่นหลุดสถานะ)`);
+      break;
+    case 'declareWorth': {
+      // แจ้งเงินสดกระดาษ + มูลค่าทรัพย์สินบนกระดาน (ใช้ตอนจบเกม) — ทำได้ทั้งระหว่างเกมและหลังจบ
+      need(s.status !== 'lobby', 'ยังไม่เริ่มเกม');
+      const target = act.seat != null && isAdmin ? act.seat : seat;
+      need(target >= 0 && s.players[target], 'ไม่พบผู้เล่น');
+      const c = Math.round(+act.cash || 0), as = Math.round(+act.assets || 0);
+      need(c >= 0 && as >= 0, 'ตัวเลขต้องไม่ติดลบ');
+      s.players[target].cash = c; s.players[target].assets = as;
+      log(s, `🧮 ${s.players[target].name} แจ้งเงินสด ${fmt(c)} + ทรัพย์สิน ${fmt(as)}`);
+      break;
+    }
+    default:
+      need(s.status === 'playing', 'เกมยังไม่เริ่มหรือจบไปแล้ว');
+      playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng);
+  }
+  return s;
+}
+
+function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
+  const findLoan = id => { const L = s.loans.find(x => x.id === id); need(L, 'ไม่พบสัญญานี้'); return L; };
+  const closeIfPaid = L => {
+    if (L.balance > 0) return;
+    L.status = 'paid'; L.paidRound = s.round;
+    log(s, `✅ ${nm(s, L.borrower)} ปิดหนี้${L.lender == null ? 'ธนาคาร' : 'ของ ' + nm(s, L.lender)} ครบแล้ว`);
+    if (!L.overdue && s.round > L.startRound) bumpCredit(s, L.borrower, 1);
+  };
+  const notOut = () => need(!me.out, 'คุณออกจากเกมแล้ว');
+  switch (act.type) {
+    // ---------- ตา / รอบ ----------
+    case 'endTurn':
+      need(seat === s.turn || isAdmin, 'ยังไม่ถึงตาของคุณ');
+      log(s, `⏭️ ${s.players[s.turn].name} จบตา`);
+      nextTurn(s, rng);
+      break;
+    case 'drawEvent':
+      need(seat === s.turn || isAdmin, 'สุ่มอีเว้นท์ได้เฉพาะคนที่ถึงตาหรือแอดมิน');
+      drawEvent(s, rng);
+      break;
+    case 'goSalary': {
+      // ผ่านจุดเริ่มต้น: เงินเดือนเข้าบัญชีคนที่ถึงตา (กดได้ไม่เกิน 2 ครั้งต่อตา กันกดซ้ำ)
+      need(seat === s.turn || isAdmin, 'กดได้เฉพาะคนที่ถึงตาหรือแอดมิน');
+      need((s.goCount || 0) < 2, 'ตานี้รับเงินผ่านจุดเริ่มต้นไปแล้ว');
+      const t = s.turn, amt = s.settings.goSalary * (hasEffect(s, 'go2') ? 2 : 1);
+      need(amt > 0, 'ตั้งค่าเงินผ่านจุดเริ่มต้นเป็น 0 อยู่');
+      credit(s, t, amt, 'go', 'ผ่านจุดเริ่มต้น');
+      s.goCount = (s.goCount || 0) + 1;
+      log(s, `🏁 ${s.players[t].name} ผ่านจุดเริ่มต้น รับ ${fmt(amt)} เข้าบัญชี`);
+      break;
+    }
+    // ---------- บัญชีธนาคาร ----------
+    case 'transfer': {
+      notOut();
+      const to = act.to, amt = posInt(act.amount);
+      need(s.players[to] && to !== seat && !s.players[to].out, 'เลือกผู้รับให้ถูกต้อง');
+      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      const note = String(act.note || '').slice(0, 40);
+      xfer(s, seat, to, amt, 'transfer', note);
+      log(s, `💸 ${me.name} โอน ${fmt(amt)} ให้ ${s.players[to].name}${note ? ` (${note})` : ''}`);
+      break;
+    }
+    case 'payBank': {
+      notOut();
+      const amt = posInt(act.amount);
+      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      const note = String(act.note || '').slice(0, 40);
+      debit(s, seat, amt, 'payBank', note);
+      log(s, `🏦 ${me.name} จ่ายธนาคาร ${fmt(amt)}${note ? ` (${note})` : ''}`);
+      break;
+    }
+    case 'request': {
+      // ฝาก/ถอนเงินสด หรือขอรับเงินจากธนาคาร: ถ้าต้องยืนยัน จะรอแอดมินกด (แอดมินทำให้ตัวเองได้ทันที)
+      notOut();
+      need(REQ_KIND[act.kind], 'ประเภทคำขอไม่ถูกต้อง');
+      const amt = posInt(act.amount);
+      if (act.kind === 'withdraw') need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      const note = String(act.note || '').slice(0, 40);
+      if (!s.settings.cashConfirm || isBanker) { applyReq(s, { seat, kind: act.kind, amt, note }); break; }
+      need(s.reqs.filter(r => r.seat === seat).length < 5, 'มีคำขอค้างอยู่หลายรายการ รอแบงก์เกอร์ยืนยันก่อน');
+      s.reqs.push({ id: s.nextReq++, seat, kind: act.kind, amt, note, r: s.round });
+      log(s, `🙋 ${me.name} ขอ${REQ_KIND[act.kind]} ${fmt(amt)} — รอแอดมินยืนยัน`);
+      break;
+    }
+    case 'cancelReq': {
+      const i = s.reqs.findIndex(r => r.id === act.id);
+      need(i >= 0 && s.reqs[i].seat === seat, 'ไม่พบคำขอนี้');
+      s.reqs.splice(i, 1);
+      log(s, `↩️ ${me.name} ยกเลิกคำขอ`);
+      break;
+    }
+    case 'resolveReq': {
+      need(isBanker, 'เฉพาะแอดมินหรือแบงก์เกอร์เท่านั้น');
+      const i = s.reqs.findIndex(r => r.id === act.id);
+      need(i >= 0, 'คำขอนี้ถูกจัดการไปแล้ว');
+      const r = s.reqs[i];
+      if (act.ok) {
+        if (r.kind === 'withdraw') need(s.players[r.seat].bal >= r.amt, `${s.players[r.seat].name} ยอดในบัญชีไม่พอแล้ว`);
+        s.reqs.splice(i, 1);
+        applyReq(s, r);
+      } else {
+        s.reqs.splice(i, 1);
+        log(s, `❌ ${isAdmin ? 'แอดมิน' : 'แบงก์เกอร์'}ปฏิเสธคำขอ${REQ_KIND[r.kind]}ของ ${s.players[r.seat].name}`);
+      }
+      break;
+    }
+    case 'adjustBalance': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
+      const d = Math.round(+act.delta); need(Number.isFinite(d) && d !== 0, 'จำนวนเงินไม่ถูกต้อง');
+      const note = String(act.note || 'แอดมินปรับยอด').slice(0, 40);
+      if (d > 0) credit(s, act.seat, d, 'admin', note); else debit(s, act.seat, -d, 'admin', note);
+      log(s, `🛡️ แอดมินปรับยอดบัญชี ${p.name} ${d > 0 ? '+' : '−'}${fmt(Math.abs(d))} (${note})`);
+      break;
+    }
+    // ---------- กู้ยืม ----------
+    case 'bankLoan': {
+      notOut();
+      const amt = Math.round(+act.amount), rounds = Math.round(+act.rounds);
+      need(amt > 0 && amt % unitOf(s) === 0, `ยอดกู้ต้องเป็นทวีคูณของ ${fmt(unitOf(s))}`);
+      need(rounds >= 1 && rounds <= 20, 'ระยะเวลาไม่ถูกต้อง');
+      need(!s.loans.some(L => L.borrower === seat && L.status === 'active' && L.overdue), 'มีหนี้ค้างชำระอยู่ ธนาคารไม่ให้กู้เพิ่ม');
+      const room = bankCap(s, seat) - bankDebt(s, seat);
+      need(amt <= room, `เกินวงเงิน กู้ได้อีกไม่เกิน ${fmt(Math.max(0, room))}`);
+      const intoCash = act.into === 'cash';
+      const L = { id: s.nextLoan++, lender: null, borrower: seat, principal: amt, balance: amt, rate: bankRate(s, seat), interest: 0,
+        startRound: s.round, dueRound: s.round + rounds, status: 'active', overdue: false, via: intoCash ? 'cash' : 'account' };
+      s.loans.push(L);
+      if (!intoCash) credit(s, seat, amt, 'loan', 'เงินกู้ธนาคาร');
+      log(s, `🏦 ${me.name} กู้ธนาคาร ${fmt(amt)} คืนภายในรอบที่ ${L.dueRound} → ${intoCash ? 'รับเงินสดจากธนาคาร' : 'เงินเข้าบัญชีแล้ว'}`);
+      break;
+    }
+    case 'offerLoan': {
+      notOut();
+      const to = act.to, amt = Math.round(+act.amount), rate = Math.round(+act.rate), rounds = Math.round(+act.rounds);
+      need(s.players[to] && to !== seat && !s.players[to].out, 'เลือกผู้กู้ให้ถูกต้อง');
+      need(amt > 0, 'ยอดเงินไม่ถูกต้อง');
+      need(rate >= 0 && rate <= 50, 'ดอกเบี้ยต้องอยู่ระหว่าง 0–50% ต่อรอบ');
+      need(rounds >= 1 && rounds <= 20, 'ระยะเวลาไม่ถูกต้อง');
+      const via = act.via === 'cash' ? 'cash' : 'account';
+      if (via === 'account') need(me.bal >= amt, `ยอดในบัญชีไม่พอให้กู้ (มี ${fmt(me.bal)})`);
+      s.loans.push({ id: s.nextLoan++, lender: seat, borrower: to, principal: amt, balance: amt, rate, interest: 0,
+        startRound: null, dueRound: null, rounds, status: 'offer', overdue: false, via, note: String(act.note || '').slice(0, 60) });
+      log(s, `✉️ ${me.name} เสนอให้ ${nm(s, to)} กู้ ${fmt(amt)} ดอกเบี้ย ${rate}%/รอบ ${rounds} รอบ (${via === 'cash' ? 'เงินสด' : 'โอนเข้าบัญชี'})`);
+      break;
+    }
+    case 'acceptLoan': {
+      const L = findLoan(act.id);
+      need(L.status === 'offer' && L.borrower === seat, 'ไม่มีข้อเสนอนี้สำหรับคุณ');
+      if (L.via === 'account') {
+        need(s.players[L.lender].bal >= L.principal, `${nm(s, L.lender)} มียอดในบัญชีไม่พอแล้ว`);
+        xfer(s, L.lender, seat, L.principal, 'loan', 'เงินกู้จากเพื่อน');
+      }
+      Object.assign(L, { status: 'active', startRound: s.round, dueRound: s.round + L.rounds });
+      log(s, `🤝 ${me.name} รับเงินกู้จาก ${nm(s, L.lender)} ${fmt(L.principal)} → ${L.via === 'account' ? 'โอนเข้าบัญชีแล้ว' : nm(s, L.lender) + ' ส่งเงินสดให้ ' + me.name}`);
+      break;
+    }
+    case 'cancelLoan': {
+      const L = findLoan(act.id);
+      need(L.status === 'offer' && (L.borrower === seat || L.lender === seat), 'ยกเลิกไม่ได้');
+      L.status = 'declined';
+      log(s, L.borrower === seat ? `🙅 ${me.name} ปฏิเสธข้อเสนอกู้จาก ${nm(s, L.lender)}` : `↩️ ${me.name} ยกเลิกข้อเสนอให้กู้`);
+      break;
+    }
+    case 'repay': {
+      // คืนด้วยเงินสด: หนี้ธนาคาร = ผู้กู้กดเอง / หนี้ผู้เล่น = ผู้ให้กู้เป็นคนกดยืนยันว่าได้รับเงิน
+      const L = findLoan(act.id);
+      need(L.status === 'active', 'สัญญานี้ปิดไปแล้ว');
+      need(L.lender == null ? (L.borrower === seat || isAdmin) : L.lender === seat, L.lender == null ? 'เฉพาะผู้กู้' : 'ผู้ให้กู้ต้องเป็นคนกดยืนยันว่าได้รับเงินแล้ว');
+      const amt = Math.round(+act.amount);
+      need(amt > 0 && amt <= L.balance, `ยอดต้องอยู่ระหว่าง 1–${fmt(L.balance)}`);
+      L.balance -= amt;
+      log(s, `💵 ${nm(s, L.borrower)} คืนเงินสด ${fmt(amt)} ให้${nm(s, L.lender)} (เหลือ ${fmt(L.balance)})`);
+      closeIfPaid(L);
+      break;
+    }
+    case 'repayAccount': {
+      // คืนจากบัญชี: ผู้กู้กดเองได้เลย (ระบบตรวจยอดให้ ไม่ต้องให้ผู้ให้กู้ยืนยัน)
+      const L = findLoan(act.id);
+      need(L.status === 'active' && L.borrower === seat, 'เฉพาะผู้กู้ของสัญญานี้');
+      const amt = Math.round(+act.amount);
+      need(amt > 0 && amt <= L.balance, `ยอดต้องอยู่ระหว่าง 1–${fmt(L.balance)}`);
+      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      if (L.lender == null) debit(s, seat, amt, 'repay', 'คืนหนี้ธนาคาร');
+      else xfer(s, seat, L.lender, amt, 'repay', 'คืนหนี้');
+      L.balance -= amt;
+      log(s, `💸 ${me.name} คืนหนี้จากบัญชี ${fmt(amt)} ให้${nm(s, L.lender)} (เหลือ ${fmt(L.balance)})`);
+      closeIfPaid(L);
+      break;
+    }
+    case 'forgive': {
+      const L = findLoan(act.id);
+      need(L.status === 'active' && L.lender === seat, 'เฉพาะผู้ให้กู้');
+      L.status = 'forgiven';
+      log(s, `😇 ${me.name} ยกหนี้ ${fmt(L.balance)} ให้ ${nm(s, L.borrower)}`);
+      break;
+    }
+    // ---------- แอดมิน ----------
+    case 'forceEvent':
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      need(findEvent(s, act.id), 'ไม่พบอีเว้นท์นี้');
+      drawEvent(s, rng, act.id);
+      log(s, `🛡️ แอดมินเลือกอีเว้นท์เอง`);
+      break;
+    case 'addCustomEvent': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const title = String(act.title || '').trim().slice(0, 30);
+      need(title, 'ใส่ชื่ออีเว้นท์ก่อน');
+      const target = ['all', 'random', 'seat', 'none'].includes(act.target) ? act.target : 'none';
+      if (target === 'seat') need(s.players[act.seat], 'เลือกผู้เล่นให้ถูกต้อง');
+      const amount = Math.round(+act.amount || 0);
+      need(Math.abs(amount) <= 100000000, 'จำนวนเงินมากเกินไป');
+      const c = { id: 'c' + (s.nextCustom = (s.nextCustom || 0) + 1), icon: String(act.icon || '⭐').slice(0, 4), title,
+        text: String(act.text || '').slice(0, 160), target, seat: target === 'seat' ? act.seat : null, amount, inDeck: !!act.inDeck };
+      if (act.inDeck || !act.now) {
+        s.customEvents.push(c);
+        if (c.inDeck && s.eventDeck) s.eventDeck.splice(Math.floor(rng() * (s.eventDeck.length + 1)), 0, c.id);
+        log(s, `🛡️ แอดมินสร้างอีเว้นท์ "${title}"${c.inDeck ? ' (ใส่ในสำรับสุ่มแล้ว)' : ''}`);
+      }
+      if (act.now) drawEvent(s, rng, null, { id: c.id, icon: c.icon, title: c.title, fx: customFx(c) });
+      break;
+    }
+    case 'deleteCustomEvent': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const i = s.customEvents.findIndex(c => c.id === act.id);
+      need(i >= 0, 'ไม่พบอีเว้นท์นี้');
+      s.customEvents.splice(i, 1);
+      if (s.eventDeck) s.eventDeck = s.eventDeck.filter(x => x !== act.id);
+      break;
+    }
+    case 'editLoan': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const L = findLoan(act.id);
+      if (act.balance != null) {
+        const b = Math.round(+act.balance); need(b >= 0, 'ยอดต้องไม่ติดลบ');
+        L.balance = b;
+        if (L.status === 'offer') L.principal = b;
+        if (b === 0 && L.status === 'active') { L.status = 'paid'; L.paidRound = s.round; }
+      }
+      if (act.rate != null) { const r = Math.round(+act.rate); need(r >= 0 && r <= 50, 'ดอกเบี้ยไม่ถูกต้อง'); L.rate = r; }
+      if (act.dueRound != null && L.status !== 'offer') { const d = Math.round(+act.dueRound); need(d >= 1, 'รอบไม่ถูกต้อง'); L.dueRound = d; L.overdue = s.round > d; }
+      if (act.status && ['active', 'paid', 'forgiven', 'declined'].includes(act.status) && act.status !== L.status) {
+        if (act.status === 'active' && L.status === 'offer') Object.assign(L, { startRound: s.round, dueRound: s.round + L.rounds });
+        L.status = act.status;
+      }
+      log(s, `🛡️ แอดมินแก้ไขสัญญาเงินกู้ของ ${nm(s, L.borrower)}`);
+      break;
+    }
+    case 'adjustCredit': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
+      const c = Math.round(+act.credit); need(c >= 0 && c < CREDIT.length, 'ระดับเครดิตไม่ถูกต้อง');
+      p.credit = c;
+      log(s, `🛡️ แอดมินปรับเครดิตของ ${p.name} เป็น ${CREDIT[c].name}`);
+      break;
+    }
+    case 'setRound': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const r = Math.round(+act.round); need(r >= 1 && r <= 999, 'รอบไม่ถูกต้อง');
+      s.round = r;
+      log(s, `🛡️ แอดมินปรับเป็นรอบที่ ${r}`);
+      break;
+    }
+    case 'setOut': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
+      p.out = !p.out;
+      log(s, p.out ? `💀 ${p.name} ออกจากเกม (ล้มละลาย)` : `↩️ ${p.name} กลับเข้าเกม`);
+      if (p.out) {
+        for (const L of s.loans) if (L.status === 'offer' && (L.lender === act.seat || L.borrower === act.seat)) L.status = 'declined';
+        s.reqs = s.reqs.filter(r => r.seat !== act.seat);
+        if (s.turn === act.seat && active(s).length) nextTurn(s, rng);
+      } else if (s.players[s.turn].out) s.turn = act.seat;
+      break;
+    }
+    case 'endGame':
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      s.status = 'over';
+      s.reqs = [];
+      log(s, '🏁 จบเกม — ทุกคนนับเงินสดกระดาษ + มูลค่าที่ดินบนกระดาน แล้วแจ้งในแอปเพื่อจัดอันดับ');
+      break;
+    default: throw new GameError('ไม่รู้จักคำสั่ง ' + act.type);
+  }
+}
+
+// ทำรายการตามคำขอ (หลังแอดมินยืนยัน หรือไม่ต้องยืนยัน)
+function applyReq(s, r) {
+  const p = s.players[r.seat];
+  if (r.kind === 'deposit') { credit(s, r.seat, r.amt, 'deposit', r.note || 'ฝากเงินสด'); log(s, `🏧 ${p.name} ฝากเงินสด ${fmt(r.amt)} เข้าบัญชี (ยื่นแบงก์ให้คนถือธนาคาร)`); }
+  if (r.kind === 'withdraw') { debit(s, r.seat, r.amt, 'withdraw', r.note || 'ถอนเงินสด'); log(s, `🏧 ${p.name} ถอนเงินสด ${fmt(r.amt)} (รับแบงก์จากคนถือธนาคาร)`); }
+  if (r.kind === 'claim') { credit(s, r.seat, r.amt, 'claim', r.note || 'รับจากธนาคาร'); log(s, `🏦 ธนาคารจ่าย ${fmt(r.amt)} เข้าบัญชี ${p.name}${r.note ? ` (${r.note})` : ''}`); }
+}
+
+if (typeof module !== 'undefined') module.exports = { applyAction, newRoom, EVENTS, EVENT_BY_ID, CREDIT, TOKENS, GameError, bankCap, bankDebt, debtOf, lentOf, loanRate, bankRate,
+  unitOf, money, EVENT_MODES, isAdminUid, isBankerUid, netWorth, gameStats, REQ_KIND, findEvent };
+
+</script>
+
+<script>
+// qrcode-generator 1.4.4 — Copyright (c) 2009 Kazuhiko Arase — MIT License
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+
+<script>
+// ================== ส่วนแสดงผล + ออนไลน์ ==================
+const $ = (q, el = document) => el.querySelector(q);
+const $$ = (q, el = document) => [...el.querySelectorAll(q)];
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+
+const App = { mode: null, state: null, room: null, uid: null, busy: false, unsub: null, tab: 'me', actor: 0, seenEvent: null,
+  token: +(store('bb_token') || 0), sound: store('bb_sound') !== 'off', audio: null, titleTimer: null };
+function getUid() {
+  let u = null; try { u = sessionStorage.getItem('bb_uid'); } catch (e) {}
+  if (!u) { u = 'u' + Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('bb_uid', u); } catch (e) {} }
+  return u;
+}
+const S = () => App.state;
+const mySeat = () => App.mode === 'online' && S() ? S().players.findIndex(p => p.uid === App.uid) : -1;
+const viewSeat = () => App.mode === 'local' ? App.actor : mySeat();       // บัญชีที่กำลังดูอยู่
+const isHostUser = () => !!S() && S().hostUid === App.uid;          // เจ้าของห้องตัวจริง (ตั้ง/รีเซ็ต PIN ได้)
+const isAdmin = () => App.mode === 'local' || (!!S() && isAdminUid(S(), App.uid)); // เจ้าของห้อง หรือใครก็ตามที่ใส่ PIN แอดมินถูก
+const isBanker = () => App.mode === 'local' || (!!S() && isBankerUid(S(), App.uid)); // แอดมิน หรือคนถือเงินสดธนาคารที่ใส่ PIN แบงก์เกอร์ถูก
+const canAct = seat => App.mode === 'local' || seat === mySeat();
+const P = i => S().players[i];
+const tokHtml = (i, cls = '') => { const p = P(i), t = TOKENS[p.token]; return `<span class="tok ${cls}" style="--c:${t.color}">${t.icon}</span>`; };
+const pn = i => i == null ? '🏦 ธนาคาร' : `${TOKENS[P(i).token].icon} ${esc(P(i).name)}`;
+const creditHtml = i => { const c = CREDIT[P(i).credit]; return `<span class="credit" style="--cc:${c.color}" title="ระดับเครดิต">${c.name}</span>`; };
+const baht = n => `${n < 0 ? '−' : ''}${fmt(Math.abs(n))}`;
+
+function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 3600); }
+
+// ---------- เสียง + สั่น + กระพริบชื่อแท็บ (แจ้งเตือน) ----------
+function unlockAudio() { // เบราว์เซอร์ยอมให้เล่นเสียงหลังผู้ใช้แตะจอครั้งแรกเท่านั้น
+  if (App.audio) return;
+  try { const C = window.AudioContext || window.webkitAudioContext; if (C) App.audio = new C(); } catch (e) {}
+}
+function beep(kind) {
+  if (!App.sound || !App.audio) return;
+  try {
+    const ctx = App.audio, now = ctx.currentTime;
+    const notes = kind === 'turn' ? [660, 880] : kind === 'money' ? [988, 1319] : [520];
+    notes.forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, now + i * 0.14);
+      g.gain.exponentialRampToValueAtTime(0.25, now + i * 0.14 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.14 + 0.22);
+      o.connect(g).connect(ctx.destination); o.start(now + i * 0.14); o.stop(now + i * 0.14 + 0.25);
+    });
+  } catch (e) {}
+}
+function buzz(p) { try { if (App.sound && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+function flashTitle(msg) {
+  if (!document.hidden) return;
+  clearInterval(App.titleTimer);
+  const base = 'ธนาคารเศรษฐี'; let on = false;
+  App.titleTimer = setInterval(() => { document.title = (on = !on) ? msg : base; }, 1000);
+  const stop = () => { clearInterval(App.titleTimer); document.title = base; document.removeEventListener('visibilitychange', stop); };
+  document.addEventListener('visibilitychange', stop);
+}
+// เทียบ state เก่ากับใหม่ แล้วแจ้งเตือนสิ่งที่เกี่ยวกับเครื่องนี้
+function notifyChanges(prev, s) {
+  if (!prev || App.mode !== 'online' || s.status !== 'playing' || prev.status !== 'playing') return;
+  const me = mySeat();
+  if (me >= 0 && prev.turn !== s.turn && s.turn === me) {
+    toast('🎲 ถึงตาคุณแล้ว!'); beep('turn'); buzz([200, 100, 200]); flashTitle('🎲 ถึงตาคุณ!');
+  }
+  if (me >= 0) {
+    const fresh = s.tx.filter(t => t.id >= (prev.nextTx || 1) && t.t === me && t.f !== me && ['transfer', 'loan', 'repay', 'event', 'claim', 'deposit', 'admin'].includes(t.k));
+    if (fresh.length) {
+      const t = fresh[fresh.length - 1];
+      toast(`💰 ได้รับ ${fmt(t.a)} จาก${t.f == null ? 'ธนาคาร' : ' ' + P(t.f).name}${t.n ? ` (${t.n})` : ''}`); beep('money'); buzz(120);
+    }
+    const mineBefore = (prev.reqs || []).filter(r => r.seat === me).map(r => r.id);
+    const gone = mineBefore.filter(id => !s.reqs.some(r => r.id === id));
+    if (gone.length && !fresh.length) toast('แบงก์เกอร์จัดการคำขอของคุณแล้ว ดูรายการล่าสุดในบัญชี');
+    const offers = s.loans.filter(L => L.status === 'offer' && L.borrower === me && !prev.loans.some(x => x.id === L.id));
+    if (offers.length) { toast(`✉️ ${P(offers[0].lender).name} เสนอให้คุณกู้ ${fmt(offers[0].principal)}`); beep('ping'); buzz(120); }
+  }
+  if (isBanker() && s.reqs.length > (prev.reqs || []).length) { toast('🏧 มีคำขอฝาก/ถอนรอแบงก์เกอร์ยืนยัน'); beep('ping'); buzz(80); }
+}
+
+// ---------- QR โค้ด (ใช้ไลบรารี qrcode-generator ที่ฝังในไฟล์) ----------
+function qrSvg(text) {
+  try {
+    const q = qrcode(0, 'M'); q.addData(text); q.make();
+    const n = q.getModuleCount(), m = 2, size = n + m * 2;
+    let d = '';
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m},${r + m}h1v1h-1z`;
+    return `<svg class="qr" viewBox="0 0 ${size} ${size}" role="img" aria-label="QR โค้ดเข้าห้อง" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`;
+  } catch (e) { return ''; }
+}
+
+// ---------- Firebase ----------
+let FB = null;
+async function fb() {
+  if (FB) return FB;
+  if (!FIREBASE_CONFIG) throw new Error('ยังไม่ได้ตั้งค่า Firebase');
+  const V = '10.12.2';
+  const appMod = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+  const fs = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+  FB = { ...fs, db: fs.getFirestore(appMod.initializeApp(FIREBASE_CONFIG)) };
+  return FB;
+}
+const roomRef = code => FB.doc(FB.db, ROOMS, code);
+
+// ส่งคำสั่ง: seat = ทำในนามผู้เล่นคนไหน (null = เครื่องนี้ / แอดมิน)
+async function dispatch(seat, act) {
+  if (App.busy) return false;
+  const uid = seat == null ? (App.mode === 'local' ? S().hostUid : App.uid) : P(seat).uid;
+  if (App.mode === 'local') {
+    try { setState(applyAction(S(), uid, act)); return true; }
+    catch (e) { toast(e.message); if (!(e instanceof GameError)) console.error(e); return false; }
+  }
+  App.busy = true; document.body.style.cursor = 'progress';
+  try {
+    await FB.runTransaction(FB.db, async tx => {
+      const snap = await tx.get(roomRef(App.room));
+      if (!snap.exists()) throw new GameError('ไม่พบห้องนี้แล้ว');
+      tx.update(roomRef(App.room), { data: JSON.stringify(applyAction(JSON.parse(snap.data().data), uid, act)), t: Date.now() });
+    });
+    return true;
+  } catch (e) { toast(e instanceof GameError ? e.message : 'เชื่อมต่อไม่สำเร็จ: ' + e.message); if (!(e instanceof GameError)) console.error(e); return false; }
+  finally { App.busy = false; document.body.style.cursor = ''; }
+}
+
+async function createRoom(name) {
+  await fb();
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for (let k = 0; k < 5; k++) {
+    const code = Array.from({ length: 5 }, () => A[Math.floor(Math.random() * A.length)]).join('');
+    const ok = await FB.runTransaction(FB.db, async tx => {
+      if ((await tx.get(roomRef(code))).exists()) return false;
+      tx.set(roomRef(code), { data: JSON.stringify(applyAction(newRoom(App.uid), App.uid, { type: 'join', name, token: App.token })), t: Date.now() });
+      return true;
+    });
+    if (ok) return enterRoom(code);
+  }
+  throw new Error('สร้างห้องไม่สำเร็จ ลองใหม่');
+}
+async function roomTx(code, act) {
+  await fb(); code = code.trim().toUpperCase();
+  await FB.runTransaction(FB.db, async tx => {
+    const snap = await tx.get(roomRef(code));
+    if (!snap.exists()) throw new GameError('ไม่พบห้อง ' + code);
+    tx.update(roomRef(code), { data: JSON.stringify(applyAction(JSON.parse(snap.data().data), App.uid, act)), t: Date.now() });
+  });
+  enterRoom(code);
+}
+const joinRoom = (code, name) => roomTx(code, { type: 'join', name, token: App.token });
+const adminEnterRoom = (code, pin) => roomTx(code, { type: 'claimAdmin', pin });
+const bankerEnterRoom = (code, pin) => roomTx(code, { type: 'claimBanker', pin });
+function enterRoom(code) {
+  App.mode = 'online'; App.room = code;
+  try { history.replaceState(null, '', '?room=' + code); } catch (e) {}
+  if (App.unsub) App.unsub();
+  App.unsub = FB.onSnapshot(roomRef(code), snap => { if (snap.exists()) setState(JSON.parse(snap.data().data)); else toast('ห้องถูกลบแล้ว'); }, err => toast('การเชื่อมต่อขาด: ' + err.message));
+}
+function startLocal(names) {
+  App.mode = 'local';
+  let s = newRoom('L0');
+  names.forEach((n, i) => { s = applyAction(s, 'L' + i, { type: 'join', name: n, token: i }); });
+  s = applyAction(s, 'L0', { type: 'settings', settings: { cashConfirm: false } }); // เครื่องเดียว: คนถือเครื่องคือแบงก์เกอร์อยู่แล้ว
+  App.seenEvent = null; App.actor = 0;
+  setState(s);
+}
+function setState(s) {
+  const prev = App.state;
+  App.state = s;
+  if (!prev && s.event) App.seenEvent = s.event.n; // เข้าห้องกลางเกม ไม่ต้องเด้งอีเว้นท์เก่า
+  if (prev && prev.status === 'playing' && s.status === 'over') App.tab = 'result';
+  if (s.status === 'playing' && App.tab === 'result') App.tab = 'me';
+  notifyChanges(prev, s);
+  render();
+}
+function leaveToHome() {
+  if (App.unsub) App.unsub();
+  Object.assign(App, { unsub: null, state: null, mode: null, room: null, seenEvent: null, tab: 'me' });
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  closeModal(); $('#ev-root').innerHTML = ''; render();
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('คัดลอกแล้ว'); } catch (e) { toast('คัดลอกไม่ได้ — เลือกข้อความแล้วคัดลอกเอง'); } }
+const inviteLink = () => location.origin + location.pathname + '?room=' + App.room;
+
+// ================== หน้าจอ ==================
+function render() {
+  const s = S();
+  if (!s) return renderHome();
+  if (s.status === 'lobby') return renderLobby();
+  renderGame();
+}
+
+const tokenPicker = (sel, taken = []) => `<div class="tokpick" role="group" aria-label="เลือกตัวเดิน">${TOKENS.map((t, i) =>
+  `<button type="button" data-tok="${i}" aria-pressed="${i === sel}" ${taken.includes(i) ? 'disabled' : ''}>${t.icon}</button>`).join('')}</div>`;
+
+function renderHome() {
+  const q = new URLSearchParams(location.search).get('room') || '';
+  const online = !!FIREBASE_CONFIG;
+  $('#app').innerHTML = `<main class="wrap">
+    <header class="hero">
+      <div class="label">ระบบเสริมสำหรับเศรษฐีกระดานจริง</div>
+      <h1>ธนาคาร<span>เศรษฐี</span></h1>
+      <p>เล่นบนกระดานจริง ใช้เงินสดกระดาษได้เหมือนเดิม และมีบัญชีธนาคารในมือถือไว้โอน ฝาก ถอน กู้ยืม พร้อมอีเว้นท์พิเศษที่เด้งขึ้นจอทุกคนพร้อมกัน</p>
+    </header>
+    <ul class="features">
+      <li><b>💳 บัญชีธนาคาร</b>โอนค่าเช่า ฝาก/ถอนเงินสดกับแบงก์เกอร์ รับเงินผ่านจุดเริ่มต้นเข้าบัญชี</li>
+      <li><b>🏦 กู้ยืม</b>กู้ธนาคารหรือกู้กันเอง ดอกเบี้ยคิดทุกรอบ เครดิตขึ้นลงตามพฤติกรรม</li>
+      <li><b>🎴 อีเว้นท์พิเศษ</b>${EVENTS.length} แบบ + แอดมินสร้างเองได้ ตัด/เติมเงินในบัญชีให้อัตโนมัติ</li>
+    </ul>
+    <div class="home-grid">
+      <section class="panel stack" aria-labelledby="h-on">
+        <h2 id="h-on">ทุกคนใช้มือถือตัวเอง</h2>
+        ${online ? '' : `<div class="warn">ยังไม่ได้ใส่ค่า Firebase ในไฟล์ <b>index.html</b> (ดู README) ระหว่างนี้ใช้แบบเครื่องเดียวได้ก่อน</div>`}
+        <div class="field"><label for="in-name">ชื่อของคุณ</label><input id="in-name" maxlength="16" value="${esc(store('bb_name') || '')}" placeholder="เช่น โฟกัส"></div>
+        <div class="field"><span class="label">ตัวเดิน</span>${tokenPicker(App.token)}</div>
+        <button class="primary" id="b-create" ${online ? '' : 'disabled'}>สร้างห้องใหม่</button>
+        <div class="row" style="flex-wrap:nowrap"><input id="in-code" maxlength="5" placeholder="รหัสห้อง" value="${esc(q)}" style="text-transform:uppercase;font-family:var(--mono);letter-spacing:.12em"><button id="b-join" ${online ? '' : 'disabled'} style="flex:none">เข้าห้อง</button></div>
+        <div class="row" style="gap:6px">
+          <button class="sm" id="b-admin-enter" ${online ? '' : 'disabled'}>🛡️ เข้าแบบแอดมิน (ไม่ร่วมเล่น)</button>
+          <button class="sm" id="b-banker-enter" ${online ? '' : 'disabled'}>🏧 เข้าแบบแบงก์เกอร์</button>
+        </div>
+      </section>
+      <section class="panel stack" aria-labelledby="h-loc">
+        <h2 id="h-loc">มือถือเครื่องเดียววางกลางโต๊ะ</h2>
+        <p class="muted" style="margin:0;font-size:14px">ไม่ต้องใช้อินเทอร์เน็ต ผลัดกันกดบนเครื่องเดียว คนถือเครื่องเป็นแบงก์เกอร์</p>
+        ${[0, 1, 2, 3, 4, 5].map(i => `<div class="row" style="flex-wrap:nowrap"><span class="tok" style="--c:${TOKENS[i].color}">${TOKENS[i].icon}</span><input id="ln-${i}" placeholder="${i < 2 ? 'ผู้เล่น ' + (i + 1) : 'ว่างได้'}" value="${i < 2 ? 'ผู้เล่น ' + (i + 1) : ''}" maxlength="16"></div>`).join('')}
+        <button class="primary" id="b-local">ตั้งค่าเกม</button>
+      </section>
+    </div></main>`;
+  $$('[data-tok]').forEach(b => b.onclick = () => { App.token = +b.dataset.tok; store('bb_token', App.token); $$('[data-tok]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  const nameOk = () => { const n = $('#in-name').value.trim(); if (!n) { toast('กรุณาใส่ชื่อก่อน'); return null; } store('bb_name', n); return n; };
+  $('#b-create').onclick = async () => { const n = nameOk(); if (n) try { await createRoom(n); } catch (e) { toast(e.message); } };
+  $('#b-join').onclick = async () => { const n = nameOk(); if (!n) return; const c = $('#in-code').value.trim(); if (c.length !== 5) return toast('รหัสห้องมี 5 ตัวอักษร'); try { await joinRoom(c, n); } catch (e) { toast(e.message); } };
+  $('#b-admin-enter').onclick = () => {
+    const c = $('#in-code').value.trim();
+    if (c.length !== 5) return toast('ใส่รหัสห้อง 5 ตัวอักษรก่อน');
+    openPinPrompt(pin => adminEnterRoom(c, pin)); // ให้ error (PIN ผิด/ไม่พบห้อง) โยนขึ้นไปให้ openPinPrompt จัดการเอง
+  };
+  $('#b-banker-enter').onclick = () => {
+    const c = $('#in-code').value.trim();
+    if (c.length !== 5) return toast('ใส่รหัสห้อง 5 ตัวอักษรก่อน');
+    openPinPrompt(pin => bankerEnterRoom(c, pin), '🏧 กรอกรหัส PIN แบงก์เกอร์', 'เข้าสู่โหมดแบงก์เกอร์แล้ว');
+  };
+  $('#b-local').onclick = () => {
+    const names = [0, 1, 2, 3, 4, 5].map(i => $('#ln-' + i).value.trim()).filter(Boolean);
+    if (names.length < 2) return toast('ต้องมีผู้เล่นอย่างน้อย 2 คน');
+    if (new Set(names.map(n => n.toLowerCase())).size !== names.length) return toast('ชื่อผู้เล่นซ้ำกัน');
+    startLocal(names);
+  };
+}
+
+function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า id กันซ้ำระหว่างหน้าล็อบบี้กับแผงแอดมิน
+  const d = dis ? 'disabled' : '';
+  const chk = (id, on, label, hint) => `<label class="check" for="${id}"><input type="checkbox" id="${id}" ${on ? 'checked' : ''} ${d}><span><b>${label}</b><small>${hint}</small></span></label>`;
+  return `<div class="grid2">
+    <div class="field"><label for="${pf}-start">เงินเริ่มต้นบนกระดาน</label><input id="${pf}-start" type="number" inputmode="numeric" value="${st.start}" ${d}><small>ใช้คิดสัดส่วนเงินในอีเว้นท์และวงเงินกู้</small></div>
+    <div class="field"><label for="${pf}-go">เงินผ่านจุดเริ่มต้น</label><input id="${pf}-go" type="number" inputmode="numeric" value="${st.goSalary}" ${d}><small>กดรับเข้าบัญชีได้ตอนถึงตา</small></div>
+    <div class="field"><label for="${pf}-bal">ยอดในบัญชีตอนเริ่ม</label><input id="${pf}-bal" type="number" inputmode="numeric" value="${st.startBal}" ${d}><small>0 = เริ่มด้วยเงินสดกระดาษอย่างเดียว</small></div>
+    <div class="field"><label for="${pf}-rate">ดอกเบี้ยธนาคาร (%/รอบ)</label><input id="${pf}-rate" type="number" inputmode="numeric" value="${st.rate}" ${d}><small>ใช้กับเงินกู้และบัญชีติดลบ</small></div>
+    <div class="field"><label for="${pf}-cap">วงเงินกู้ธนาคาร (% ของเงินเริ่มต้น)</label><input id="${pf}-cap" type="number" inputmode="numeric" value="${st.capPct}" ${d}><small>เครดิต B = ${st.capPct}% · AAA ได้มากกว่า</small></div>
+    <div class="field"><label for="${pf}-pen">ค่าปรับค้างชำระ (%)</label><input id="${pf}-pen" type="number" inputmode="numeric" value="${st.penalty}" ${d}><small>คิดครั้งเดียวตอนเลยกำหนด</small></div>
+  </div>
+  <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+  ${chk(pf + '-auto', st.autoPay, 'อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ', 'ปิดไว้ถ้าอยากจ่ายเงินสดกระดาษตามการ์ดเอง')}
+  ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}`;
+}
+const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
+  return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, rate: +v('rate').value,
+    capPct: +v('cap').value, penalty: +v('pen').value, eventMode: v('ev').value, autoPay: v('auto').checked,
+    ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
+
+const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.sound}" title="เสียงและการสั่นเตือน">${App.sound ? '🔔' : '🔕'}</button>`;
+function roleButtons() {
+  const s = S(); if (!s) return '';
+  const admin = isAdmin(), banker = isBanker(), n = s.reqs ? s.reqs.length : 0;
+  if (admin) return `<button class="sm gold" data-a="admin">🛡️ แอดมิน${n ? ` <span class="count">${n}</span>` : ''}</button>`;
+  // ไม่ใช่แอดมิน: แสดงปุ่มเข้าโหมดแอดมิน และปุ่มแบงก์เกอร์ (หรือปุ่มเข้าโหมดแบงก์เกอร์ ถ้ายังไม่ได้เป็น)
+  return `<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
+    <button class="sm ${banker ? 'gold' : ''}" data-a="banker">🏧 ${banker ? 'แบงก์เกอร์' : 'เข้าโหมดแบงก์เกอร์'}${banker && n ? ` <span class="count">${n}</span>` : ''}</button>`;
+}
+function invitePanel(s) {
+  return `<div class="invite">
+    <div class="qrbox">${qrSvg(inviteLink())}</div>
+    <div class="stack" style="gap:6px;min-width:0">
+      <div class="label">สแกนหรือใส่รหัสห้อง</div>
+      <div class="num" style="font-size:32px;letter-spacing:.18em;color:var(--jade);line-height:1.1">${App.room}</div>
+      <div class="muted" style="font-size:12.5px;overflow-wrap:anywhere">${esc(inviteLink())}</div>
+      <div class="row"><button class="sm" data-a="copy">คัดลอกลิงก์</button></div>
+      ${isAdmin() ? `<div class="muted" style="font-size:13px">PIN แอดมิน: <b class="num" style="color:var(--jade)">${s.pin}</b></div>` : ''}
+    </div></div>`;
+}
+
+function renderLobby() {
+  const s = S(), admin = isAdmin(), me = mySeat();
+  $('#app').innerHTML = `<main class="wrap">
+    <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>${App.mode === 'online' ? `<span class="chip">ห้อง <b class="num">${App.room}</b></span>` : '<span class="chip">เครื่องเดียว</span>'}
+      ${App.mode === 'online' ? soundBtn() : ''}${roleButtons()}</div>
+    ${App.mode === 'online' ? `<section class="panel stack"><div class="label">ชวนเพื่อนเข้าห้อง</div>${invitePanel(s)}</section>` : ''}
+    <section class="panel stack"><div class="label">ลำดับการเล่น (${s.players.length} คน)</div>
+      ${s.players.map((p, i) => `<div class="row" style="flex-wrap:nowrap"><span class="num muted">${i + 1}</span>${tokHtml(i)}<b style="flex:1">${esc(p.name)}</b>
+        ${p.uid === s.hostUid && App.mode === 'online' ? '<span class="badge">เจ้าของห้อง</span>' : ''}${p.uid === App.uid ? '<span class="badge me">คุณ</span>' : ''}
+        ${admin ? `<button class="sm" data-mv="${i}:-1" ${i === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">↑</button><button class="sm" data-mv="${i}:1" ${i === s.players.length - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">↓</button>` : ''}</div>`).join('')}
+      ${me >= 0 ? `<div class="field"><span class="label">ตัวเดินของคุณ</span>${tokenPicker(s.players[me].token, s.players.filter((_, i) => i !== me).map(p => p.token))}</div>` : ''}
+    </section>
+    <section class="panel stack"><div class="label">กติกาเสริม ${admin ? '' : '(แอดมินตั้งค่า)'}</div>${settingsFields(s.settings, !admin)}
+      ${admin ? '<button id="b-save">บันทึกการตั้งค่า</button>' : ''}</section>
+    <div class="row">${admin ? `<label class="row" style="gap:6px"><input type="checkbox" id="cb-shuf" style="width:auto"> สุ่มลำดับ</label>
+      <button class="primary big" id="b-start" ${s.players.length < 2 ? 'disabled' : ''} style="margin-left:auto">เริ่มเกม</button>` : '<span class="muted">รอแอดมินกดเริ่ม…</span>'}</div>
+    <button class="danger" id="b-leave">${me >= 0 ? (App.mode === 'online' ? 'ออกจากห้อง' : 'ยกเลิก') : 'ออกจากโหมดกรรมการ'}</button>
+  </main>`;
+  $$('[data-mv]').forEach(b => b.onclick = () => { const [i, d] = b.dataset.mv.split(':').map(Number); dispatch(null, { type: 'reorder', seat: i, dir: d }); });
+  $$('[data-tok]').forEach(b => b.onclick = () => { App.token = +b.dataset.tok; store('bb_token', App.token); dispatch(null, { type: 'pickToken', token: App.token }); });
+  if (admin) {
+    $('#b-save').onclick = async () => { if (await dispatch(null, { type: 'settings', settings: readSettings() })) toast('บันทึกแล้ว'); };
+    $('#b-start').onclick = async () => {
+      if (!await dispatch(null, { type: 'settings', settings: readSettings() })) return;
+      dispatch(null, { type: 'start', shuffle: $('#cb-shuf').checked });
+    };
+  }
+  $('#b-leave').onclick = async () => { if (App.mode === 'online' && me >= 0) await dispatch(null, { type: 'leave' }); leaveToHome(); };
+  refreshModal();
+}
+
+// ---------- หน้าหลักระหว่างเกม ----------
+function nextSeat(s) {
+  const act = s.order.filter(i => !s.players[i].out);
+  if (act.length < 2) return null;
+  let idx = s.order.indexOf(s.turn);
+  for (let k = 0; k < s.order.length; k++) { idx = (idx + 1) % s.order.length; const i = s.order[idx]; if (!s.players[i].out) return i; }
+  return null;
+}
+function myAlerts(s, seat) {
+  if (seat < 0) return 0;
+  return s.loans.filter(L => (L.status === 'offer' && L.borrower === seat) || (L.status === 'active' && L.borrower === seat && L.overdue)).length + (P(seat).bal < 0 ? 1 : 0);
+}
+const goAmount = s => s.settings.goSalary * ((s.effects || []).some(e => e.key === 'go2') ? 2 : 1);
+
+function renderGame() {
+  const s = S(), over = s.status === 'over';
+  const t = s.turn, nx = nextSeat(s);
+  const admin = isAdmin();
+  const ctlTurn = canAct(t) || admin;
+  const alerts = myAlerts(s, viewSeat());
+  const tabs = [...(over ? [['result', 'ผลการแข่งขัน']] : []), ['me', 'บัญชีของฉัน'], ['all', 'ทุกคน'], ['ev', 'อีเว้นท์'], ['log', 'บันทึก']];
+  if (!tabs.some(x => x[0] === App.tab)) App.tab = tabs[0][0];
+  const goAmt = goAmount(s);
+  $('#app').innerHTML = `<main class="wrap">
+    <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>
+      ${App.mode === 'online' ? `<button class="chip" data-a="invite">ห้อง <b class="num">${App.room}</b> · QR</button>${soundBtn()}` : ''}
+      ${roleButtons()}
+      <button class="sm" data-a="home">ออก</button></div>
+    ${over ? `<section class="panel turn"><div class="who">🏁 จบเกมแล้ว</div><div class="next">ทุกคนนับเงินสดกระดาษ + มูลค่าที่ดินบนกระดาน แล้วแจ้งในแท็บ "ผลการแข่งขัน"</div></section>` :
+    `<section class="panel turn ${t === mySeat() ? 'mine' : ''}" aria-live="polite">
+      <div class="rnd">รอบที่ ${s.round}${t === mySeat() ? ' · ถึงตาคุณแล้ว!' : ''}</div>
+      <div class="who">${tokHtml(t)}<span>ตาของ ${esc(P(t).name)}</span></div>
+      ${nx != null ? `<div class="next">คนต่อไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}</div>` : ''}
+      <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>
+        ${goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้น +${fmt(goAmt)}</button>` : ''}
+        <button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}</div>
+    </section>`}
+    ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
+    <nav class="tabs" role="tablist">
+      ${tabs.map(([k, l]) => `<button role="tab" aria-selected="${App.tab === k}" data-tab="${k}">${l}${k === 'me' && alerts ? '<span class="dot"></span>' : ''}</button>`).join('')}
+    </nav>
+    <section id="tab">${({ result: tabResult, me: tabMe, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
+  </main>`;
+  showEventIfNew(s);
+  refreshModal();
+}
+
+// ---------- แท็บ: บัญชีของฉัน ----------
+const TX_LABEL = { transfer: 'โอน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'รับจากธนาคาร', go: 'ผ่านจุดเริ่มต้น',
+  loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน' };
+function txRow(t, v) {
+  const inbound = t.t === v;
+  const other = inbound ? t.f : t.t;
+  const who = t.k === 'deposit' || t.k === 'withdraw' ? 'เงินสด ↔ บัญชี' : other == null ? 'ธนาคาร' : esc(P(other).name);
+  return `<div class="txr"><span class="tx-ic ${inbound ? 'in' : 'out'}">${inbound ? '↓' : '↑'}</span>
+    <span class="tx-main"><b>${TX_LABEL[t.k] || t.k}</b> <span class="muted">${inbound ? 'จาก' : 'ไป'} ${who}</span>${t.n ? `<small>${esc(t.n)}</small>` : ''}</span>
+    <span class="tx-amt num ${inbound ? 'in' : 'out'}">${inbound ? '+' : '−'}${fmt(t.a)}</span><span class="tx-r num muted">ร.${t.r}</span></div>`;
+}
+
+function loanCard(s, L, view) {
+  const bank = L.lender == null;
+  const iAmBorrower = L.borrower === view;
+  const other = iAmBorrower ? L.lender : L.borrower;
+  const who = pn(other);
+  const viaTxt = L.via === 'cash' ? 'เงินสด' : 'โอนเข้าบัญชี';
+  if (L.status === 'offer') {
+    return `<div class="loan offer"><div class="l1"><b>${iAmBorrower ? `${who} เสนอให้คุณกู้` : `คุณเสนอให้ ${who} กู้`}</b><span class="amt">${fmt(L.principal)}</span></div>
+      <div class="meta"><span>ดอกเบี้ย ${L.rate}%/รอบ</span><span>คืนภายใน ${L.rounds} รอบ</span><span>${viaTxt}</span>${L.note ? `<span>“${esc(L.note)}”</span>` : ''}</div>
+      <div class="row">${iAmBorrower ? `<button class="primary sm" data-a="accept:${L.id}" data-as="${view}">รับเงินกู้</button><button class="sm danger" data-a="cancel:${L.id}" data-as="${view}">ปฏิเสธ</button>`
+        : `<span class="muted" style="font-size:13px">รออีกฝ่ายตอบรับ</span><button class="sm" data-a="cancel:${L.id}" data-as="${view}" style="margin-left:auto">ยกเลิก</button>`}</div></div>`;
+  }
+  const left = L.dueRound - s.round;
+  const due = L.overdue ? `<span style="color:var(--danger);font-weight:600">เลยกำหนด (รอบ ${L.dueRound})</span>` : left <= 0 ? `<span style="color:var(--danger)">ครบกำหนดรอบนี้!</span>` : `ครบกำหนดรอบ ${L.dueRound} (อีก ${left} รอบ)`;
+  const span = Math.max(1, L.dueRound - L.startRound), pct = Math.min(100, Math.max(0, (s.round - L.startRound) / span * 100));
+  const live = s.status === 'playing' && canAct(view);
+  let btns = '';
+  if (live && iAmBorrower) btns = `<button class="primary sm" data-a="repayAcc:${L.id}" data-as="${view}">คืนจากบัญชี</button>${bank ? `<button class="sm" data-a="repayCash:${L.id}" data-as="${view}">คืนเป็นเงินสด</button>` : `<span class="muted" style="font-size:12.5px">หรือยื่นเงินสดให้ ${esc(P(L.lender).name)} แล้วให้เขากดยืนยัน</span>`}`;
+  if (live && !bank && !iAmBorrower) btns = `<button class="sm" data-a="repayCash:${L.id}" data-as="${view}">ได้รับเงินสดคืนแล้ว</button><button class="sm" data-a="forgive:${L.id}" data-as="${view}">ยกหนี้</button>`;
+  return `<div class="loan ${L.overdue ? 'over' : ''}"><div class="l1"><b>${iAmBorrower ? 'หนี้กับ ' + who : who + ' ติดหนี้คุณ'}</b>${L.overdue ? '<span class="badge bad">ค้างชำระ</span>' : ''}<span class="amt">${fmt(L.balance)}</span></div>
+    <div class="meta"><span>เงินต้น ${fmt(L.principal)}</span><span>ดอกเบี้ย ${loanRate(s, L)}%/รอบ</span><span>ดอกสะสม ${fmt(L.interest)}</span></div>
+    <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    <div class="meta"><span>${due}</span></div>
+    ${btns ? `<div class="row">${btns}</div>` : ''}</div>`;
+}
+
+function worthForm(s, v) {
+  const p = P(v), done = p.cash != null;
+  return `<div class="panel stack worth"><div class="label">นับเงินจบเกม</div>
+    <p class="muted" style="margin:0;font-size:13.5px">นับเงินสดกระดาษในมือ และรวมมูลค่าที่ดิน/บ้านบนกระดาน (ราคาซื้อตามโฉนด ติดจำนองนับครึ่งเดียว) แล้วกรอกตรงนี้</p>
+    <div class="grid2"><div class="field"><label for="w-cash">เงินสดกระดาษ</label><input id="w-cash" type="number" inputmode="numeric" value="${p.cash ?? ''}" placeholder="0"></div>
+    <div class="field"><label for="w-assets">มูลค่าทรัพย์สินบนกระดาน</label><input id="w-assets" type="number" inputmode="numeric" value="${p.assets ?? ''}" placeholder="0"></div></div>
+    <button class="primary" data-a="declare" data-as="${v}">${done ? 'แก้ไขยอดที่แจ้ง' : 'แจ้งยอด'}</button></div>`;
+}
+
+function tabMe(s) {
+  const pick = App.mode === 'local' ? `<div class="who-pick" role="group" aria-label="ใช้งานในนาม">${s.players.map((p, i) => `<button class="sm" data-actor="${i}" aria-pressed="${i === App.actor}">${TOKENS[p.token].icon} ${esc(p.name)}${myAlerts(s, i) ? ' •' : ''}</button>`).join('')}</div>` : '';
+  const v = viewSeat();
+  if (v < 0) {
+    if (isAdmin()) return pick + '<p class="empty">คุณเป็นกรรมการในห้องนี้ (ไม่มีบัญชี) · ดูภาพรวมได้ที่แท็บ "ทุกคน" และจัดการเกมที่ปุ่ม 🛡️ แอดมิน</p>';
+    if (isBanker()) return pick + '<p class="empty">คุณเป็นแบงก์เกอร์ในห้องนี้ (ไม่มีบัญชี) · ดูภาพรวมได้ที่แท็บ "ทุกคน" และยืนยันฝาก/ถอนที่ปุ่ม 🏧 แบงก์เกอร์</p>';
+    return pick + '<p class="empty">คุณเป็นกรรมการในห้องนี้ (ไม่มีบัญชี) · ดูภาพรวมได้ที่แท็บ "ทุกคน"</p>';
+  }
+  const p = P(v), over = s.status === 'over';
+  const live = !over && !p.out && canAct(v);
+  const mine = s.loans.filter(L => L.borrower === v || L.lender === v);
+  const incoming = mine.filter(L => L.status === 'offer' && L.borrower === v);
+  const outgoing = mine.filter(L => L.status === 'offer' && L.lender === v);
+  const debts = mine.filter(L => L.status === 'active' && L.borrower === v).sort((a, b) => b.overdue - a.overdue || a.dueRound - b.dueRound);
+  const lent = mine.filter(L => L.status === 'active' && L.lender === v);
+  const room = Math.max(0, bankCap(s, v) - bankDebt(s, v));
+  const reqs = (s.reqs || []).filter(r => r.seat === v);
+  const txs = s.tx.filter(t => t.f === v || t.t === v).slice(-15).reverse();
+  const isTurn = s.turn === v && !over;
+  return `<div class="stack">${pick}
+    <div class="card-bank ${p.bal < 0 ? 'neg' : ''}">
+      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="cb-name">${TOKENS[p.token].icon} ${esc(p.name)}</span>${creditHtml(v)}</div>
+      <div class="cb-label">${p.bal < 0 ? 'เบิกเกินบัญชี (โดนดอกเบี้ยทุกรอบ)' : 'ยอดเงินในบัญชี'}</div>
+      <div class="cb-bal num">${baht(p.bal)}</div>
+      <div class="cb-foot"><span>หนี้ <b class="num">${fmt(debtOf(s, v))}</b></span><span>ให้ยืม <b class="num">${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก <b class="num">${fmt(room)}</b></span></div>
+    </div>
+    ${p.out ? '<div class="warn">ผู้เล่นนี้ออกจากเกมแล้ว</div>' : ''}
+    ${over ? worthForm(s, v) : ''}
+    ${live ? `<div class="actions">
+      <button data-a="transfer" data-as="${v}"><span>💸</span>โอน</button>
+      <button data-a="payBank" data-as="${v}"><span>🏦</span>จ่ายธนาคาร</button>
+      <button data-a="req:deposit" data-as="${v}"><span>📥</span>ฝากเงินสด</button>
+      <button data-a="req:withdraw" data-as="${v}"><span>📤</span>ถอนเงินสด</button>
+      <button data-a="req:claim" data-as="${v}"><span>🙋</span>รับจากธนาคาร</button>
+      <button data-a="bankLoan" data-as="${v}"><span>🧾</span>กู้ธนาคาร</button>
+      <button data-a="offer" data-as="${v}"><span>🤝</span>ให้เพื่อนกู้</button>
+      ${isTurn && goAmount(s) > 0 ? `<button data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}><span>🏁</span>ผ่านจุดเริ่มต้น</button>` : ''}
+    </div>` : ''}
+    ${reqs.length ? `<div class="section-h"><h2>รอแบงก์เกอร์ยืนยัน</h2></div>${reqs.map(r => `<div class="loan offer"><div class="l1"><b>${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
+      <div class="row"><span class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'ยื่นแบงก์ให้คนถือธนาคาร แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอคนถือธนาคารส่งแบงก์ให้และกดยืนยัน' : esc(r.note || 'รอแบงก์เกอร์อนุมัติ')}</span>
+      ${canAct(v) ? `<button class="sm" data-a="cancelReq:${r.id}" data-as="${v}" style="margin-left:auto">ยกเลิก</button>` : ''}</div></div>`).join('')}` : ''}
+    ${incoming.length ? `<div class="section-h"><h2>ข้อเสนอถึงคุณ</h2></div>${incoming.map(L => loanCard(s, L, v)).join('')}` : ''}
+    <div class="section-h"><h2>หนี้ที่ต้องจ่าย</h2><span class="muted num">${debts.length}</span></div>
+    ${debts.length ? debts.map(L => loanCard(s, L, v)).join('') : '<p class="empty">ไม่มีหนี้ 🎉</p>'}
+    ${lent.length ? `<div class="section-h"><h2>เงินที่ให้คนอื่นยืม</h2><span class="muted num">${lent.length}</span></div>${lent.map(L => loanCard(s, L, v)).join('')}` : ''}
+    ${outgoing.length ? `<div class="section-h"><h2>ข้อเสนอที่รอตอบ</h2></div>${outgoing.map(L => loanCard(s, L, v)).join('')}` : ''}
+    <div class="section-h"><h2>รายการล่าสุด</h2></div>
+    ${txs.length ? `<div class="panel txlist">${txs.map(t => txRow(t, v)).join('')}</div>` : '<p class="empty">ยังไม่มีรายการในบัญชี</p>'}
+  </div>`;
+}
+
+function tabAll(s) {
+  const admin = isAdmin();
+  const rows = s.order.map(i => {
+    const p = P(i), od = s.loans.some(L => L.borrower === i && L.status === 'active' && L.overdue);
+    return `<tr style="${p.out ? 'opacity:.5' : ''}"><td><div class="row" style="flex-wrap:nowrap">${tokHtml(i)}<span>${esc(p.name)}${i === s.turn && s.status === 'playing' ? ' <span class="badge me">ถึงตา</span>' : ''}${od ? ' <span class="badge bad">ค้าง</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}</span></div></td>
+      <td>${creditHtml(i)}</td><td class="r num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</td><td class="r num">${fmt(debtOf(s, i))}</td><td class="r num">${fmt(lentOf(s, i))}</td></tr>`;
+  }).join('');
+  const act = s.loans.filter(L => L.status === 'active');
+  return `<div class="stack"><div class="panel tscroll"><table><thead><tr><th>ผู้เล่น</th><th>เครดิต</th><th class="r">บัญชี</th><th class="r">หนี้</th><th class="r">ให้ยืม</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="section-h"><h2>สัญญาที่ยังเปิดอยู่</h2><span class="muted num">${act.length}</span></div>
+    ${act.length ? `<div class="panel tscroll"><table><thead><tr><th>ผู้กู้</th><th>เจ้าหนี้</th><th class="r">ยอดค้าง</th><th class="r">กำหนด</th></tr></thead><tbody>
+      ${act.map(L => `<tr><td>${pn(L.borrower)}</td><td>${pn(L.lender)}</td><td class="r num" style="${L.overdue ? 'color:var(--danger)' : ''}">${fmt(L.balance)}</td><td class="r num">รอบ ${L.dueRound}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">ไม่มีสัญญาค้าง</p>'}
+    ${admin ? `<div class="row"><button data-a="admin">🛡️ เปิดแผงแอดมิน</button></div>` : isBanker() ? `<div class="row"><button data-a="banker">🏧 เปิดแผงแบงก์เกอร์</button></div>` : ''}</div>`;
+}
+
+function tabEv(s) {
+  const custom = (s.customEvents || []).filter(c => c.inDeck).length;
+  return `<div class="stack"><div class="warn">อีเว้นท์สุ่มอัตโนมัติ: <b>${EVENT_MODES[s.settings.eventMode]}</b>${s.settings.autoPay ? ' · ตัด/เติมเงินในบัญชีให้อัตโนมัติ' : ' · จ่ายเงินสดตามการ์ดเอง'}${custom ? ` · มีอีเว้นท์ที่แอดมินสร้างอยู่ในสำรับ ${custom} ใบ` : ''}</div>
+    ${s.eventHistory.length ? `<div class="hist">${s.eventHistory.map(e => `<div class="h"><span class="ic">${e.icon}</span><div><b>${esc(e.title)}</b> <small>รอบ ${e.round}</small><div style="font-size:14px">${esc(e.text)}</div></div></div>`).join('')}</div>` : '<p class="empty">ยังไม่มีอีเว้นท์</p>'}
+    <details class="panel"><summary><b>อีเว้นท์ทั้งหมด ${EVENTS.length} แบบ</b></summary><div style="display:grid;gap:4px;margin-top:8px;font-size:14px">${EVENTS.map(e => `<div>${e.icon} ${esc(e.title)}</div>`).join('')}</div></details></div>`;
+}
+function tabLog(s) {
+  return `<div class="panel log">${s.log.slice().reverse().map(l => `<div><small>ร.${l.r}</small><span>${esc(l.m)}</span></div>`).join('')}</div>`;
+}
+
+// ---------- แท็บ: ผลการแข่งขัน ----------
+function tabResult(s) {
+  const seats = s.players.map((_, i) => i);
+  const ranked = seats.slice().sort((a, b) => netWorth(s, b) - netWorth(s, a));
+  const missing = seats.filter(i => P(i).cash == null);
+  const st = seats.map(i => ({ i, ...gameStats(s, i) }));
+  const top = (key, label, icon, fmtv = fmt) => { const b = st.slice().sort((x, y) => y[key] - x[key])[0]; return b && b[key] > 0 ? `<div class="hl"><span class="hl-ic">${icon}</span><span><small>${label}</small><b>${pn(b.i)}</b></span><span class="num">${fmtv(b[key])}</span></div>` : ''; };
+  const best = seats.slice().sort((a, b) => P(b).credit - P(a).credit)[0];
+  const medal = ['🥇', '🥈', '🥉'];
+  const v = viewSeat();
+  const canDeclareOthers = isAdmin();
+  return `<div class="stack">
+    ${missing.length ? `<div class="warn">ยังไม่ได้แจ้งเงินสด/ทรัพย์สิน: ${missing.map(i => esc(P(i).name)).join(', ')} — อันดับอาจเปลี่ยนเมื่อแจ้งครบ</div>` : ''}
+    <div class="podium">${ranked.map((i, k) => {
+      const p = P(i);
+      return `<div class="rank ${k === 0 && !missing.length ? 'win' : ''}"><span class="pos">${medal[k] || k + 1}</span>${tokHtml(i)}
+        <span class="rk-name"><b>${esc(p.name)}</b><small>บัญชี ${baht(p.bal)} · เงินสด ${p.cash == null ? '—' : fmt(p.cash)} · ทรัพย์สิน ${p.assets == null ? '—' : fmt(p.assets)} · ให้ยืม ${fmt(lentOf(s, i))} · หนี้ −${fmt(debtOf(s, i))}</small></span>
+        <span class="rk-net num">${baht(netWorth(s, i))}</span>
+        ${canDeclareOthers && App.mode === 'online' && i !== mySeat() ? `<button class="sm" data-a="declareFor:${i}">แจ้งแทน</button>` : ''}</div>`;
+    }).join('')}</div>
+    <div class="muted" style="font-size:12.5px">มูลค่าสุทธิ = ยอดบัญชี + เงินสดกระดาษ + ทรัพย์สินบนกระดาน + เงินที่ให้คนอื่นยืม − หนี้ที่ค้าง</div>
+    <div class="section-h"><h2>รางวัลพิเศษ</h2></div>
+    <div class="hls">
+      ${top('borrowed', 'นักกู้ตัวยง (กู้รวมมากสุด)', '🧾')}
+      ${top('interest', 'จ่ายดอกเบี้ยมากสุด', '🔥')}
+      ${top('lent', 'เจ้าหนี้ใหญ่ (ให้กู้มากสุด)', '🦈')}
+      ${top('sent', 'ใจป๋า (โอนออกมากสุด)', '💸')}
+      ${top('got', 'เจ้าที่ดิน (รับโอนมากสุด)', '🏠')}
+      ${best != null ? `<div class="hl"><span class="hl-ic">⭐</span><span><small>เครดิตดีที่สุด</small><b>${pn(best)}</b></span><span>${creditHtml(best)}</span></div>` : ''}
+    </div>
+    ${v >= 0 ? worthForm(s, v) : ''}
+  </div>`;
+}
+
+// ---------- การ์ดอีเว้นท์เด้ง ----------
+function showEventIfNew(s) {
+  if (!s.event || s.event.n === App.seenEvent) return;
+  App.seenEvent = s.event.n;
+  const e = s.event;
+  beep('ping'); buzz(60);
+  $('#ev-root').innerHTML = `<div class="evmodal" data-evclose><div class="evcard" role="dialog" aria-modal="true" aria-label="อีเว้นท์ ${esc(e.title)}">
+    <div class="evtop"><div class="kicker">อีเว้นท์พิเศษ · รอบ ${e.round}</div><div class="ic">${e.icon}</div><h2>${esc(e.title)}</h2></div>
+    <div class="tx">${esc(e.text)}</div><div class="ft"><button class="primary big" data-evclose>รับทราบ</button></div></div></div>`;
+}
+
+// ---------- ป๊อปอัปฟอร์ม ----------
+let modalRefresh = null;
+function openModal(title, body, refresher) {
+  modalRefresh = refresher || null;
+  $('#modal-root').innerHTML = `<div class="modal" data-backdrop><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="hd"><h2>${title}</h2><button class="sm" data-close aria-label="ปิด">✕</button></div><div class="bd">${body}</div></div></div>`;
+}
+function closeModal() { $('#modal-root').innerHTML = ''; modalRefresh = null; }
+function refreshModal() { if (modalRefresh) modalRefresh(); }
+function confirmBox(title, text, ok, fn) {
+  openModal(title, `<p style="margin:0">${esc(text)}</p><div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-ok">${ok}</button></div>`);
+  $('#b-ok').onclick = () => { closeModal(); fn(); };
+}
+const roundOpts = (sel) => [2, 3, 5, 8, 10].map(n => `<option value="${n}" ${n === sel ? 'selected' : ''}>${n} รอบ</option>`).join('');
+const quickBtns = list => `<div class="quick">${list.map(q => `<button class="sm" data-q="${q}">${fmt(q)}</button>`).join('')}</div>`;
+const wireQuick = () => $$('#modal-root [data-q]').forEach(b => b.onclick = () => { $('#in-amt').value = b.dataset.q; $('#in-amt').dispatchEvent(new Event('input')); });
+const quickAmounts = s => [100, 200, 500, 1000].map(b => money(s, b));
+const balLine = v => `<div class="muted" style="font-size:14px">${pn(v)} · ยอดในบัญชี <b class="num">${baht(P(v).bal)}</b></div>`;
+
+function openTransfer(v) {
+  const s = S(), others = s.order.filter(i => i !== v && !P(i).out);
+  if (!others.length) return toast('ไม่มีผู้เล่นคนอื่น');
+  openModal('💸 โอนเงิน', `${balLine(v)}
+    <div class="field"><label for="in-to">โอนให้</label><select id="in-to">${others.map(i => `<option value="${i}">${pn(i)}</option>`).join('')}</select></div>
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    ${quickBtns(quickAmounts(s))}
+    <div class="field"><label for="in-note">หมายเหตุ</label><input id="in-note" maxlength="40" placeholder="เช่น ค่าเช่าสยาม"></div>
+    <div class="quick">${['ค่าเช่า', 'ซื้อที่ดิน', 'ค่าปรับ', 'แลกเปลี่ยน'].map(n => `<button class="sm" data-note="${n}">${n}</button>`).join('')}</div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">โอนเลย</button></div>`);
+  wireQuick();
+  $$('#modal-root [data-note]').forEach(b => b.onclick = () => $('#in-note').value = b.dataset.note);
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => {
+    const to = +$('#in-to').value, amt = +$('#in-amt').value;
+    if (await dispatch(v, { type: 'transfer', to, amount: amt, note: $('#in-note').value })) { closeModal(); toast(`โอน ${fmt(amt)} ให้ ${P(to).name} แล้ว`); }
+  };
+}
+function openPayBank(v) {
+  const s = S();
+  openModal('🏦 จ่ายธนาคาร', `${balLine(v)}
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    ${quickBtns(quickAmounts(s))}
+    <div class="field"><label for="in-note">จ่ายค่าอะไร</label><input id="in-note" maxlength="40" placeholder="เช่น ภาษีเงินได้"></div>
+    <div class="quick">${['ภาษี', 'ซื้อที่ดิน', 'สร้างบ้าน', 'ค่าประกันตัว', 'การ์ด'].map(n => `<button class="sm" data-note="${n}">${n}</button>`).join('')}</div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">จ่าย</button></div>`);
+  wireQuick();
+  $$('#modal-root [data-note]').forEach(b => b.onclick = () => $('#in-note').value = b.dataset.note);
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => { if (await dispatch(v, { type: 'payBank', amount: +$('#in-amt').value, note: $('#in-note').value })) { closeModal(); toast('จ่ายธนาคารแล้ว'); } };
+}
+function openRequest(v, kind) {
+  const s = S(), needConfirm = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
+  const help = { deposit: 'ยื่นเงินสดกระดาษให้คนถือธนาคาร แล้วยอดจะเข้าบัญชี', withdraw: 'ยอดในบัญชีจะลดลง แล้วรับเงินสดกระดาษจากคนถือธนาคาร', claim: 'เช่น ขายบ้านคืนธนาคาร จำนองที่ดิน หรือรับเงินจากการ์ดบนกระดาน' }[kind];
+  openModal({ deposit: '📥 ฝากเงินสดเข้าบัญชี', withdraw: '📤 ถอนเป็นเงินสด', claim: '🙋 ขอรับเงินจากธนาคาร' }[kind], `${balLine(v)}
+    <p class="muted" style="margin:0;font-size:13.5px">${help}${needConfirm ? ' · <b>ต้องรอแอดมินกดยืนยัน</b>' : ''}</p>
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    ${quickBtns(quickAmounts(s))}
+    ${kind === 'claim' ? `<div class="field"><label for="in-note">เหตุผล</label><input id="in-note" maxlength="40" placeholder="เช่น จำนองบางนา"></div>` : ''}
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${needConfirm ? 'ส่งคำขอ' : 'ยืนยัน'}</button></div>`);
+  wireQuick();
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => {
+    if (await dispatch(v, { type: 'request', kind, amount: +$('#in-amt').value, note: $('#in-note') ? $('#in-note').value : '' })) { closeModal(); toast(needConfirm ? 'ส่งคำขอแล้ว รอแบงก์เกอร์ยืนยัน' : 'ทำรายการแล้ว'); }
+  };
+}
+function openBankLoan(v) {
+  const s = S(), u = unitOf(s), room = Math.max(0, bankCap(s, v) - bankDebt(s, v)), r = bankRate(s, v);
+  if (room < u) return toast('วงเงินกู้ธนาคารเต็มแล้ว');
+  const quick = [0.1, 0.25, 0.5, 1].map(f => f === 1 ? Math.floor(room / u) * u : Math.max(u, Math.floor(room * f / (u * 5)) * u * 5)).filter((x, i, a) => x >= u && x <= room && a.indexOf(x) === i);
+  openModal('🧾 กู้ธนาคาร', `
+    <div class="muted" style="font-size:14px">${pn(v)} · วงเงินคงเหลือ <b class="num">${fmt(room)}</b> · ดอกเบี้ย ${r}%/รอบ</div>
+    <div class="field"><label for="in-amt">ยอดกู้</label><input id="in-amt" type="number" inputmode="numeric" step="${u}" min="${u}" max="${room}" value="${quick[Math.min(1, quick.length - 1)]}"></div>
+    ${quickBtns(quick)}
+    <div class="grid2"><div class="field"><label for="in-rounds">คืนภายใน</label><select id="in-rounds">${roundOpts(3)}</select></div>
+    <div class="field"><label for="in-into">รับเงินเป็น</label><select id="in-into"><option value="account">เข้าบัญชี</option><option value="cash">เงินสดกระดาษ</option></select></div></div>
+    <div class="preview" id="pv"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">กู้เงิน</button></div>`);
+  const upd = () => { const a = +$('#in-amt').value || 0, n = +$('#in-rounds').value; let b = a; for (let k = 0; k < n; k++) b += Math.ceil(b * r / 100 / u) * u;
+    $('#pv').innerHTML = `<span>ถ้าคืนตอนครบกำหนด (รอบ ${S().round + n}) ประมาณ <b class="num">${fmt(b)}</b></span><span class="muted" style="font-size:12.5px">ดอกเบี้ยเปลี่ยนได้ตามอีเว้นท์ · เลยกำหนดโดนปรับ ${S().settings.penalty}% และเครดิตลด</span>`; };
+  wireQuick(); $('#in-amt').oninput = upd; $('#in-rounds').onchange = upd; upd();
+  $('#b-go').onclick = async () => {
+    const a = +$('#in-amt').value, into = $('#in-into').value;
+    if (a % u) return toast(`ยอดต้องเป็นทวีคูณของ ${fmt(u)}`);
+    if (await dispatch(v, { type: 'bankLoan', amount: a, rounds: +$('#in-rounds').value, into })) { closeModal(); toast(into === 'cash' ? `รับเงินสด ${fmt(a)} จากคนถือธนาคารได้เลย` : `เงินกู้ ${fmt(a)} เข้าบัญชีแล้ว`); }
+  };
+}
+function openOffer(v) {
+  const s = S(), others = s.order.filter(i => i !== v && !P(i).out);
+  if (!others.length) return toast('ไม่มีผู้เล่นคนอื่น');
+  openModal('🤝 ให้เพื่อนกู้', `${balLine(v)}
+    <div class="field"><label for="in-to">ให้ใครกู้</label><select id="in-to">${others.map(i => `<option value="${i}">${pn(i)} (เครดิต ${CREDIT[P(i).credit].name})</option>`).join('')}</select></div>
+    <div class="grid2"><div class="field"><label for="in-amt">ยอดเงิน</label><input id="in-amt" type="number" inputmode="numeric" value="${money(s, 200)}"></div>
+    <div class="field"><label for="in-rate">ดอกเบี้ย (%/รอบ)</label><input id="in-rate" type="number" inputmode="numeric" value="${s.settings.rate}"></div>
+    <div class="field"><label for="in-rounds">คืนภายใน</label><select id="in-rounds">${roundOpts(3)}</select></div>
+    <div class="field"><label for="in-via">ส่งเงินแบบ</label><select id="in-via"><option value="account">โอนจากบัญชี</option><option value="cash">เงินสดกระดาษ</option></select></div></div>
+    <div class="field"><label for="in-note">เงื่อนไขเพิ่ม (ไม่บังคับ)</label><input id="in-note" maxlength="60" placeholder="เช่น ถ้าไม่คืน ยกโฉนดสีม่วงให้"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ส่งข้อเสนอ</button></div>`);
+  $('#b-go').onclick = async () => {
+    const act = { type: 'offerLoan', to: +$('#in-to').value, amount: +$('#in-amt').value, rate: +$('#in-rate').value, rounds: +$('#in-rounds').value, via: $('#in-via').value, note: $('#in-note').value };
+    if (await dispatch(v, act)) { closeModal(); toast('ส่งข้อเสนอแล้ว รออีกฝ่ายตอบรับ'); }
+  };
+}
+function openRepay(v, id, mode) {
+  const s = S(), L = s.loans.find(x => x.id === id), u = unitOf(s);
+  const bank = L.lender == null, acc = mode === 'account';
+  const max = acc ? Math.min(L.balance, Math.max(0, P(v).bal)) : L.balance;
+  const title = acc ? `คืนหนี้จากบัญชี${bank ? 'ให้ธนาคาร' : 'ให้ ' + esc(P(L.lender).name)}` : bank ? 'คืนเงินสดให้ธนาคาร' : `ได้รับเงินสดคืนจาก ${esc(P(L.borrower).name)}`;
+  const hint = acc ? `ตัดจากบัญชีทันที (มี ${baht(P(v).bal)})` : bank ? 'ยื่นเงินสดให้คนถือธนาคาร แล้วกดยืนยัน' : 'กดเมื่อได้รับเงินสดแล้วจริงๆ';
+  if (acc && max <= 0) return toast('ยอดในบัญชีไม่พอ ฝากเงินสดเข้าบัญชีก่อน หรือคืนเป็นเงินสด');
+  openModal(title, `
+    <div class="muted" style="font-size:14px">ยอดค้าง <b class="num">${fmt(L.balance)}</b> · ${hint}</div>
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" value="${max}" min="1" max="${max}"></div>
+    ${quickBtns([max, ...[0.5, 0.25].map(f => Math.max(u, Math.round(max * f / u) * u))].filter((x, i, a) => x > 0 && x <= max && a.indexOf(x) === i))}
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ยืนยัน</button></div>`);
+  wireQuick();
+  $('#b-go').onclick = async () => { if (await dispatch(v, { type: acc ? 'repayAccount' : 'repay', id, amount: +$('#in-amt').value })) closeModal(); };
+}
+function openInvite() {
+  const s = S();
+  openModal('ชวนเพื่อนเข้าห้อง', invitePanel(s));
+}
+function openDeclareFor(seat) {
+  const p = P(seat);
+  openModal(`แจ้งยอดแทน ${esc(p.name)}`, `<div class="grid2"><div class="field"><label for="d-cash">เงินสดกระดาษ</label><input id="d-cash" type="number" inputmode="numeric" value="${p.cash ?? ''}"></div>
+    <div class="field"><label for="d-assets">มูลค่าทรัพย์สินบนกระดาน</label><input id="d-assets" type="number" inputmode="numeric" value="${p.assets ?? ''}"></div></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">บันทึก</button></div>`);
+  $('#b-go').onclick = async () => { if (await dispatch(null, { type: 'declareWorth', seat, cash: +$('#d-cash').value || 0, assets: +$('#d-assets').value || 0 })) closeModal(); };
+}
+
+// ---------- แอดมิน (กรรมการ) ----------
+function openPinPrompt(onSubmit, title, successMsg) {
+  openModal(title || '🛡️ กรอกรหัส PIN แอดมิน', `
+    <p class="muted" style="margin:0;font-size:14px">ขอรหัส PIN 4 หลักจากเจ้าของห้อง (ดูได้ในห้องรอเริ่ม หรือแผงแอดมิน)</p>
+    <div class="field"><input id="in-pin" inputmode="numeric" maxlength="4" aria-label="รหัส PIN" style="font-family:var(--mono);font-size:26px;letter-spacing:.35em;text-align:center"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-pin-go">ยืนยัน</button></div>`);
+  $('#in-pin').focus();
+  $('#b-pin-go').onclick = async () => {
+    const pin = $('#in-pin').value.trim();
+    if (!/^\d{4}$/.test(pin)) return toast('รหัส PIN ต้องเป็นตัวเลข 4 หลัก');
+    const btn = $('#b-pin-go'); btn.disabled = true;
+    try {
+      const ok = await onSubmit(pin);
+      if (ok !== false) { closeModal(); toast(successMsg || 'เข้าสู่โหมดแอดมินแล้ว'); }
+    } catch (e) { toast(e.message || 'รหัส PIN ไม่ถูกต้อง'); }
+    finally { const b2 = $('#b-pin-go'); if (b2) b2.disabled = false; }
+  };
+}
+function openAdminClaim() { openPinPrompt(pin => dispatch(null, { type: 'claimAdmin', pin })); }
+function openBankerClaim() { openPinPrompt(pin => dispatch(null, { type: 'claimBanker', pin }), '🏧 กรอกรหัส PIN แบงก์เกอร์', 'เข้าสู่โหมดแบงก์เกอร์แล้ว'); }
+
+const LOAN_STATUS_LABEL = { active: 'ใช้งานอยู่', paid: 'ปิดแล้ว', forgiven: 'ยกหนี้แล้ว', declined: 'ยกเลิก/ปฏิเสธ' };
+const EV_ICONS = ['⭐', '🍺', '🎉', '💣', '🧨', '🎁', '💔', '👑', '🐍', '🍀', '🚓', '🏥'];
+function adminPanelHtml(s) {
+  const online = App.mode === 'online', playing = s.status === 'playing';
+  const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง' : (isHostUser() ? '🏅 คุณเป็นเจ้าของห้อง (แอดมินสูงสุด) ดูแล/แก้ไขได้ทุกอย่าง' : '🛡️ คุณอยู่ในโหมดแอดมิน ดูแล/แก้ไขได้ทุกอย่าง (รวมหน้าที่แบงก์เกอร์ด้วย)');
+  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>`;
+  const reqs = s.reqs || [];
+  if (playing && reqs.length) html += `<div class="section-h"><h2>คำขอรอยืนยัน</h2><span class="count">${reqs.length}</span></div>
+    ${reqs.map(r => `<div class="loan offer"><div class="l1"><b>${pn(r.seat)} · ${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
+      <div class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'รับแบงก์จากผู้เล่นแล้วค่อยกดยืนยัน' : r.kind === 'withdraw' ? `ส่งแบงก์ให้ผู้เล่นแล้วค่อยกดยืนยัน (ยอดในบัญชี ${baht(P(r.seat).bal)})` : esc(r.note || 'ไม่ระบุเหตุผล')}</div>
+      <div class="row"><button class="sm primary" data-req-ok="${r.id}">ยืนยัน</button><button class="sm danger" data-req-no="${r.id}">ปฏิเสธ</button></div></div>`).join('')}`;
+  if (online) html += `<div class="panel stack" style="padding:12px 14px">
+      <div class="label">รหัส PIN แอดมิน</div>
+      <div class="row" style="flex-wrap:nowrap"><span class="num" style="font-size:26px;letter-spacing:.2em;color:var(--jade)">${s.pin}</span>
+        <button class="sm" id="ap-copy-pin" style="margin-left:auto">คัดลอก</button>${isHostUser() ? '<button class="sm danger" id="ap-reset-pin">สร้างรหัสใหม่</button>' : ''}</div>
+      <div class="muted" style="font-size:12.5px">ให้รหัสนี้กับกรรมการที่ดูแล/แก้ไขเกมได้ทั้งหมด (เข้าจากหน้าแรก ปุ่ม "เข้าแบบแอดมิน")</div>
+    </div>
+    <div class="panel stack" style="padding:12px 14px">
+      <div class="label">รหัส PIN แบงก์เกอร์</div>
+      <div class="row" style="flex-wrap:nowrap"><span class="num" style="font-size:26px;letter-spacing:.2em;color:var(--jade)">${s.bankPin}</span>
+        <button class="sm" id="ap-copy-bankpin" style="margin-left:auto">คัดลอก</button>${isHostUser() ? '<button class="sm danger" id="ap-reset-bankpin">สร้างรหัสใหม่</button>' : ''}</div>
+      <div class="muted" style="font-size:12.5px">ให้รหัสนี้กับคนถือเงินสดธนาคารเท่านั้น — ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว แก้ไขค่าอื่นในเกมไม่ได้ (เข้าจากหน้าแรก ปุ่ม "เข้าแบบแบงก์เกอร์")</div>
+    </div>`;
+  if (playing) {
+    html += `<div class="section-h"><h2>จัดการผู้เล่น</h2></div><div class="panel" style="padding:4px 14px">
+      ${s.order.map(i => { const p = P(i); return `<div class="pm">
+        <div class="row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0">${pn(i)}${p.out ? ' <span class="badge bad">ออก</span>' : ''}</span><b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b></div>
+        <div class="row" style="gap:6px"><input type="number" inputmode="numeric" data-adj="${i}" placeholder="± ปรับยอด" aria-label="ปรับยอดบัญชี ${esc(p.name)}" style="width:118px;padding:.35em .6em"><button class="sm" data-adj-go="${i}">ปรับ</button>
+          <select data-credit="${i}" aria-label="เครดิต ${esc(p.name)}" style="width:auto;padding:.35em .5em">${CREDIT.map((c, ci) => `<option value="${ci}" ${p.credit === ci ? 'selected' : ''}>เครดิต ${c.name}</option>`).join('')}</select>
+          <button class="sm ${p.out ? '' : 'danger'}" data-out="${i}" style="margin-left:auto">${p.out ? 'กลับเข้าเกม' : 'ล้มละลาย'}</button></div></div>`; }).join('')}
+      </div>
+      <div class="muted" style="font-size:12.5px">ปรับยอด: ใส่ตัวเลขบวกเพื่อเติม ลบเพื่อหัก (เช่น แก้ยอดที่กดผิด)</div>`;
+  }
+  html += `<details class="panel" style="padding:12px 14px"><summary><b>กติกาเสริม</b></summary><div class="stack" style="margin-top:10px">${settingsFields(s.settings, false, 'ap')}<button id="ap-save-settings">บันทึกการตั้งค่า</button></div></details>`;
+  if (playing) {
+    // ---- อีเว้นท์ที่แอดมินสร้างเอง ----
+    const custom = s.customEvents || [];
+    html += `<div class="section-h"><h2>สร้างอีเว้นท์เอง</h2></div>
+    <div class="panel stack" style="padding:12px 14px">
+      <div class="tokpick" role="group" aria-label="ไอคอน">${EV_ICONS.map((ic, k) => `<button type="button" data-evic="${ic}" aria-pressed="${k === 0}">${ic}</button>`).join('')}</div>
+      <div class="field"><label for="ce-title">ชื่ออีเว้นท์</label><input id="ce-title" maxlength="30" placeholder="เช่น ปาร์ตี้หลังเลิกเรียน"></div>
+      <div class="field"><label for="ce-text">ข้อความบนการ์ด</label><input id="ce-text" maxlength="160" placeholder="เช่น {ชื่อ} ต้องเลี้ยงชาไข่มุกทุกคน"><small>ใช้ {ชื่อ} แทนชื่อคนที่โดน และ {เงิน} แทนจำนวนเงิน</small></div>
+      <div class="grid2">
+        <div class="field"><label for="ce-target">ใครโดน</label><select id="ce-target"><option value="random">สุ่ม 1 คน</option><option value="all">ทุกคน</option><option value="seat">เลือกผู้เล่น</option><option value="none">ไม่มีเงินเกี่ยวข้อง</option></select></div>
+        <div class="field"><label for="ce-seat">ผู้เล่น (ถ้าเลือกเอง)</label><select id="ce-seat">${s.order.map(i => `<option value="${i}">${esc(P(i).name)}</option>`).join('')}</select></div>
+        <div class="field"><label for="ce-amt">เงิน (+ รับ / − จ่าย)</label><input id="ce-amt" type="number" inputmode="numeric" placeholder="เช่น -500"></div>
+        <label class="check" for="ce-deck" style="align-self:end"><input type="checkbox" id="ce-deck"><span><b>ใส่ในสำรับสุ่ม</b><small>ให้โผล่มาเองตอนสุ่มอีเว้นท์</small></span></label>
+      </div>
+      <div class="row"><button class="primary" id="ce-now">เรียกเลยตอนนี้</button><button id="ce-save">บันทึกไว้ใช้ทีหลัง</button></div>
+      ${custom.length ? `<div class="label" style="margin-top:6px">อีเว้นท์ที่สร้างไว้</div>${custom.map(c => `<div class="row cev" style="flex-wrap:nowrap"><span style="font-size:20px">${c.icon}</span><span style="flex:1;min-width:0"><b>${esc(c.title)}</b>${c.inDeck ? ' <span class="badge">อยู่ในสำรับ</span>' : ''}<br><small class="muted">${esc(c.text || '')}${c.amount ? ` · ${c.amount > 0 ? '+' : '−'}${fmt(Math.abs(c.amount))}` : ''}</small></span>
+        <button class="sm" data-cev-fire="${c.id}">เรียก</button><button class="sm danger" data-cev-del="${c.id}" aria-label="ลบ">✕</button></div>`).join('')}` : ''}
+    </div>`;
+    const loans = s.loans.filter(L => ['active', 'offer'].includes(L.status));
+    html += `<div class="section-h"><h2>แก้ไขสัญญาเงินกู้</h2><span class="muted num">${loans.length}</span></div>`;
+    html += loans.length ? loans.map(L => `<div class="loan" data-loan="${L.id}">
+        <div class="l1"><b>${pn(L.borrower)} ${L.status === 'offer' ? '(ข้อเสนอ) ' : ''}· ${L.lender == null ? '🏦 ธนาคาร' : 'จาก ' + esc(P(L.lender).name)}</b></div>
+        <div class="grid2">
+          <div class="field"><label>ยอดคงเหลือ</label><input type="number" data-f="balance" value="${L.balance}"></div>
+          <div class="field"><label>ดอกเบี้ย %/รอบ</label><input type="number" data-f="rate" value="${L.rate}"></div>
+          <div class="field"><label>ครบกำหนดรอบที่</label><input type="number" data-f="dueRound" value="${L.dueRound || (s.round + (L.rounds || 0))}" ${L.status === 'offer' ? 'disabled' : ''}></div>
+          <div class="field"><label>สถานะ</label><select data-f="status">${Object.entries(LOAN_STATUS_LABEL).map(([k, l]) => `<option value="${k}" ${L.status === k ? 'selected' : ''}>${l}</option>`).join('')}${L.status === 'offer' ? '<option value="offer" selected>รอตอบรับ</option>' : ''}</select></div>
+        </div>
+        <div class="row" style="justify-content:flex-end"><button class="sm primary" data-save-loan="${L.id}">บันทึก</button></div>
+      </div>`).join('') : '<p class="empty">ไม่มีสัญญาที่เปิดอยู่</p>';
+    html += `<div class="section-h"><h2>รอบและอีเว้นท์</h2></div>
+    <div class="panel stack" style="padding:12px 14px">
+      <div class="row" style="flex-wrap:nowrap">ตอนนี้รอบที่ <b class="num">${s.round}</b><input id="ap-round" type="number" value="${s.round}" style="max-width:90px;margin-left:auto"><button class="sm" id="ap-set-round">ตั้งรอบ</button></div>
+      <div class="field"><label for="ap-event">เรียกอีเว้นท์ที่เลือกทันที</label><select id="ap-event">${EVENTS.map(e => `<option value="${e.id}">${e.icon} ${esc(e.title)}</option>`).join('')}${(s.customEvents || []).map(c => `<option value="${c.id}">${c.icon} ${esc(c.title)} (สร้างเอง)</option>`).join('')}</select></div>
+      <button id="ap-force-event">เรียกอีเว้นท์นี้เลย</button>
+    </div>
+    <button class="danger" data-a="endGame">จบเกม</button>`;
+  }
+  return html;
+}
+function wireAdminPanel() {
+  const bd = $('#modal-root .bd'); if (!bd) return;
+  const on = (sel, fn) => { const el = $(sel, bd); if (el) el.onclick = fn; };
+  on('#ap-copy-pin', () => copyText(S().pin));
+  on('#ap-reset-pin', () => confirmBox('สร้างรหัส PIN ใหม่?', 'แอดมินคนอื่นที่เคยใส่รหัสเดิมจะหลุดสถานะ ต้องขอรหัสใหม่จากคุณ', 'สร้างใหม่', () => dispatch(null, { type: 'resetPin' })));
+  on('#ap-copy-bankpin', () => copyText(S().bankPin));
+  on('#ap-reset-bankpin', () => confirmBox('สร้างรหัส PIN แบงก์เกอร์ใหม่?', 'แบงก์เกอร์คนอื่นที่เคยใส่รหัสเดิมจะหลุดสถานะ ต้องขอรหัสใหม่จากคุณ', 'สร้างใหม่', () => dispatch(null, { type: 'resetBankPin' })));
+  on('#ap-save-settings', async () => { if (await dispatch(null, { type: 'settings', settings: readSettings('ap') })) toast('บันทึกแล้ว'); });
+  $$('[data-req-ok]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'resolveReq', id: +b.dataset.reqOk, ok: true }));
+  $$('[data-req-no]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'resolveReq', id: +b.dataset.reqNo, ok: false }));
+  $$('[data-adj-go]', bd).forEach(b => b.onclick = () => { const i = +b.dataset.adjGo, v = +$(`[data-adj="${i}"]`, bd).value; if (!v) return toast('ใส่จำนวนเงิน เช่น 500 หรือ -500'); dispatch(null, { type: 'adjustBalance', seat: i, delta: v }); });
+  $$('[data-credit]', bd).forEach(sel => sel.onchange = () => dispatch(null, { type: 'adjustCredit', seat: +sel.dataset.credit, credit: +sel.value }));
+  $$('[data-out]', bd).forEach(b => b.onclick = () => {
+    const seat = +b.dataset.out;
+    if (P(seat).out) return dispatch(null, { type: 'setOut', seat });
+    confirmBox(`${P(seat).name} ล้มละลาย?`, 'ผู้เล่นจะถูกข้ามตา และข้อเสนอกู้/คำขอที่ค้างจะถูกยกเลิก (กดกลับเข้าเกมได้ภายหลัง)', 'ยืนยัน', () => dispatch(null, { type: 'setOut', seat }));
+  });
+  $$('[data-save-loan]', bd).forEach(b => b.onclick = () => {
+    const id = +b.dataset.saveLoan, card = b.closest('[data-loan]');
+    const val = f => card.querySelector(`[data-f="${f}"]`).value;
+    dispatch(null, { type: 'editLoan', id, balance: +val('balance'), rate: +val('rate'), dueRound: +val('dueRound'), status: val('status') === 'offer' ? undefined : val('status') });
+  });
+  on('#ap-set-round', () => dispatch(null, { type: 'setRound', round: +$('#ap-round').value }));
+  on('#ap-force-event', () => dispatch(null, { type: 'forceEvent', id: $('#ap-event').value }));
+  // อีเว้นท์สร้างเอง
+  $$('[data-evic]', bd).forEach(b => b.onclick = () => $$('[data-evic]', bd).forEach(x => x.setAttribute('aria-pressed', x === b)));
+  const ce = now => {
+    const icon = ($('[data-evic][aria-pressed="true"]', bd) || {}).dataset?.evic || '⭐';
+    const act = { type: 'addCustomEvent', icon, title: $('#ce-title').value, text: $('#ce-text').value, target: $('#ce-target').value, seat: +$('#ce-seat').value,
+      amount: +$('#ce-amt').value || 0, inDeck: $('#ce-deck').checked, now };
+    if (!act.title.trim()) return toast('ใส่ชื่ออีเว้นท์ก่อน');
+    dispatch(null, act).then(ok => { if (ok) toast(now ? 'เรียกอีเว้นท์แล้ว' : 'บันทึกอีเว้นท์แล้ว'); });
+  };
+  on('#ce-now', () => ce(true));
+  on('#ce-save', () => ce(false));
+  $$('[data-cev-fire]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'forceEvent', id: b.dataset.cevFire }));
+  $$('[data-cev-del]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'deleteCustomEvent', id: b.dataset.cevDel }));
+}
+function refreshAdminPanel() {
+  const bd = $('#modal-root .bd'); if (!bd) return;
+  // เก็บค่าที่กำลังพิมพ์ในฟอร์มสร้างอีเว้นท์ไว้ ไม่ให้หายตอนข้อมูลอัปเดต
+  const keep = ['ce-title', 'ce-text', 'ce-target', 'ce-seat', 'ce-amt'].map(id => [id, $('#' + id, bd)?.value]);
+  const deck = $('#ce-deck', bd)?.checked, ic = $('[data-evic][aria-pressed="true"]', bd)?.dataset.evic;
+  const open = $('details', bd)?.open, scroll = $('#modal-root .sheet')?.scrollTop;
+  bd.innerHTML = adminPanelHtml(S());
+  keep.forEach(([id, v]) => { const el = $('#' + id, bd); if (el && v != null) el.value = v; });
+  if ($('#ce-deck', bd) && deck != null) $('#ce-deck', bd).checked = deck;
+  if (ic) $$('[data-evic]', bd).forEach(x => x.setAttribute('aria-pressed', x.dataset.evic === ic));
+  if (open && $('details', bd)) $('details', bd).open = true;
+  if (scroll != null) $('#modal-root .sheet').scrollTop = scroll;
+  wireAdminPanel();
+}
+function openAdminPanel() {
+  if (!isAdmin()) return openAdminClaim();
+  openModal('🛡️ แผงแอดมิน', adminPanelHtml(S()), refreshAdminPanel);
+  wireAdminPanel();
+}
+
+// ---------- แบงก์เกอร์ (คนถือเงินสดธนาคาร ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว) ----------
+function bankerPanelHtml(s) {
+  const admin = isAdmin();
+  const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง'
+    : admin ? '🛡️ คุณเป็นแอดมิน (ทำหน้าที่แบงก์เกอร์ได้ด้วยอยู่แล้ว)' : '🏧 คุณอยู่ในโหมดแบงก์เกอร์ (ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว แก้ไขค่าอื่นในเกมไม่ได้)';
+  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>`;
+  if (s.status !== 'playing') return html + '<p class="empty">เกมยังไม่เริ่ม ยังไม่มีคำขอฝาก/ถอน</p>';
+  const reqs = s.reqs || [];
+  html += `<div class="section-h"><h2>คำขอรอยืนยัน</h2>${reqs.length ? `<span class="count">${reqs.length}</span>` : ''}</div>`;
+  html += reqs.length ? reqs.map(r => `<div class="loan offer"><div class="l1"><b>${pn(r.seat)} · ${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
+      <div class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'รับแบงก์จากผู้เล่นแล้วค่อยกดยืนยัน' : r.kind === 'withdraw' ? `ส่งแบงก์ให้ผู้เล่นแล้วค่อยกดยืนยัน (ยอดในบัญชี ${baht(P(r.seat).bal)})` : esc(r.note || 'ไม่ระบุเหตุผล')}</div>
+      <div class="row"><button class="sm primary" data-req-ok="${r.id}">ยืนยัน</button><button class="sm danger" data-req-no="${r.id}">ปฏิเสธ</button></div></div>`).join('')
+    : '<p class="empty">ยังไม่มีคำขอฝาก/ถอนรอยืนยัน</p>';
+  return html;
+}
+function wireBankerPanel() {
+  const bd = $('#modal-root .bd'); if (!bd) return;
+  $$('[data-req-ok]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'resolveReq', id: +b.dataset.reqOk, ok: true }));
+  $$('[data-req-no]', bd).forEach(b => b.onclick = () => dispatch(null, { type: 'resolveReq', id: +b.dataset.reqNo, ok: false }));
+}
+function refreshBankerPanel() {
+  const bd = $('#modal-root .bd'); if (!bd) return;
+  const scroll = $('#modal-root .sheet')?.scrollTop;
+  bd.innerHTML = bankerPanelHtml(S());
+  if (scroll != null) $('#modal-root .sheet').scrollTop = scroll;
+  wireBankerPanel();
+}
+function openBankerPanel() {
+  if (!isBanker()) return openBankerClaim();
+  openModal('🏧 แผงแบงก์เกอร์', bankerPanelHtml(S()), refreshBankerPanel);
+  wireBankerPanel();
+}
+
+// ---------- ปุ่มทั้งหมด ----------
+document.addEventListener('pointerdown', unlockAudio, { once: true });
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-evclose]') && (e.target.matches('[data-evclose]') || e.target.closest('button[data-evclose]'))) { $('#ev-root').innerHTML = ''; return; }
+  if (e.target.matches('[data-backdrop]') || e.target.closest('[data-close]')) return closeModal();
+  const tab = e.target.closest('[data-tab]'); if (tab) { App.tab = tab.dataset.tab; return render(); }
+  const ac = e.target.closest('[data-actor]'); if (ac) { App.actor = +ac.dataset.actor; return render(); }
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  const [a, x] = b.dataset.a.split(':'); const as = b.dataset.as != null ? +b.dataset.as : null; const s = S();
+  const turnActor = canAct(s.turn) ? s.turn : null; // ถึงตาใคร กดในนามคนนั้น (หรือแอดมิน)
+  switch (a) {
+    case 'endTurn': return dispatch(turnActor, { type: 'endTurn' });
+    case 'drawEvent': return dispatch(turnActor, { type: 'drawEvent' });
+    case 'go': return dispatch(turnActor, { type: 'goSalary' }).then(ok => { if (ok) toast(`🏁 รับ ${fmt(goAmount(s))} เข้าบัญชี ${P(s.turn).name} แล้ว`); });
+    case 'transfer': return openTransfer(as);
+    case 'payBank': return openPayBank(as);
+    case 'req': return openRequest(as, x);
+    case 'cancelReq': return dispatch(as, { type: 'cancelReq', id: +x });
+    case 'bankLoan': return openBankLoan(as);
+    case 'offer': return openOffer(as);
+    case 'accept': return dispatch(as, { type: 'acceptLoan', id: +x });
+    case 'cancel': return dispatch(as, { type: 'cancelLoan', id: +x });
+    case 'repayAcc': return openRepay(as, +x, 'account');
+    case 'repayCash': return openRepay(as, +x, 'cash');
+    case 'forgive': return confirmBox('ยกหนี้ให้?', 'ยอดที่เหลือทั้งหมดจะถูกลบ ผู้กู้ไม่ต้องจ่ายคืน', 'ยกหนี้', () => dispatch(as, { type: 'forgive', id: +x }));
+    case 'declare': return dispatch(as, { type: 'declareWorth', cash: +$('#w-cash').value || 0, assets: +$('#w-assets').value || 0 }).then(ok => { if (ok) toast('บันทึกยอดแล้ว'); });
+    case 'declareFor': return openDeclareFor(+x);
+    case 'endGame': return confirmBox('จบเกม?', 'หลังจบเกมทุกคนจะนับเงินสดกับทรัพย์สินแล้วแจ้งในแอปเพื่อจัดอันดับ ทำรายการเงินเพิ่มไม่ได้แล้ว', 'จบเกม', () => dispatch(null, { type: 'endGame' }));
+    case 'admin': return isAdmin() ? openAdminPanel() : openAdminClaim();
+    case 'banker': return isBanker() ? openBankerPanel() : openBankerClaim();
+    case 'invite': return openInvite();
+    case 'copy': return copyText(inviteLink());
+    case 'sound': App.sound = !App.sound; store('bb_sound', App.sound ? 'on' : 'off'); if (App.sound) { unlockAudio(); beep('ping'); buzz(60); } return render();
+    case 'home': return confirmBox('ออกจากห้อง?', App.mode === 'online' ? 'กลับเข้ามาได้ด้วยรหัสห้องและชื่อเดิม' : 'ข้อมูลบนเครื่องนี้จะหายไป', 'ออก', leaveToHome);
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#ev-root').innerHTML = ''; } });
+
+// ---------- เริ่มต้น ----------
+App.uid = getUid();
+render();
+(async () => { // รีเฟรชหน้าแล้วกลับเข้าห้องเดิม
+  const code = new URLSearchParams(location.search).get('room');
+  if (!code || !FIREBASE_CONFIG) return;
+  try { await fb(); const snap = await FB.getDoc(roomRef(code.toUpperCase()));
+    if (snap.exists()) { const st = JSON.parse(snap.data().data); if (st.players.some(p => p.uid === App.uid) || isBankerUid(st, App.uid)) enterRoom(code.toUpperCase()); } } catch (e) { console.warn(e); }
+})();
+
+</script>
+
+</body>
+</html>
