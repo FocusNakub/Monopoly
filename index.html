@@ -727,8 +727,8 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       drawEvent(s, rng);
       break;
     case 'goSalary': {
-      // ผ่านจุดเริ่มต้น: เงินเดือนเข้าบัญชีคนที่ถึงตา (กดได้ไม่เกิน 2 ครั้งต่อตา กันกดซ้ำ)
-      need(seat === s.turn || isAdmin, 'กดได้เฉพาะคนที่ถึงตาหรือแอดมิน');
+      // ผ่านจุดเริ่มต้น: บอกแบงก์เกอร์ด้วยวาจา แล้วให้แบงก์เกอร์ (หรือแอดมิน) เป็นคนกดให้เท่านั้น — เงินเดือนเข้าบัญชีคนที่ถึงตา (กดได้ไม่เกิน 2 ครั้งต่อตา กันกดซ้ำ)
+      need(isBanker, 'กดได้เฉพาะแบงก์เกอร์หรือแอดมินเท่านั้น — บอกแบงก์เกอร์ให้กดให้');
       need((s.goCount || 0) < 2, 'ตานี้รับเงินผ่านจุดเริ่มต้นไปแล้ว');
       const t = s.turn, amt = s.settings.goSalary * (hasEffect(s, 'go2') ? 2 : 1);
       need(amt > 0, 'ตั้งค่าเงินผ่านจุดเริ่มต้นเป็น 0 อยู่');
@@ -1362,9 +1362,10 @@ function renderGame() {
       <div class="rnd">รอบที่ ${s.round}${t === mySeat() ? ' · ถึงตาคุณแล้ว!' : ''}</div>
       <div class="who">${tokHtml(t)}<span>ตาของ ${esc(P(t).name)}</span></div>
       ${nx != null ? `<div class="next">คนต่อไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}</div>` : ''}
-      <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>
-        ${goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้น +${fmt(goAmt)}</button>` : ''}` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}
+      <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}
+        ${isBanker() && goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้นให้ ${esc(P(t).name)} +${fmt(goAmt)}</button>` : ''}
         ${isBanker() ? '<button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : ''}</div>
+      ${t === mySeat() && !isBanker() && goAmt > 0 && (s.goCount || 0) < 2 ? `<div class="muted" style="font-size:12.5px;padding:0 2px">🏁 ผ่านจุดเริ่มต้นแล้ว? บอกแบงก์เกอร์ให้กดรับเงินเข้าบัญชีให้</div>` : ''}
     </section>`}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
     <nav class="tabs" role="tablist">
@@ -1460,7 +1461,6 @@ function tabMe(s) {
       <button data-a="req:claim" data-as="${v}"><span>🙋</span>รับจากธนาคาร</button>
       <button data-a="bankLoan" data-as="${v}"><span>🧾</span>กู้ธนาคาร</button>
       <button data-a="offer" data-as="${v}"><span>🤝</span>ให้เพื่อนกู้</button>
-      ${isTurn && goAmount(s) > 0 ? `<button data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}><span>🏁</span>ผ่านจุดเริ่มต้น</button>` : ''}
     </div>` : ''}
     ${reqs.length ? `<div class="section-h"><h2>รอแบงก์เกอร์ยืนยัน</h2></div>${reqs.map(r => `<div class="loan offer"><div class="l1"><b>${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
       <div class="row"><span class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'ยื่นแบงก์ให้คนถือธนาคาร แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอคนถือธนาคารส่งแบงก์ให้และกดยืนยัน' : esc(r.note || 'รอแบงก์เกอร์อนุมัติ')}</span>
