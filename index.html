@@ -257,6 +257,7 @@ const DEFAULT_SETTINGS = {
   turnHelp: false,     // เด้งป๊อปอัพวิธีเล่นซ้ำทุกตา (ปิดอยู่โดยค่าเริ่มต้น เปิดเป็นตัวเลือกได้ — มีปุ่ม "❓ วิธีเล่น" กดดูเองได้เสมออยู่แล้ว)
   disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
   minBalPct: 13,       // ยอดเงินขั้นต่ำในบัญชี (% ของเงินเริ่มต้นบนกระดาน) ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติทันที — ค่าเริ่มต้น 13% ≈ 2,000 ที่กระดาน 15,000 — ตั้งเป็น 0 เพื่อปิดฟีเจอร์นี้
+  bankBudgetPct: 0,    // งบกลางเริ่มต้นของธนาคาร (% ของเงินเริ่มต้นบนกระดาน คูณจำนวนผู้เล่น) — ธนาคารต้องบริหารเงินตัวเอง จ่ายเกินงบไม่ได้ (0 = ปิดฟีเจอร์นี้ = งบไม่จำกัดแบบเดิม)
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร' };
@@ -444,11 +445,12 @@ function drawEvent(s, rng, forceId, adhoc) {
     mostDebt: () => { const d = all().map(i => [i, debtOf(s, i)]).filter(x => x[1] > 0).sort((p, q) => q[1] - p[1]); return d.length ? d[0][0] : null; },
     richestLender: () => { const l = all().map(i => [i, lentOf(s, i)]).sort((p, q) => q[1] - p[1]); return l[0][1] > 0 ? l[0][0] : api.pick(1)[0]; },
     // เงินเข้า/ออกบัญชีตามอีเว้นท์ (ยอดฐานอิงกระดาน 1,500 จะถูกปรับสัดส่วนให้)
-    give: (i, base) => { if (auto) { credit(s, i, money(s, base), 'event', e.title); moved = true; } },
-    take: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); moved = true; } },
+    // give/take เป็นเงินจาก/เข้าธนาคารจริง (นับงบกลางธนาคารด้วย ถ้าเปิดฟีเจอร์ไว้) ส่วน pay เป็นการโอนกันเองระหว่างผู้เล่น ไม่กระทบงบธนาคาร
+    give: (i, base) => { if (auto) { const amt = money(s, base); bankSpend(s, amt); credit(s, i, amt, 'event', e.title); moved = true; } },
+    take: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); bankReceive(s, amt); moved = true; } },
     pay: (from, to, base) => { if (auto && from !== to) { xfer(s, from, to, money(s, base), 'event', e.title); moved = true; } },
-    giveRaw: (i, amt) => { if (auto) { credit(s, i, amt, 'event', e.title); moved = true; } },
-    takeRaw: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); moved = true; } },
+    giveRaw: (i, amt) => { if (auto) { bankSpend(s, amt); credit(s, i, amt, 'event', e.title); moved = true; } },
+    takeRaw: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); bankReceive(s, amt); moved = true; } },
   };
   let text = e.fx(s, api);
   if (moved) text += ' 💳 ตัด/เติมเงินในบัญชีให้แล้ว';
@@ -482,7 +484,7 @@ function newRound(s, rng) {
     if (p.bal >= 0) continue;
     const r = bankRate(s, i);
     const add = r > 0 ? roundUnit(s, -p.bal * r / 100, true) : 0;
-    if (add) { debit(s, i, add, 'overdraft', `ดอกเบี้ยเบิกเกินบัญชี ${r}%`); log(s, `🔴 ${p.name} บัญชีติดลบ โดนดอกเบี้ย ${fmt(add)}`); }
+    if (add) { debit(s, i, add, 'overdraft', `ดอกเบี้ยเบิกเกินบัญชี ${r}%`); bankReceive(s, add); log(s, `🔴 ${p.name} บัญชีติดลบ โดนดอกเบี้ย ${fmt(add)}`); }
   }
   const m = s.settings.eventMode;
   if (m === 'every' || (m === 'every2' && s.round % 2 === 0) || (m === 'chance' && rng() < 0.5)) drawEvent(s, rng);
@@ -536,6 +538,24 @@ function sweepAutoBankrupt(s, rng) {
       if (s.turn === i && active(s).length) nextTurn(s, rng);
     }
   }
+}
+
+// งบกลางธนาคาร (จำกัดหรือไม่จำกัดก็ได้): ตั้งต้นตอนเริ่มเกม = % ของเงินเริ่มต้น × จำนวนผู้เล่น (bankBudgetPct = 0 คือปิดฟีเจอร์นี้ = งบไม่จำกัดเหมือนเดิม)
+const bankBudgetInit = s => {
+  const pct = s.settings.bankBudgetPct || 0;
+  if (pct <= 0) return null; // null = ปิดฟีเจอร์ (ไม่จำกัดงบ)
+  return Math.round(s.settings.start * pct / 100 * s.players.length);
+};
+// เบิกงบกลางธนาคาร (ตอนธนาคารจ่ายเงินออกจริง เช่น ผ่านจุดเริ่มต้น/ถอนเงินสด/รับจากธนาคาร/กู้ธนาคาร/อีเว้นท์แจกเงิน) — งบไม่พอ บล็อกจ่ายเพิ่มทันที (need จะทำให้คำสั่งทั้งคำสั่งยกเลิก ไม่มีอะไรถูกบันทึก)
+function bankSpend(s, amt) {
+  if (s.bankBudget == null || amt <= 0) return;
+  need(s.bankBudget >= amt, `งบกลางธนาคารไม่พอจ่าย (เหลือ ${fmt(s.bankBudget)}) — ต้องรอรับเงินเข้าธนาคาร (ฝากเงินสด/จ่ายธนาคาร/คืนหนี้) ก่อนถึงจะจ่ายเพิ่มได้`);
+  s.bankBudget -= amt;
+}
+// รับเงินเข้างบกลางธนาคาร (ฝากเงินสด/จ่ายธนาคาร/คืนหนี้ธนาคาร/ดอกเบี้ยเบิกเกินบัญชี/อีเว้นท์เก็บเงินเข้าธนาคาร)
+function bankReceive(s, amt) {
+  if (s.bankBudget == null || amt <= 0) return;
+  s.bankBudget += amt;
 }
 
 function applyAction(state, uid, act, rng = Math.random) {
@@ -637,6 +657,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
       if (v.minBalPct != null) { const x = +v.minBalPct; need(x >= 0 && x <= 100, 'ยอดขั้นต่ำต้องอยู่ระหว่าง 0–100%'); st.minBalPct = x; }
+      if (v.bankBudgetPct != null) { const x = +v.bankBudgetPct; need(x >= 0 && x <= 1000, 'งบกลางธนาคารต้องอยู่ระหว่าง 0–1000%'); st.bankBudgetPct = x; }
       if (v.disabledEvents != null) {
         need(Array.isArray(v.disabledEvents), 'รูปแบบไม่ถูกต้อง');
         st.disabledEvents = v.disabledEvents.map(String);
@@ -658,7 +679,8 @@ function applyAction(state, uid, act, rng = Math.random) {
       need(s.players.length >= 2, 'ต้องมีผู้เล่นอย่างน้อย 2 คน');
       if (act.shuffle) shuffle(s.players, rng);
       Object.assign(s, { status: 'playing', order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
-        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0 });
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0,
+        bankBudget: bankBudgetInit(s) });
       // startAllInApp (ค่าเริ่มต้น) = เงินเริ่มต้นทั้งหมดเข้าบัญชีในระบบเลย ไม่แจกเงินสดกระดาษ — ปิดได้แล้วกำหนด startBal เองถ้าอยากแจกเงินสดกระดาษตามปกติ
       s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null;
         const initBal = s.settings.startAllInApp ? s.settings.start : s.settings.startBal;
@@ -717,13 +739,14 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
   switch (act.type) {
     // ---------- ตา / รอบ ----------
     case 'endTurn':
-      need(seat === s.turn || isAdmin, 'ยังไม่ถึงตาของคุณ');
+      // ธนาคาร (แบงก์เกอร์/แอดมิน) ไม่ต้องมีตาเดินเอง แต่คุมจังหวะเกมได้ กดจบตาแทนคนอื่นได้เลย
+      need(seat === s.turn || isAdmin || isBanker, 'ยังไม่ถึงตาของคุณ');
       log(s, `⏭️ ${s.players[s.turn].name} จบตา`);
       nextTurn(s, rng);
       break;
     case 'drawEvent':
-      // สุ่มอีเว้นท์ด้วยตัวเอง (นอกเหนือจากที่สุ่มอัตโนมัติตามรอบ) สงวนไว้ให้แบงก์เกอร์/แอดมินเท่านั้น (เล่นทั่วไปใช้แบงก์เกอร์พอ ไม่ต้องพึ่งรหัสผ่านแอดมิน) กันผู้เล่นกดรัวหาใบที่ถูกใจตัวเอง
-      need(isBanker, 'สุ่มอีเว้นท์เองได้เฉพาะแบงก์เกอร์หรือแอดมินเท่านั้น (อีเว้นท์ปกติจะสุ่มขึ้นอัตโนมัติตามรอบอยู่แล้ว)');
+      // สุ่มอีเว้นท์ด้วยตัวเอง (นอกเหนือจากที่สุ่มอัตโนมัติตามรอบ) สงวนไว้ให้แอดมินเท่านั้น — แบงก์เกอร์กดไม่ได้ กันผู้เล่น/แบงก์เกอร์กดรัวหาใบที่ถูกใจ
+      need(isAdmin, 'สุ่มอีเว้นท์เองได้เฉพาะแอดมินเท่านั้น (อีเว้นท์ปกติจะสุ่มขึ้นอัตโนมัติตามรอบอยู่แล้ว)');
       drawEvent(s, rng);
       break;
     case 'goSalary': {
@@ -732,6 +755,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need((s.goCount || 0) < 2, 'ตานี้รับเงินผ่านจุดเริ่มต้นไปแล้ว');
       const t = s.turn, amt = s.settings.goSalary * (hasEffect(s, 'go2') ? 2 : 1);
       need(amt > 0, 'ตั้งค่าเงินผ่านจุดเริ่มต้นเป็น 0 อยู่');
+      bankSpend(s, amt);
       credit(s, t, amt, 'go', 'ผ่านจุดเริ่มต้น');
       s.goCount = (s.goCount || 0) + 1;
       log(s, `🏁 ${s.players[t].name} ผ่านจุดเริ่มต้น รับ ${fmt(amt)} เข้าบัญชี`);
@@ -754,6 +778,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
       const note = String(act.note || '').slice(0, 40);
       debit(s, seat, amt, 'payBank', note);
+      bankReceive(s, amt);
       log(s, `🏦 ${me.name} จ่ายธนาคาร ${fmt(amt)}${note ? ` (${note})` : ''}`);
       break;
     }
@@ -797,6 +822,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
       const d = Math.round(+act.delta); need(Number.isFinite(d) && d !== 0, 'จำนวนเงินไม่ถูกต้อง');
       const note = String(act.note || 'แอดมินปรับยอด').slice(0, 40);
+      // ปรับยอดโดยแอดมินไม่นับเข้า/ออกงบกลางธนาคาร ถือเป็นการแก้ไขข้อมูล/แก้บั๊กนอกระบบเงินจริง ไม่ใช่ธนาคารจ่ายเงินจริง — แอดมินแก้ไขได้เสมอแม้งบกลางจะหมด
       if (d > 0) credit(s, act.seat, d, 'admin', note); else debit(s, act.seat, -d, 'admin', note);
       log(s, `🛡️ แอดมินปรับยอดบัญชี ${p.name} ${d > 0 ? '+' : '−'}${fmt(Math.abs(d))} (${note})`);
       break;
@@ -811,6 +837,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const room = bankCap(s, seat) - bankDebt(s, seat);
       need(amt <= room, `เกินวงเงิน กู้ได้อีกไม่เกิน ${fmt(Math.max(0, room))}`);
       const intoCash = act.into === 'cash';
+      bankSpend(s, amt); // ธนาคารจ่ายเงินกู้ออกจริง ไม่ว่าจะเข้าบัญชีหรือรับเป็นเงินสด
       const L = { id: s.nextLoan++, lender: null, borrower: seat, principal: amt, balance: amt, rate: bankRate(s, seat), interest: 0,
         startRound: s.round, dueRound: s.round + rounds, status: 'active', overdue: false, via: intoCash ? 'cash' : 'account' };
       s.loans.push(L);
@@ -858,6 +885,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const amt = Math.round(+act.amount);
       need(amt > 0 && amt <= L.balance, `ยอดต้องอยู่ระหว่าง 1–${fmt(L.balance)}`);
       L.balance -= amt;
+      if (L.lender == null) bankReceive(s, amt); // คืนหนี้ธนาคารด้วยเงินสด นับเข้างบกลางธนาคาร
       log(s, `💵 ${nm(s, L.borrower)} คืนเงินสด ${fmt(amt)} ให้${nm(s, L.lender)} (เหลือ ${fmt(L.balance)})`);
       closeIfPaid(L);
       break;
@@ -869,7 +897,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const amt = Math.round(+act.amount);
       need(amt > 0 && amt <= L.balance, `ยอดต้องอยู่ระหว่าง 1–${fmt(L.balance)}`);
       need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
-      if (L.lender == null) debit(s, seat, amt, 'repay', 'คืนหนี้ธนาคาร');
+      if (L.lender == null) { debit(s, seat, amt, 'repay', 'คืนหนี้ธนาคาร'); bankReceive(s, amt); }
       else xfer(s, seat, L.lender, amt, 'repay', 'คืนหนี้');
       L.balance -= amt;
       log(s, `💸 ${me.name} คืนหนี้จากบัญชี ${fmt(amt)} ให้${nm(s, L.lender)} (เหลือ ${fmt(L.balance)})`);
@@ -975,9 +1003,10 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
 // ทำรายการตามคำขอ (หลังแอดมินยืนยัน หรือไม่ต้องยืนยัน)
 function applyReq(s, r) {
   const p = s.players[r.seat];
-  if (r.kind === 'deposit') { credit(s, r.seat, r.amt, 'deposit', r.note || 'ฝากเงินสด'); log(s, `🏧 ${p.name} ฝากเงินสด ${fmt(r.amt)} เข้าบัญชี (ยื่นแบงก์ให้คนถือธนาคาร)`); }
-  if (r.kind === 'withdraw') { debit(s, r.seat, r.amt, 'withdraw', r.note || 'ถอนเงินสด'); log(s, `🏧 ${p.name} ถอนเงินสด ${fmt(r.amt)} (รับแบงก์จากคนถือธนาคาร)`); }
-  if (r.kind === 'claim') { credit(s, r.seat, r.amt, 'claim', r.note || 'รับจากธนาคาร'); log(s, `🏦 ธนาคารจ่าย ${fmt(r.amt)} เข้าบัญชี ${p.name}${r.note ? ` (${r.note})` : ''}`); }
+  // ฝากเงินสด = ธนาคารรับเงินสดจริงเข้ามือ (เติมงบกลาง) / ถอนเงินสด-รับจากธนาคาร = ธนาคารจ่ายเงินสดออกจริง (เบิกงบกลาง งบไม่พอบล็อกทันที)
+  if (r.kind === 'deposit') { credit(s, r.seat, r.amt, 'deposit', r.note || 'ฝากเงินสด'); bankReceive(s, r.amt); log(s, `🏧 ${p.name} ฝากเงินสด ${fmt(r.amt)} เข้าบัญชี (ยื่นแบงก์ให้คนถือธนาคาร)`); }
+  if (r.kind === 'withdraw') { bankSpend(s, r.amt); debit(s, r.seat, r.amt, 'withdraw', r.note || 'ถอนเงินสด'); log(s, `🏧 ${p.name} ถอนเงินสด ${fmt(r.amt)} (รับแบงก์จากคนถือธนาคาร)`); }
+  if (r.kind === 'claim') { bankSpend(s, r.amt); credit(s, r.seat, r.amt, 'claim', r.note || 'รับจากธนาคาร'); log(s, `🏦 ธนาคารจ่าย ${fmt(r.amt)} เข้าบัญชี ${p.name}${r.note ? ` (${r.note})` : ''}`); }
 }
 
 if (typeof module !== 'undefined') module.exports = { applyAction, newRoom, EVENTS, EVENT_BY_ID, CREDIT, TOKENS, GameError, bankCap, bankDebt, debtOf, lentOf, loanRate, bankRate,
@@ -1254,6 +1283,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
     <div class="field"><label for="${pf}-cap">วงเงินกู้ธนาคาร (% ของเงินเริ่มต้น)</label><input id="${pf}-cap" type="number" inputmode="numeric" value="${st.capPct}" ${d}><small>เครดิต B = ${st.capPct}% · AAA ได้มากกว่า</small></div>
     <div class="field"><label for="${pf}-pen">ค่าปรับค้างชำระ (%)</label><input id="${pf}-pen" type="number" inputmode="numeric" value="${st.penalty}" ${d}><small>คิดครั้งเดียวตอนเลยกำหนด</small></div>
     <div class="field"><label for="${pf}-minbal">ยอดขั้นต่ำในบัญชี (% ของเงินเริ่มต้น)</label><input id="${pf}-minbal" type="number" inputmode="numeric" value="${st.minBalPct ?? 13}" ${d}><small>ต่ำกว่านี้ = ล้มละลายอัตโนมัติทันที (0 = ปิด)</small></div>
+    <div class="field"><label for="${pf}-bankbud">งบกลางธนาคาร (% ของเงินเริ่มต้น × จำนวนผู้เล่น)</label><input id="${pf}-bankbud" type="number" inputmode="numeric" value="${st.bankBudgetPct ?? 0}" ${d}><small>ธนาคารจ่ายเกินงบไม่ได้ ต้องรอรับเงินเข้าก่อน (0 = ปิด งบไม่จำกัดแบบเดิม)</small></div>
   </div>
   <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
   ${chk(pf + '-allin', st.startAllInApp !== false, 'เริ่มด้วยเงินในระบบทั้งหมด (ไม่แจกเงินสดกระดาษ)', 'แนะนำ — เงินเริ่มต้นเข้าบัญชีในแอปให้เลย ใครอยากได้เงินสดค่อยกด "ถอนเงินสด" แลกทีหลัง จะได้รู้ยอดรวมทุกคนตลอดเวลา ปิดถ้าจะแจกเงินสดกระดาษตามปกติแล้วกำหนดยอดในบัญชีเอง')}
@@ -1263,7 +1293,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, startAllInApp: v('allin').checked, rate: +v('rate').value,
-    capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
+    capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.sound}" title="เสียงและการสั่นเตือน">${App.sound ? '🔔' : '🔕'}</button>`;
@@ -1344,9 +1374,9 @@ function renderGame() {
   const s = S(), over = s.status === 'over';
   const t = s.turn, nx = nextSeat(s);
   const host = canHost();
-  // ควบคุมตาเล่น (จบตา/ผ่านจุดเริ่มต้น/สุ่มอีเว้นท์) เป็นสิทธิ์ของ "คนที่ถึงตา" หรือแอดมินเท่านั้น
-  // เจ้าของห้องเฉยๆ (ไม่ใช่แอดมิน) ไม่ได้มีสิทธิ์นี้ — ให้ตรงกับ engine.js (เห็นปุ่มแต่กดแล้ว error ไม่มีประโยชน์)
-  const ctlTurn = canAct(t) || isAdmin();
+  // ควบคุมตาเล่น (จบตา/ผ่านจุดเริ่มต้น/สุ่มอีเว้นท์) เป็นสิทธิ์ของ "คนที่ถึงตา" หรือแบงก์เกอร์/แอดมิน (ธนาคารไม่ต้องมีตาเดินเอง แต่คุมจังหวะเกมได้)
+  // เจ้าของห้องเฉยๆ (ไม่ใช่แบงก์เกอร์/แอดมิน) ไม่ได้มีสิทธิ์นี้ — ให้ตรงกับ engine.js (เห็นปุ่มแต่กดแล้ว error ไม่มีประโยชน์)
+  const ctlTurn = canAct(t) || isAdmin() || isBanker();
   const alerts = myAlerts(s, viewSeat());
   const tabs = [...(over ? [['result', 'ผลการแข่งขัน']] : []), ['me', 'บัญชีของฉัน'], ['all', 'ทุกคน'], ['ev', 'อีเว้นท์'], ['log', 'บันทึก']];
   if (!tabs.some(x => x[0] === App.tab)) App.tab = tabs[0][0];
@@ -1364,7 +1394,7 @@ function renderGame() {
       ${nx != null ? `<div class="next">คนต่อไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}</div>` : ''}
       <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}
         ${isBanker() && goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้นให้ ${esc(P(t).name)} +${fmt(goAmt)}</button>` : ''}
-        ${isBanker() ? '<button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : ''}</div>
+        ${isAdmin() ? '<button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : ''}</div>
       ${t === mySeat() && !isBanker() && goAmt > 0 && (s.goCount || 0) < 2 ? `<div class="muted" style="font-size:12.5px;padding:0 2px">🏁 ผ่านจุดเริ่มต้นแล้ว? บอกแบงก์เกอร์ให้กดรับเงินเข้าบัญชีให้</div>` : ''}
     </section>`}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
@@ -1822,11 +1852,21 @@ function openAdminLogin(onSubmit) {
 function openAdminClaim() { openAdminLogin(pw => dispatch(null, { type: 'claimAdmin', password: pw })); }
 
 const LOAN_STATUS_LABEL = { active: 'ใช้งานอยู่', paid: 'ปิดแล้ว', forgiven: 'ยกหนี้แล้ว', declined: 'ยกเลิก/ปฏิเสธ' };
+// งบกลางธนาคาร (ถ้าเปิดฟีเจอร์ไว้): แสดงยอดคงเหลือให้แบงก์เกอร์/แอดมินเห็น เตือนถ้าใกล้หมด
+function bankBudgetHtml(s) {
+  if (s.status !== 'playing' || s.bankBudget == null) return '';
+  const low = s.bankBudget <= 0;
+  return `<div class="panel stack" style="padding:10px 14px;${low ? 'border-color:var(--danger)' : ''}">
+    <div class="row" style="flex-wrap:nowrap"><span class="label" style="margin:0">💰 งบกลางธนาคารคงเหลือ</span>
+      <b class="num" style="margin-left:auto;${low ? 'color:var(--danger)' : ''}">${baht(s.bankBudget)}</b></div>
+    ${low ? '<div class="muted" style="font-size:12.5px;color:var(--danger)">งบหมดแล้ว! จ่ายเงินเพิ่มไม่ได้จนกว่าจะมีคนฝากเงินสด/จ่ายธนาคาร/คืนหนี้เข้ามาก่อน</div>' : ''}
+  </div>`;
+}
 const EV_ICONS = ['⭐', '🍺', '🎉', '💣', '🧨', '🎁', '💔', '👑', '🐍', '🍀', '🚓', '🏥'];
 function adminPanelHtml(s) {
   const online = App.mode === 'online', playing = s.status === 'playing';
   const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง' : '🔒 คุณเข้าสู่ระบบแอดมินด้วยรหัสผ่านแล้ว ดูแล/แก้ไขได้ทุกอย่าง (รวมหน้าที่แบงก์เกอร์ด้วย)';
-  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>`;
+  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>${bankBudgetHtml(s)}`;
   const reqs = s.reqs || [];
   if (playing && reqs.length) html += `<div class="section-h"><h2>คำขอรอยืนยัน</h2><span class="count">${reqs.length}</span></div>
     ${reqs.map(r => `<div class="loan offer"><div class="l1"><b>${pn(r.seat)} · ${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
@@ -1978,7 +2018,7 @@ function bankerPanelHtml(s) {
   const admin = isAdmin();
   const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง'
     : admin ? '🛡️ คุณเป็นแอดมิน (ทำหน้าที่แบงก์เกอร์ได้ด้วยอยู่แล้ว)' : '🏧 คุณอยู่ในโหมดแบงก์เกอร์ (ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว แก้ไขค่าอื่นในเกมไม่ได้)';
-  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>`;
+  let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>${bankBudgetHtml(s)}`;
   if (s.status !== 'playing') return html + '<p class="empty">เกมยังไม่เริ่ม ยังไม่มีคำขอฝาก/ถอน</p>';
   const reqs = s.reqs || [];
   html += `<div class="section-h"><h2>คำขอรอยืนยัน</h2>${reqs.length ? `<span class="count">${reqs.length}</span>` : ''}</div>`;
