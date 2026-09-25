@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <title>ธนาคารเศรษฐี</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- ติดตั้งลงหน้าจอหลัก (PWA) — Android + iOS -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f5b52">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ธนาคารเศรษฐี">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -322,6 +331,16 @@ body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------- โหมดแอปบนหน้าจอหลัก ---------- */
+@media (display-mode: standalone){ body{padding-top:max(12px, env(safe-area-inset-top)); padding-bottom:max(40px, env(safe-area-inset-bottom))} }
+.install-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:0 0 14px;box-shadow:var(--shadow)}
+.install-card img{width:42px;height:42px;border-radius:10px;flex:none}
+.install-card div{flex:1;min-width:0;font-size:14px;line-height:1.4}
+.install-card b{display:block;font-family:var(--display);font-weight:500}
+.install-card button{flex:none}
+.install-card .x{border:0;background:none;padding:.3em .5em;color:var(--muted)}
+.ios-steps{margin:0;padding-left:1.3em;line-height:1.9}
+.k{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 .4em;background:var(--surface2)}
 </style>
 
 </head>
@@ -1356,6 +1375,7 @@ function renderHome() {
       <li><b>🏦 กู้ยืม</b>กู้ธนาคารหรือกู้กันเอง ดอกเบี้ยคิดทุกรอบ เครดิตขึ้นลงตามพฤติกรรม</li>
       <li><b>🎴 อีเว้นท์พิเศษ</b>${EVENTS.length} แบบ ตัด/เติมเงินในบัญชีให้อัตโนมัติ</li>
     </ul>
+    ${installCard()}
     <div class="home-grid">
       <section class="panel stack" aria-labelledby="h-on">
         <h2 id="h-on">ทุกคนใช้มือถือตัวเอง</h2>
@@ -1446,6 +1466,7 @@ function menuItems() {
   const it = [];
   if (online) it.push(['📷', 'ชวนเพื่อนเข้าห้อง', `QR และลิงก์ห้อง ${App.room}`, 'invite']);
   it.push(['❓', 'วิธีเล่น', 'ขั้นตอนเล่นกับกระดานจริงทีละข้อ', 'howto']);
+  if (canInstall()) it.push(['📲', 'เพิ่มไว้หน้าจอหลัก', 'เปิดเหมือนแอป ไม่ต้องพิมพ์ลิงก์', 'install']);
   if (online) it.push([App.sound ? '🔔' : '🔕', App.sound ? 'ปิดเสียงเตือน' : 'เปิดเสียงเตือน', 'เสียง + สั่นตอนถึงตาหรือได้รับเงิน', 'sound']);
   it.push('-');
   // ย้อนกลับได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริง
@@ -2319,6 +2340,8 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
   const [a, x] = b.dataset.a.split(':'); const as = b.dataset.as != null ? +b.dataset.as : null; const s = S();
   if (b.closest('.menu')) closeModal(); // กดรายการในเมนูแล้วปิดเมนูก่อนทำต่อ
+  if (a === 'install') return doInstall(); // ใช้ได้ทั้งหน้าแรก (ยังไม่มีห้อง) และในเกม
+  if (a === 'installHide') { store('bb_install_hide', '1'); return render(); }
   const turnActor = canAct(s.turn) ? s.turn : null; // ถึงตาใคร กดในนามคนนั้น (หรือแอดมิน)
   switch (a) {
     case 'endTurn': return dispatch(turnActor, { type: 'endTurn' });
@@ -2362,6 +2385,43 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#ev-root').innerHTML = ''; } });
+
+// ---------- ติดตั้งลงหน้าจอหลัก (PWA) ----------
+const ua = navigator.userAgent;
+const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad รุ่นใหม่แกล้งเป็น Mac
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let installEvt = null; // Android/Chrome เก็บอีเว้นท์ไว้กดติดตั้งทีหลัง
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (!S()) render(); });
+window.addEventListener('appinstalled', () => { installEvt = null; toast('ติดตั้งแล้ว เปิดจากหน้าจอหลักได้เลย'); if (!S()) render(); });
+const canInstall = () => !isStandalone() && (!!installEvt || isIOS);
+function installCard() {
+  if (!canInstall() || store('bb_install_hide')) return '';
+  return `<div class="install-card" role="region" aria-label="ติดตั้งแอป">
+    <img src="icons/icon-192.png" alt="">
+    <div><b>เพิ่มไว้หน้าจอหลัก</b><span class="muted">กดเปิดเหมือนแอป เต็มจอ ไม่ต้องพิมพ์ลิงก์</span></div>
+    <button class="primary sm" data-a="install">ติดตั้ง</button>
+    <button class="x" data-a="installHide" aria-label="ซ่อน">✕</button>
+  </div>`;
+}
+async function doInstall() {
+  if (installEvt) { // Android: ขึ้นหน้าต่างติดตั้งของระบบ
+    installEvt.prompt();
+    try { await installEvt.userChoice; } catch (e) {}
+    installEvt = null; return render();
+  }
+  if (isIOS) { // iOS: Apple ไม่ให้เว็บสั่งติดตั้งเอง ต้องบอกขั้นตอน
+    const inSafari = !/CriOS|FxiOS|EdgiOS|Line\/|FBAN|FBAV|Instagram/.test(ua);
+    return openModal('📲 เพิ่มไว้หน้าจอหลัก (iPhone/iPad)', inSafari || /CriOS|EdgiOS/.test(ua) ? `<ol class="ios-steps">
+      <li>กดปุ่มแชร์ <span class="k">⬆︎</span> ${/CriOS|EdgiOS/.test(ua) ? 'ข้างช่องลิงก์ด้านบน' : 'ที่แถบล่าง (หรือบนสุดใน iPad)'}</li>
+      <li>เลื่อนลงแล้วเลือก <span class="k">เพิ่มไปยังหน้าจอโฮม</span> (Add to Home Screen)</li>
+      <li>กด <span class="k">เพิ่ม</span> มุมขวาบน</li></ol>
+      <p class="muted" style="margin:.8em 0 0;font-size:14px">ถ้าไม่เจอ ให้เลื่อนแถวไอคอนไปทางขวาแล้วกด "แก้ไขการทำงาน" เพื่อเพิ่มเมนูนี้</p>`
+      : `<p style="margin:0">ตอนนี้เปิดอยู่ในแอปแชท (เช่น LINE) ซึ่งติดตั้งไม่ได้</p>
+      <ol class="ios-steps"><li>กด <span class="k">⋯</span> หรือ <span class="k">⬆︎</span> แล้วเลือก <b>เปิดใน Safari</b></li><li>ใน Safari กดแชร์ <span class="k">⬆︎</span> → <span class="k">เพิ่มไปยังหน้าจอโฮม</span></li></ol>`);
+  }
+  openModal('📲 เพิ่มไว้หน้าจอหลัก', `<p style="margin:0">กดเมนู <span class="k">⋮</span> ของเบราว์เซอร์ แล้วเลือก <b>ติดตั้งแอป</b> หรือ <b>เพิ่มลงในหน้าจอหลัก</b></p>`);
+}
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(e => console.warn(e));
 
 // ---------- เริ่มต้น ----------
 App.uid = getUid();
