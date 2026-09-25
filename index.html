@@ -4,15 +4,6 @@
 <meta charset="utf-8">
 <title>ธนาคารเศรษฐี</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- ติดตั้งลงหน้าจอหลัก (PWA) — Android + iOS -->
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f5b52">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ธนาคารเศรษฐี">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -22,6 +13,8 @@
   --line:#cdd4c9; --jade:#0f5b52; --jade-ink:#fff; --gold:#c98f0a; --danger:#c0392b; --ok:#1f8a4c;
   --note:#fff6dc; --shadow:0 1px 2px rgba(20,40,35,.08),0 6px 22px rgba(20,40,35,.08);
   --display:'Mitr',system-ui,sans-serif; --body:'IBM Plex Sans Thai',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  /* ขอบซ้าย/ขวาของหน้าจอ: แคบบนมือถือ ขยายอัตโนมัติตามความกว้างจอ (แท็บเล็ต/คอม) จะได้ไม่เหลือขอบว่างเยอะเหมือนกล่องแคบๆ ลอยกลางจอ */
+  --gutter:clamp(14px, 3.2vw, 40px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){ color-scheme:dark; --ground:#0d1514; --surface:#15211f; --surface2:#1c2b28; --ink:#e4ece8; --muted:#95a7a1;
@@ -31,7 +24,7 @@
   --line:#2d3e3a; --jade:#3fb8a4; --jade-ink:#062522; --gold:#e8b33a; --danger:#ef6b5b; --ok:#4cc17e; --note:#2a2616; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 26px rgba(0,0,0,.35); }
 *{box-sizing:border-box}
 html,body{min-height:100%}
-body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--body);padding-inline:16px;padding-block:12px 40px}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--body);padding-inline:var(--gutter);padding-block:12px 40px}
 h1,h2,h3{font-family:var(--display);font-weight:500;margin:0;line-height:1.2;text-wrap:balance}
 button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:.5em 1em}
 button:hover:not(:disabled){background:var(--surface2)}
@@ -55,7 +48,7 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .field{display:grid;gap:4px}
 .field small{color:var(--muted);font-size:12.5px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.wrap{max-width:720px;margin:0 auto;display:grid;gap:14px}
+.wrap{max-width:1080px;width:100%;margin:0 auto;display:grid;gap:14px}
 .tok{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;font-size:18px;border:2px solid var(--c);background:var(--surface);flex:none}
 .badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:1px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);white-space:nowrap}
 .badge.me{background:color-mix(in srgb,var(--jade) 16%,var(--surface));border-color:var(--jade)}
@@ -209,7 +202,7 @@ td.r,th.r{text-align:right}
 body.hasbar{padding-top:0}
 body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 /* แถบบน: โลโก้ + บทบาท + เมนู */
-.appbar{position:sticky;top:0;z-index:20;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;
+.appbar{position:sticky;top:0;z-index:20;margin-inline:calc(-1 * var(--gutter));padding:calc(10px + env(safe-area-inset-top,0px)) var(--gutter) 10px;
   background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   display:flex;align-items:center;gap:10px;border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
 .appbar .logo{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;font-family:var(--display);font-weight:600;font-size:19px;
@@ -244,6 +237,8 @@ body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .turnbar .extra button{flex:1;min-width:max-content}
 .turnbar .hint{grid-column:1/-1;font-size:12.5px;color:var(--muted);background:var(--surface2);border-radius:10px;padding:7px 10px}
 .turnbar.over{grid-template-columns:auto 1fr}
+.turnbar.bankrupt{background:color-mix(in srgb,var(--danger) 14%,var(--surface));border-color:var(--danger)}
+.turnbar.bankrupt .tt b{color:var(--danger)}
 /* แถบนำทางด้านล่าง */
 .bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;
   background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
@@ -305,9 +300,21 @@ body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 .q .qamt{margin-left:auto;font-family:var(--mono);font-size:24px}
 .q .qdo{font-size:14px;background:var(--surface2);border-radius:10px;padding:8px 12px}
 .q .row button{flex:1}
-.acc{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.acc{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .acc:last-child{border-bottom:0}
 .acc small{display:block;color:var(--muted);font-size:12px}
+.acc-actions{display:flex;gap:4px;flex:none}
+.acc-actions button{padding:5px 7px;font-size:14px;border-radius:8px}
+/* ป้ายสถานะเชื่อมต่อ (Live) บนแถบบน */
+.livebadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:4px 10px 4px 8px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);flex:none;white-space:nowrap}
+.livebadge i{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.livebadge.on{color:#1b8a4c}
+:root:not([data-theme="light"]) .livebadge.on{color:#4fd982}
+.livebadge.on i{background:#2ecc71;box-shadow:0 0 0 0 rgba(46,204,113,.55);animation:livepulse 1.8s infinite}
+.livebadge.off{color:var(--danger)}
+.livebadge.off i{background:var(--danger)}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(46,204,113,.55)}70%{box-shadow:0 0 0 6px rgba(46,204,113,0)}100%{box-shadow:0 0 0 0 rgba(46,204,113,0)}}
+@media (max-width:360px){.livebadge span{display:none}.livebadge{padding:6px}}
 /* สลิปโอนเงิน */
 .slip{display:grid;gap:12px;text-align:center}
 .slip .ok{width:64px;height:64px;border-radius:50%;margin:4px auto 0;display:grid;place-items:center;font-size:32px;color:#fff;background:var(--ok);box-shadow:0 0 0 8px color-mix(in srgb,var(--ok) 18%,transparent)}
@@ -331,44 +338,6 @@ body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 #toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-/* ---------- แท็บการเงิน: หุ้น / เงินฝาก / ประกัน / บัตร ---------- */
-.fin-sum{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.fin-sum div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:grid;gap:0}
-.fin-sum small{color:var(--muted);font-size:12.5px}
-.fin-sum b{font-family:var(--mono);font-weight:500;font-size:17px}
-.stk{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.stk:last-child{border-bottom:0}
-.stk .si{font-size:24px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface2)}
-.stk .sn b{display:block;font-family:var(--display);font-weight:500;line-height:1.25}
-.stk .sn small{color:var(--muted);font-size:12.5px}
-.stk .sp{text-align:right;font-family:var(--mono)}
-.stk .sp small{display:block;font-size:12.5px}
-.stk .own{grid-column:2 / -1;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-.stk .own .row{margin-left:auto;gap:6px}
-.up{color:var(--ok)} .down{color:var(--danger)}
-.spark{width:64px;height:22px;display:block;margin-left:auto}
-.plan{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
-.plan.on{border-color:var(--jade);box-shadow:inset 4px 0 0 var(--jade)}
-.plan .l1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.plan .l1 b{font-family:var(--display);font-weight:500;font-size:16px}
-.plan .meta{font-size:13px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
-.cc{border-radius:18px;padding:16px 18px;color:#fff;background:linear-gradient(135deg,#27313a,#0f5b52);display:grid;gap:6px;box-shadow:var(--shadow)}
-.cc .c1{display:flex;justify-content:space-between;align-items:center;font-family:var(--display)}
-.cc .c2{font-family:var(--mono);font-size:24px}
-.cc .c3{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;opacity:.85}
-.cc .c3 b{display:block;font-family:var(--mono);font-size:14px;opacity:1}
-.cc .bar{background:rgba(255,255,255,.2)} .cc .bar i{background:#f2c14e}
-.tx-amt.card{color:var(--muted)}
-/* ---------- โหมดแอปบนหน้าจอหลัก ---------- */
-@media (display-mode: standalone){ body{padding-top:max(12px, env(safe-area-inset-top)); padding-bottom:max(40px, env(safe-area-inset-bottom))} }
-.install-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:0 0 14px;box-shadow:var(--shadow)}
-.install-card img{width:42px;height:42px;border-radius:10px;flex:none}
-.install-card div{flex:1;min-width:0;font-size:14px;line-height:1.4}
-.install-card b{display:block;font-family:var(--display);font-weight:500}
-.install-card button{flex:none}
-.install-card .x{border:0;background:none;padding:.3em .5em;color:var(--muted)}
-.ios-steps{margin:0;padding-left:1.3em;line-height:1.9}
-.k{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 .4em;background:var(--surface2)}
 </style>
 
 </head>
@@ -429,16 +398,10 @@ const DEFAULT_SETTINGS = {
   turnHelp: false,     // เด้งป๊อปอัพวิธีเล่นซ้ำทุกตา (ปิดอยู่โดยค่าเริ่มต้น เปิดเป็นตัวเลือกได้ — มีปุ่ม "❓ วิธีเล่น" กดดูเองได้เสมออยู่แล้ว)
   disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
   minBalPct: 13,       // ยอดเงินขั้นต่ำในบัญชี (% ของเงินเริ่มต้นบนกระดาน) ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติทันที — ค่าเริ่มต้น 13% ≈ 2,000 ที่กระดาน 15,000 — ตั้งเป็น 0 เพื่อปิดฟีเจอร์นี้
-  savingsRate: 1,      // ดอกเบี้ยออมทรัพย์ %/รอบ (ยอดบัญชีที่เป็นบวกได้ดอกอัตโนมัติ) — 0 = ปิด
-  fixedRate: 2,        // ดอกเบี้ยฝากประจำ %/รอบ (ฝาก 3 รอบ) — ฝาก 5 รอบ +1%, ฝาก 8 รอบ +2%
-  stockFee: 1,         // ค่าธรรมเนียมซื้อขายหุ้น %
-  cardPct: 20,         // วงเงินบัตรเครดิต % ของเงินเริ่มต้น (คูณตามระดับเครดิต)
-  cardRate: 8,         // ดอกเบี้ยบัตรเครดิต %/รอบ (คิดเฉพาะยอดยกมาที่ไม่ได้จ่ายภายในรอบ)
-  mortgageFee: 10,     // ค่าไถ่ถอนโฉนด % (จ่ายคืน = ยอดจำนอง + %)
   bankBudgetPct: 0,    // งบกลางเริ่มต้นของธนาคาร (% ของเงินเริ่มต้นบนกระดาน คูณจำนวนผู้เล่น) — ธนาคารต้องบริหารเงินตัวเอง จ่ายเกินงบไม่ได้ (0 = ปิดฟีเจอร์นี้ = งบไม่จำกัดแบบเดิม)
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
-const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร', mortgage: 'จำนองโฉนดกับธนาคาร' };
+const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร', payBank: 'จ่ายธนาคาร', loan: 'กู้ธนาคาร' };
 
 const fmt = n => Number(n).toLocaleString('en-US');
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -474,6 +437,8 @@ function addTx(s, kind, from, to, amt, note) {
 function credit(s, seat, amt, kind, note, from = null) { s.players[seat].bal += amt; addTx(s, kind, from, seat, amt, note); }
 function debit(s, seat, amt, kind, note, to = null) { s.players[seat].bal -= amt; addTx(s, kind, seat, to, amt, note); }
 function xfer(s, from, to, amt, kind, note) { s.players[from].bal -= amt; s.players[to].bal += amt; addTx(s, kind, from, to, amt, note); }
+// ยอดที่ใช้จ่ายได้จริง = ยอดในบัญชี − วงเงินที่ถูกแบงก์เกอร์อายัดไว้ (ยังรับเงินเข้าได้ปกติ แต่โอน/จ่าย/ถอนเกินยอดนี้ไม่ได้)
+const avail = (s, seat) => s.players[seat].bal - (s.players[seat].hold || 0);
 
 // ---------- ดอกเบี้ย / วงเงิน ----------
 function bankRate(s, seat) {
@@ -494,128 +459,11 @@ function bumpCredit(s, seat, d) {
   if (p.credit !== old) log(s, `${d > 0 ? '📈' : '📉'} เครดิตของ ${p.name} ${d > 0 ? 'ขึ้น' : 'ลด'}เป็น ${CREDIT[p.credit].name}`);
 }
 
-// ================== ผลิตภัณฑ์ธนาคารเพิ่มเติม: เงินฝาก / หุ้น / ประกัน / จำนอง / บัตรเครดิต ==================
-const priceUnit = s => Math.max(1, unitOf(s) / 10);                                   // หน่วยปัดเศษละเอียด (ราคาหุ้น/ดอกเบี้ยเงินฝาก)
-const roundFine = (s, x, up) => { const u = priceUnit(s); return (up ? Math.ceil(x / u) : Math.round(x / u)) * u; };
-// ธนาคารจ่ายแบบ "ถ้างบพอ" — ใช้ตอนขึ้นรอบใหม่ (ดอกเบี้ย/ปันผล/เคลม) ที่ห้ามทำให้การจบตาพัง งบไม่พอคืน false
-function bankTrySpend(s, amt) {
-  if (amt <= 0) return true;
-  if (s.bankBudget != null && s.bankBudget < amt) return false;
-  if (s.bankBudget != null) s.bankBudget -= amt;
-  return true;
-}
-// ---- ฝากประจำ: ระยะเวลา → ดอกเบี้ยเพิ่มจากฐาน ----
-const FIXED_TERMS = [{ r: 3, bonus: 0 }, { r: 5, bonus: 1 }, { r: 8, bonus: 2 }];
-const fixedRateOf = (s, rounds) => (s.settings.fixedRate ?? 2) + (FIXED_TERMS.find(t => t.r === rounds) || { bonus: 0 }).bonus;
-// ---- ตลาดหุ้น (บริษัทสมมติ) base = ราคาตั้งต้นอิงกระดาน 1,500 · drift = แนวโน้ม/รอบ · vol = ความผันผวน · div = ปันผล %/รอบ ----
-const STOCKS = [
-  { id: 'OIL', icon: '⛽', name: 'น้ำมันสยาม', base: 100, drift: 0.01, vol: 0.10 },
-  { id: 'RAIL', icon: '🚆', name: 'รางทองคมนาคม', base: 80, drift: 0.012, vol: 0.06 },
-  { id: 'FOOD', icon: '🍜', name: 'ครัวไทยโภชนา', base: 60, drift: 0.005, vol: 0.04, div: 1 },
-  { id: 'TECH', icon: '🛺', name: 'ตุ๊กตุ๊กเทค', base: 120, drift: 0.02, vol: 0.16 },
-  { id: 'FUND', icon: '🧺', name: 'กองทุนดัชนีเศรษฐี', base: 50, drift: 0.01, vol: 0.02, fund: true },
-];
-const STOCK_BY_ID = Object.fromEntries(STOCKS.map(k => [k.id, k]));
-const roundPrice = (s, x) => Math.max(priceUnit(s), roundFine(s, x));
-function newMarket(s) {
-  const m = { prices: {}, prev: {}, hist: {} };
-  STOCKS.forEach(k => { const p0 = roundPrice(s, money(s, k.base)); m.prices[k.id] = p0; m.prev[k.id] = p0; m.hist[k.id] = [p0]; });
-  return m;
-}
-// ราคาขยับทุกรอบใหม่ (shock = ข่าว/อีเว้นท์ ขยับทันทีแบบกำหนด % เอง, only = เฉพาะบางตัว)
-function moveMarket(s, rng, shock, only) {
-  const m = s.market;
-  for (const k of STOCKS) {
-    if (only && !only.includes(k.id)) continue;
-    const old = m.prices[k.id];
-    let pct;
-    if (shock != null) pct = shock * (k.fund ? 0.4 : 1); // กองทุนกระจายความเสี่ยง โดนผลกระทบแค่ 40%
-    else { m.prev[k.id] = old; pct = k.drift + ((rng() + rng() + rng()) / 3 - 0.5) * 3.4 * k.vol; }
-    const np = Math.max(roundPrice(s, money(s, k.base) * 0.1), roundPrice(s, old * (1 + pct))); // ไม่ต่ำกว่า 10% ของราคาตั้งต้น
-    m.prices[k.id] = np;
-    if (shock != null) m.hist[k.id][m.hist[k.id].length - 1] = np; else { m.hist[k.id].push(np); if (m.hist[k.id].length > 12) m.hist[k.id].shift(); }
-  }
-}
-const sharesValue = (s, seat) => { const p = s.players[seat]; if (!p.shares || !s.market) return 0; return STOCKS.reduce((a, k) => a + (p.shares[k.id] || 0) * s.market.prices[k.id], 0); };
-// ---- ประกันภัย: premium/cap อิงกระดาน 1,500 · cover = % ที่จ่ายชดเชยเมื่อโดนอีเว้นท์ร้ายที่คุ้มครอง ----
-const INS_PLANS = {
-  basic: { icon: '🛡️', name: 'ประกันพื้นฐาน', premium: 20, cover: 50, cap: 300 },
-  plus: { icon: '💎', name: 'ประกันชั้นหนึ่ง', premium: 45, cover: 90, cap: 600 },
-};
-// ---- บัตรเครดิต ----
-const cardLimit = (s, seat) => roundUnit(s, s.settings.start * (s.settings.cardPct ?? 20) / 100 * CREDIT[s.players[seat].credit].cap);
-const cardOwed = p => (p.card || 0) + (p.cardNew || 0);
-// ---- จำนองโฉนด: ค่าไถ่ถอน = ยอดจำนอง + ค่าธรรมเนียม % ----
-const redeemCost = (s, M) => M.amt + roundUnit(s, M.amt * (s.settings.mortgageFee ?? 10) / 100, true);
-const mortgageOwed = (s, seat) => (s.mortgages || []).filter(M => M.seat === seat && M.status === 'active').reduce((a, M) => a + redeemCost(s, M), 0);
-const fixedOf = (s, seat) => (s.deposits || []).filter(D => D.seat === seat && D.status === 'active').reduce((a, D) => a + D.balance, 0);
-// เติมฟิลด์ใหม่ให้ห้องที่สร้างก่อนมีฟีเจอร์นี้ (ห้องเก่าเล่นต่อได้ไม่พัง)
-function ensureBankPlus(s) {
-  s.deposits = s.deposits || []; s.mortgages = s.mortgages || [];
-  s.nextDep = s.nextDep || 1; s.nextMort = s.nextMort || 1;
-  if (!s.market) s.market = newMarket(s);
-  for (const p of s.players) {
-    p.shares = p.shares || {}; p.cost = p.cost || {};
-    if (p.card == null) p.card = 0; if (p.cardNew == null) p.cardNew = 0; if (p.cardLate == null) p.cardLate = 0;
-    if (p.ins === undefined) p.ins = null;
-  }
-}
-// รีเซ็ตทุกอย่างตอนเริ่มเกม/เริ่มใหม่
-function resetBankPlus(s) {
-  Object.assign(s, { deposits: [], mortgages: [], nextDep: 1, nextMort: 1, market: null });
-  s.players.forEach(p => Object.assign(p, { shares: {}, cost: {}, card: 0, cardNew: 0, cardLate: 0, ins: null }));
-  ensureBankPlus(s);
-}
-// ทุกต้นรอบ: ดอกเบี้ยออมทรัพย์ ฝากประจำ ตลาดหุ้น ปันผล เบี้ยประกัน บัตรเครดิต
-function bankPlusRound(s, rng) {
-  ensureBankPlus(s);
-  const st = s.settings;
-  moveMarket(s, rng);
-  for (const i of active(s)) {
-    const p = s.players[i];
-    // ออมทรัพย์
-    const sr = st.savingsRate ?? 1;
-    if (sr > 0 && p.bal > 0) { const x = roundFine(s, p.bal * sr / 100); if (x > 0 && bankTrySpend(s, x)) credit(s, i, x, 'savings', `ดอกเบี้ยออมทรัพย์ ${sr}%`); }
-    // ปันผล
-    for (const k of STOCKS) if (k.div && p.shares[k.id]) {
-      const x = roundFine(s, p.shares[k.id] * s.market.prices[k.id] * k.div / 100);
-      if (x > 0 && bankTrySpend(s, x)) credit(s, i, x, 'dividend', `ปันผล ${k.icon} ${k.name} ${k.div}%`);
-    }
-    // เบี้ยประกัน (ยอดไม่พอ = กรมธรรม์ขาดอายุ)
-    if (p.ins) {
-      const pr = money(s, INS_PLANS[p.ins.plan].premium);
-      if (p.bal >= pr) { debit(s, i, pr, 'insurance', `เบี้ย${INS_PLANS[p.ins.plan].name}`); bankReceive(s, pr); }
-      else { log(s, `⚠️ ${p.name} ยอดบัญชีไม่พอจ่ายเบี้ย ${INS_PLANS[p.ins.plan].name} ขาดอายุแล้ว`); p.ins = null; }
-    }
-    // บัตรเครดิต: ยอดยกมาที่ยังไม่จ่าย โดนดอกเบี้ย / ค้างนาน 3 รอบติด เครดิตลด
-    if (p.card > 0) {
-      const r = st.cardRate ?? 8, add = roundFine(s, p.card * r / 100, true);
-      p.card += add; p.cardLate++;
-      log(s, `💳 ${p.name} ค้างชำระบัตรเครดิต โดนดอกเบี้ย ${r}% (+${fmt(add)}) ยอดค้าง ${fmt(p.card)}`);
-      if (p.cardLate >= 3) { p.cardLate = 0; bumpCredit(s, i, -1); }
-    } else p.cardLate = 0;
-    p.card += p.cardNew; p.cardNew = 0; // ยอดรูดในรอบที่แล้ว กลายเป็นยอดยกมา (ถ้าไม่จ่ายก่อนจบรอบหน้า โดนดอก)
-  }
-  // ฝากประจำ: ทบต้นทุกรอบ ครบกำหนดคืนเข้าบัญชีอัตโนมัติ
-  for (const D of s.deposits) {
-    if (D.status !== 'active') continue;
-    D.balance += roundFine(s, D.balance * D.rate / 100);
-    if (s.round >= D.dueRound) {
-      const intr = D.balance - D.principal, ok = bankTrySpend(s, intr), pay = ok ? D.balance : D.principal;
-      D.status = 'done';
-      if (!s.players[D.seat].out) credit(s, D.seat, pay, 'fixed', 'ฝากประจำครบกำหนด');
-      log(s, `🐷 ฝากประจำของ ${nm(s, D.seat)} ครบกำหนด คืนเข้าบัญชี ${fmt(pay)}${ok ? ` (ดอกเบี้ย ${fmt(intr)})` : ' (งบธนาคารไม่พอจ่ายดอก คืนแค่เงินต้น)'}`);
-    }
-  }
-}
-
 // ---------- ความมั่งคั่งสุทธิ (ใช้จัดอันดับ) ----------
 // = ยอดบัญชี + เงินสดกระดาษที่แจ้ง + มูลค่าทรัพย์สินที่แจ้ง + เงินที่คนอื่นติดเรา − หนี้ของเรา
-//   + ฝากประจำ + มูลค่าหุ้น − ค่าไถ่ถอนโฉนดที่จำนองไว้ − หนี้บัตรเครดิต
 function netWorth(s, seat) {
   const p = s.players[seat];
-  return p.bal + (p.cash || 0) + (p.assets || 0) + lentOf(s, seat) - debtOf(s, seat)
-    + fixedOf(s, seat) + sharesValue(s, seat) - mortgageOwed(s, seat) - cardOwed(p);
+  return p.bal + (p.cash || 0) + (p.assets || 0) + lentOf(s, seat) - debtOf(s, seat);
 }
 function gameStats(s, seat) {
   const mine = s.loans.filter(L => L.borrower === seat && ['active', 'paid', 'forgiven'].includes(L.status));
@@ -639,7 +487,7 @@ const EVENTS = [
   { id: 'songkran', icon: '💦', title: 'สงกรานต์สาดเงิน', fx: (s, a) => { const L = a.all(); if (L.length > 1) L.forEach((i, k) => a.pay(i, L[(k - 1 + L.length) % L.length], 20));
       const low = L.slice().sort((p, q) => s.players[p].bal - s.players[q].bal)[0]; a.give(low, 100);
       return `ทุกคนส่งเงิน ${a.m(20)} ให้คนก่อนหน้าตามลำดับ แล้ว ${a.n(low)} (ยอดบัญชีน้อยสุด) รับเพิ่ม ${a.m(100)}`; } },
-  { id: 'boom', icon: '📊', title: 'เศรษฐกิจบูม', fx: (s, a) => { moveMarket(s, a.rng, 0.12); return '📈 หุ้นทุกตัวขึ้น 12% · ' + `ทุกคนรับจากธนาคาร ${a.m(20)} ต่อโฉนด 1 ใบที่ถืออยู่ (สูงสุด ${a.m(200)}) — นับโฉนดแล้วรับเงินสดจากธนาคาร`; } },
+  { id: 'boom', icon: '📊', title: 'เศรษฐกิจบูม', fx: (s, a) => `ทุกคนรับจากธนาคาร ${a.m(20)} ต่อโฉนด 1 ใบที่ถืออยู่ (สูงสุด ${a.m(200)}) — นับโฉนดแล้วรับเงินสดจากธนาคาร` },
   { id: 'lottery', icon: '🎰', title: 'หวยออก', fx: (s, a) => { const r = a.all().map(i => [i, a.roll() + a.roll()]); const top = Math.max(...r.map(x => x[1])); const w = r.filter(x => x[1] === top).map(x => x[0]);
       w.forEach(i => a.give(i, 200));
       return `แอปทอยเต๋าให้ทุกคน: ${r.map(([i, v]) => `${a.n(i)} ${v}`).join(' · ')} — ${w.map(a.n).join(', ')} ได้แต้มสูงสุด รับ${w.length > 1 ? 'คนละ' : ''} ${a.m(200)}`; } },
@@ -647,15 +495,14 @@ const EVENTS = [
       return n ? `หนี้ธนาคารของทุกคนลด 20% อัตโนมัติ (${n} สัญญา)` : 'ตอนนี้ไม่มีใครมีหนี้ธนาคาร ทุกคนได้แต่ยิ้ม 😅'; } },
   { id: 'crash', icon: '📉', title: 'ตลาดหุ้นล่ม', fx: (s, a) => { let n = 0; for (const L of s.loans) if (L.status === 'active') { L.balance += roundUnit(s, L.balance * 0.1, true); n++; }
       a.all().filter(i => debtOf(s, i) === 0).forEach(i => a.give(i, 50));
-      moveMarket(s, a.rng, -0.25);
-      return '📉 หุ้นทุกตัวร่วง 25% · ' + (n ? `หนี้ทุกสัญญาเพิ่มขึ้น 10% ทันที (${n} สัญญา) ส่วนคนไม่มีหนี้รับ ${a.m(50)}` : `ไม่มีใครมีหนี้ ทุกคนรับ ${a.m(50)}`); } },
+      return n ? `หนี้ทุกสัญญาเพิ่มขึ้น 10% ทันที (${n} สัญญา) ส่วนคนไม่มีหนี้รับ ${a.m(50)}` : `ไม่มีใครมีหนี้ ทุกคนรับ ${a.m(50)}`; } },
   { id: 'jailbreak', icon: '🔓', title: 'คุกแตก', fx: () => 'ทุกคนที่อยู่ในคุกออกมาได้ฟรีทันที' },
   { id: 'slap', icon: '✋', title: 'ตบโต๊ะไว', fx: (s, a) => `นับ 3 แล้วทุกคนตบโต๊ะ! คนสุดท้ายจ่าย ${a.m(50)} ให้ธนาคาร` },
   { id: 'charity', icon: '🙏', title: 'ทำบุญร่วมกัน', fx: (s, a) => `ทุกคนจ่ายเงินสด ${a.m(30)} ลงกองกลาง (วางกลางกระดาน) คนแรกที่ตกช่องจอดฟรีเก็บทั้งหมด` },
   // ---- เจาะจงผู้เล่น ----
   { id: 'jackpot', icon: '🏆', title: 'ถูกรางวัลที่ 1', fx: (s, a) => { const [x] = a.pick(1); a.give(x, 300); return `${a.n(x)} รับ ${a.m(300)} จากธนาคาร`; } },
-  { id: 'scam', icon: '📱', title: 'โดนแก๊งคอลเซ็นเตอร์', ins: true, fx: (s, a) => { const [x] = a.pick(1); a.take(x, 100); return `${a.n(x)} โดนหลอกโอน ${a.m(100)} ให้ธนาคาร`; } },
-  { id: 'thief', icon: '🦹', title: 'ขโมยขึ้นบ้าน', ins: true, fx: (s, a) => { const [x, y] = a.pick(2); if (y == null) return 'ไม่มีเหยื่อ ข้าม'; a.pay(y, x, 100); return `${a.n(x)} แอบขโมยเงิน ${a.m(100)} จาก ${a.n(y)}`; } },
+  { id: 'scam', icon: '📱', title: 'โดนแก๊งคอลเซ็นเตอร์', fx: (s, a) => { const [x] = a.pick(1); a.take(x, 100); return `${a.n(x)} โดนหลอกโอน ${a.m(100)} ให้ธนาคาร`; } },
+  { id: 'thief', icon: '🦹', title: 'ขโมยขึ้นบ้าน', fx: (s, a) => { const [x, y] = a.pick(2); if (y == null) return 'ไม่มีเหยื่อ ข้าม'; a.pay(y, x, 100); return `${a.n(x)} แอบขโมยเงิน ${a.m(100)} จาก ${a.n(y)}`; } },
   { id: 'birthday', icon: '🎂', title: 'วันเกิดเซอร์ไพรส์', fx: (s, a) => { const [x] = a.pick(1); a.all().filter(i => i !== x).forEach(i => a.pay(i, x, 40)); return `ทุกคนให้ของขวัญ ${a.n(x)} คนละ ${a.m(40)}`; } },
   { id: 'audit', icon: '🧾', title: 'สรรพากรตรวจย้อนหลัง', fx: (s, a) => { const x = a.richestLender(); a.take(x, 150); return `${a.n(x)} จ่ายภาษีย้อนหลัง ${a.m(150)} ให้ธนาคาร`; } },
   { id: 'warp', icon: '🌀', title: 'ประตูมิติ', fx: (s, a) => { const [x] = a.pick(1); return `${a.n(x)} ย้ายตัวเดินไปจุดเริ่มต้นทันที แล้วกด "ผ่านจุดเริ่มต้น" รับเงินเดือนได้เลย`; } },
@@ -676,12 +523,6 @@ const EVENTS = [
   { id: 'upgrade', icon: '⭐', title: 'ธนาคารเลื่อนชั้นลูกค้า', fx: (s, a) => { const [x] = a.pick(1); bumpCredit(s, x, 1); return `${a.n(x)} ได้เครดิตเพิ่ม 1 ขั้น เป็น ${CREDIT[s.players[x].credit].name}`; } },
   { id: 'savings', icon: '🐷', title: 'ดอกเบี้ยเงินฝาก', fx: (s, a) => { let n = 0; a.all().forEach(i => { const b = s.players[i].bal; if (b > 0) { const x = roundUnit(s, b * 0.05); if (x > 0) { a.giveRaw(i, x); n++; } } });
       return n ? `ทุกคนที่มีเงินในบัญชีได้ดอกเบี้ยเงินฝาก 5% เข้าบัญชี (${n} คน)` : 'ยังไม่มีใครมีเงินฝากในบัญชี เลยไม่ได้ดอกเบี้ย'; } },
-  { id: 'fire', icon: '🔥', title: 'ไฟไหม้บ้าน', ins: true, fx: (s, a) => { const [x] = a.pick(1); a.take(x, money(s, 200)); return `${a.n(x)} บ้านไฟไหม้ จ่ายค่าซ่อม ${a.m(200)} ให้ธนาคาร`; } },
-  { id: 'accident', icon: '🚑', title: 'อุบัติเหตุ', ins: true, fx: (s, a) => { const [x] = a.pick(1); a.take(x, money(s, 150)); return `${a.n(x)} ประสบอุบัติเหตุ จ่ายค่ารักษา ${a.m(150)}`; } },
-  { id: 'storm', icon: '⛈️', title: 'พายุเข้า', ins: true, fx: (s, a) => { a.all().forEach(i => a.take(i, money(s, 60))); return `ทุกคนจ่ายค่าซ่อมหลังคา คนละ ${a.m(60)}`; } },
-  // ---- ตลาดหุ้น ----
-  { id: 'bull', icon: '🐂', title: 'หุ้นเด้ง', fx: (s, a) => { const k = STOCKS[Math.floor(a.rng() * (STOCKS.length - 1))]; moveMarket(s, a.rng, 0.3, [k.id]); return `ข่าวดี! หุ้น ${k.icon} ${k.name} พุ่ง 30% ทันที`; } },
-  { id: 'bear', icon: '🐻', title: 'ข่าวร้ายตลาดหุ้น', fx: (s, a) => { const k = STOCKS[Math.floor(a.rng() * (STOCKS.length - 1))]; moveMarket(s, a.rng, -0.3, [k.id]); return `ข่าวร้าย! หุ้น ${k.icon} ${k.name} ร่วง 30% ทันที`; } },
   // ---- ผลต่อเนื่องหลายรอบ ----
   { id: 'rateup', icon: '🔥', title: 'ดอกเบี้ยพุ่ง', fx: (s, a) => { a.effect('rateX2', 'ดอกเบี้ยธนาคาร ×2', 2); return 'ดอกเบี้ยเงินกู้ธนาคาร ×2 เป็นเวลา 2 รอบ (ใช้กับหนี้เดิมด้วย)'; } },
   { id: 'rate0', icon: '💚', title: 'ธนาคารใจดี', fx: (s, a) => { a.effect('rate0', 'ดอกเบี้ยธนาคาร 0%', 1); return 'รอบนี้ดอกเบี้ยเงินกู้ธนาคาร 0% กู้ตอนนี้คุ้มสุด!'; } },
@@ -736,15 +577,7 @@ function drawEvent(s, rng, forceId, adhoc) {
   const all = () => active(s);
   let moved = false;
   const auto = s.settings.autoPay;
-  const claims = [];
-  // เคลมประกันอัตโนมัติ: อีเว้นท์ที่ติดธง ins และคนโดนมีประกันอยู่ → ธนาคารจ่ายชดเชยตาม % (ไม่เกินเพดานต่อครั้ง)
-  const claim = (i, amt) => {
-    const p = s.players[i]; if (!e.ins || !p.ins || amt <= 0) return;
-    const pl = INS_PLANS[p.ins.plan], x = Math.min(roundFine(s, amt * pl.cover / 100), money(s, pl.cap));
-    if (x > 0 && bankTrySpend(s, x)) { credit(s, i, x, 'insurance', `เคลม${pl.name}: ${e.title}`); claims.push(`${p.name} +${fmt(x)}`); }
-  };
   const api = {
-    rng,
     m: b => fmt(money(s, b)),
     n: i => s.players[i].name,
     all,
@@ -757,14 +590,13 @@ function drawEvent(s, rng, forceId, adhoc) {
     // เงินเข้า/ออกบัญชีตามอีเว้นท์ (ยอดฐานอิงกระดาน 1,500 จะถูกปรับสัดส่วนให้)
     // give/take เป็นเงินจาก/เข้าธนาคารจริง (นับงบกลางธนาคารด้วย ถ้าเปิดฟีเจอร์ไว้) ส่วน pay เป็นการโอนกันเองระหว่างผู้เล่น ไม่กระทบงบธนาคาร
     give: (i, base) => { if (auto) { const amt = money(s, base); bankSpend(s, amt); credit(s, i, amt, 'event', e.title); moved = true; } },
-    take: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); bankReceive(s, amt); moved = true; claim(i, amt); } },
-    pay: (from, to, base) => { if (auto && from !== to) { const x = money(s, base); xfer(s, from, to, x, 'event', e.title); moved = true; claim(from, x); } },
+    take: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); bankReceive(s, amt); moved = true; } },
+    pay: (from, to, base) => { if (auto && from !== to) { xfer(s, from, to, money(s, base), 'event', e.title); moved = true; } },
     giveRaw: (i, amt) => { if (auto) { bankSpend(s, amt); credit(s, i, amt, 'event', e.title); moved = true; } },
     takeRaw: (i, amt) => { if (auto) { debit(s, i, amt, 'event', e.title); bankReceive(s, amt); moved = true; } },
   };
   let text = e.fx(s, api);
   if (moved) text += ' 💳 ตัด/เติมเงินในบัญชีให้แล้ว';
-  if (claims.length) text += ` 🛡️ ประกันจ่ายชดเชย: ${claims.join(', ')}`;
   s.event = { n: (s.event ? s.event.n : 0) + 1, id: e.id, icon: e.icon, title: e.title, text, round: s.round };
   s.eventHistory.unshift({ icon: e.icon, title: e.title, text, round: s.round });
   if (s.eventHistory.length > 40) s.eventHistory.length = 40;
@@ -797,7 +629,6 @@ function newRound(s, rng) {
     const add = r > 0 ? roundUnit(s, -p.bal * r / 100, true) : 0;
     if (add) { debit(s, i, add, 'overdraft', `ดอกเบี้ยเบิกเกินบัญชี ${r}%`); bankReceive(s, add); log(s, `🔴 ${p.name} บัญชีติดลบ โดนดอกเบี้ย ${fmt(add)}`); }
   }
-  bankPlusRound(s, rng);
   const m = s.settings.eventMode;
   if (m === 'every' || (m === 'every2' && s.round % 2 === 0) || (m === 'chance' && rng() < 0.5)) drawEvent(s, rng);
 }
@@ -825,15 +656,14 @@ function newRoom(hostUid) {
 
 // คำสั่งเหล่านี้เป็นของแอดมิน/แบงก์เกอร์ (กรรมการ) ไม่จำเป็นต้องเป็นผู้เล่นในห้องก็สั่งได้
 const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'kickPlayer', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
-  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary', 'undo', 'restart'];
+  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary', 'undo', 'restart', 'bankerTransfer', 'setHold'];
 // คำอธิบายสั้นๆ ของคำสั่งไว้โชว์ตอนย้อนกลับ
 const UNDO_DESC = { transfer: 'โอนเงิน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'ขอรับจากธนาคาร',
   resolveReq: 'ยืนยัน/ปฏิเสธคำขอ', adjustBalance: 'ปรับยอดบัญชี', adjustCredit: 'ปรับเครดิต', setOut: 'ตั้งล้มละลาย/กลับเข้าเกม', kickPlayer: 'เตะผู้เล่นออก',
   drawEvent: 'สุ่มอีเว้นท์', forceEvent: 'เรียกอีเว้นท์', endTurn: 'จบตา', goSalary: 'ผ่านจุดเริ่มต้น', settings: 'แก้กติกาเสริม', editLoan: 'แก้สัญญาเงินกู้',
   bankLoan: 'กู้ธนาคาร', offer: 'เสนอให้กู้', acceptLoan: 'รับข้อเสนอกู้', cancelLoan: 'ยกเลิกสัญญา', repay: 'คืนหนี้', forgive: 'ยกหนี้',
-  declareWorth: 'แจ้งเงินสด/ทรัพย์สิน',
-  buyStock: 'ซื้อหุ้น', sellStock: 'ขายหุ้น', openFixed: 'เปิดฝากประจำ', breakFixed: 'ถอนฝากประจำ', buyIns: 'ซื้อประกัน', cancelIns: 'ยกเลิกประกัน',
-  redeemDeed: 'ไถ่ถอนโฉนด', cardSpend: 'รูดบัตรเครดิต', cardPay: 'ชำระบัตรเครดิต', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม' };
+  declareWorth: 'แจ้งเงินสด/ทรัพย์สิน', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม',
+  bankerTransfer: 'แบงก์เกอร์ตัดเงินบัญชี', setHold: 'อายัด/ปลดอายัดวงเงิน' };
 
 // ยอดเงินขั้นต่ำในบัญชี (คำนวณจาก % ของเงินเริ่มต้นบนกระดาน) — ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติ (minBalPct = 0 คือปิดฟีเจอร์นี้)
 const minBalOf = s => Math.round(s.settings.start * (s.settings.minBalPct || 0) / 100);
@@ -860,10 +690,12 @@ const bankBudgetInit = s => {
   if (pct <= 0) return null; // null = ปิดฟีเจอร์ (ไม่จำกัดงบ)
   return Math.round(s.settings.start * pct / 100 * s.players.length);
 };
-// เบิกงบกลางธนาคาร (ตอนธนาคารจ่ายเงินออกจริง เช่น ผ่านจุดเริ่มต้น/ถอนเงินสด/รับจากธนาคาร/กู้ธนาคาร/อีเว้นท์แจกเงิน) — งบไม่พอ บล็อกจ่ายเพิ่มทันที (need จะทำให้คำสั่งทั้งคำสั่งยกเลิก ไม่มีอะไรถูกบันทึก)
+// เบิกงบกลางธนาคาร (ตอนธนาคารจ่ายเงินออกจริง เช่น ผ่านจุดเริ่มต้น/ถอนเงินสด/รับจากธนาคาร/กู้ธนาคาร/อีเว้นท์แจกเงิน)
+// ธนาคารห้ามล้มละลาย: ถ้างบกลางไม่พอจ่ายจริง ให้ทำรายการนั้นสำเร็จไปตามปกติ (เงินออกจริง งบติดลบได้) แต่ตั้งธง bankBankrupt ไว้
+// แล้ว applyAction จะจับธงนี้หลังทำรายการเสร็จ → จบเกมทันทีถือว่าธนาคารล้มละลาย ทุกคนแพ้ (ดู applyAction)
 function bankSpend(s, amt) {
   if (s.bankBudget == null || amt <= 0) return;
-  need(s.bankBudget >= amt, `งบกลางธนาคารไม่พอจ่าย (เหลือ ${fmt(s.bankBudget)}) — ต้องรอรับเงินเข้าธนาคาร (ฝากเงินสด/จ่ายธนาคาร/คืนหนี้) ก่อนถึงจะจ่ายเพิ่มได้`);
+  if (s.bankBudget < amt) s.bankBankrupt = true;
   s.bankBudget -= amt;
 }
 // รับเงินเข้างบกลางธนาคาร (ฝากเงินสด/จ่ายธนาคาร/คืนหนี้ธนาคาร/ดอกเบี้ยเบิกเกินบัญชี/อีเว้นท์เก็บเงินเข้าธนาคาร)
@@ -971,13 +803,6 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
       if (v.minBalPct != null) { const x = +v.minBalPct; need(x >= 0 && x <= 100, 'ยอดขั้นต่ำต้องอยู่ระหว่าง 0–100%'); st.minBalPct = x; }
-      const pct = (k, lo, hi, msg) => { if (v[k] != null) { const x = +v[k]; need(Number.isFinite(x) && x >= lo && x <= hi, msg); st[k] = x; } };
-      pct('savingsRate', 0, 20, 'ดอกเบี้ยออมทรัพย์ต้องอยู่ระหว่าง 0–20%');
-      pct('fixedRate', 0, 30, 'ดอกเบี้ยฝากประจำต้องอยู่ระหว่าง 0–30%');
-      pct('stockFee', 0, 20, 'ค่าธรรมเนียมหุ้นต้องอยู่ระหว่าง 0–20%');
-      pct('cardPct', 0, 200, 'วงเงินบัตรต้องอยู่ระหว่าง 0–200%');
-      pct('cardRate', 0, 50, 'ดอกเบี้ยบัตรต้องอยู่ระหว่าง 0–50%');
-      pct('mortgageFee', 0, 100, 'ค่าไถ่ถอนต้องอยู่ระหว่าง 0–100%');
       if (v.bankBudgetPct != null) { const x = +v.bankBudgetPct; need(x >= 0 && x <= 1000, 'งบกลางธนาคารต้องอยู่ระหว่าง 0–1000%'); st.bankBudgetPct = x; }
       if (v.disabledEvents != null) {
         need(Array.isArray(v.disabledEvents), 'รูปแบบไม่ถูกต้อง');
@@ -1001,12 +826,11 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (act.shuffle) shuffle(s.players, rng);
       Object.assign(s, { status: 'playing', order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
         event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0,
-        bankBudget: bankBudgetInit(s) });
+        bankBudget: bankBudgetInit(s), bankBankrupt: false });
       // startAllInApp (ค่าเริ่มต้น) = เงินเริ่มต้นทั้งหมดเข้าบัญชีในระบบเลย ไม่แจกเงินสดกระดาษ — ปิดได้แล้วกำหนด startBal เองถ้าอยากแจกเงินสดกระดาษตามปกติ
       s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null;
         const initBal = s.settings.startAllInApp ? s.settings.start : s.settings.startBal;
         if (initBal > 0) credit(s, i, initBal, 'start', 'ยอดเริ่มต้น'); });
-      resetBankPlus(s);
       log(s, `🎲 เริ่มเกม! ลำดับ: ${s.players.map(p => p.name).join(' → ')}`);
       log(s, `▶️ ตาของ ${s.players[0].name}`);
       break;
@@ -1031,10 +855,9 @@ function applyAction(state, uid, act, rng = Math.random) {
       need(isAdmin || isHost, 'เฉพาะแอดมินหรือเจ้าของห้องเท่านั้น');
       need(s.status === 'over', 'เริ่มเกมใหม่ได้หลังจบเกมแล้วเท่านั้น (ถ้ายังไม่เริ่ม ให้กด "เริ่มเกม" ในห้องรอเริ่มได้เลย)');
       s.status = 'lobby';
-      s.players.forEach(p => { p.credit = 2; p.out = false; p.kicked = false; p.bal = 0; p.cash = null; p.assets = null; });
+      s.players.forEach(p => { p.credit = 2; p.out = false; p.kicked = false; p.bal = 0; p.cash = null; p.assets = null; p.hold = 0; });
       Object.assign(s, { order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
-        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0 });
-      resetBankPlus(s);
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0, bankBankrupt: false });
       log(s, `🔁 ${isAdmin ? 'แอดมิน' : 'เจ้าของห้อง'}เริ่มเกมใหม่ในห้องเดิม (ผู้เล่นชุดเดิม รีเซ็ตยอดทั้งหมด)`);
       break;
     }
@@ -1044,6 +867,12 @@ function applyAction(state, uid, act, rng = Math.random) {
   }
   // เช็คยอดขั้นต่ำในบัญชีหลังทำรายการทุกครั้ง — ใครต่ำกว่าที่ตั้งไว้ ล้มละลายอัตโนมัติทันที (ข้ามถ้าปิดฟีเจอร์นี้ไว้ที่ 0%)
   sweepAutoBankrupt(s, rng);
+  // ธนาคารห้ามล้มละลาย: ถ้ารายการที่เพิ่งทำทำให้งบกลางธนาคารติดลบ (bankSpend ตั้งธงไว้) ถือว่าธนาคารล้มละลาย จบเกมทันที ทุกคนแพ้
+  if (s.bankBankrupt && s.status === 'playing') {
+    s.status = 'over';
+    s.reqs = [];
+    log(s, `💥 ธนาคารล้มละลาย! งบกลางธนาคารติดลบ (${fmt(s.bankBudget)}) — จบเกมทันที ถือว่าทุกคนแพ้ ไม่มีผู้ชนะ`);
+  }
   // เก็บ snapshot ของ state ก่อนคำสั่งนี้ไว้ย้อนกลับได้ 1 ขั้น (ตัด undo เดิมทิ้งกันข้อมูลพอกพูน)
   const { undo: _prevUndo, ...prevClean } = state;
   s.undo = { snapshot: prevClean, desc: UNDO_DESC[act.type] || act.type, by: uid, at: state.seq || 0 };
@@ -1059,102 +888,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
     if (!L.overdue && s.round > L.startRound) bumpCredit(s, L.borrower, 1);
   };
   const notOut = () => need(!me.out, 'คุณออกจากเกมแล้ว');
-  ensureBankPlus(s);
   switch (act.type) {
-    // ---------- ฝากประจำ ----------
-    case 'openFixed': {
-      notOut();
-      const amt = posInt(act.amount), rounds = Math.round(+act.rounds);
-      need(FIXED_TERMS.some(t => t.r === rounds), 'ระยะเวลาฝากไม่ถูกต้อง');
-      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
-      const rate = fixedRateOf(s, rounds);
-      debit(s, seat, amt, 'fixed', `เปิดฝากประจำ ${rounds} รอบ`);
-      s.deposits.push({ id: s.nextDep++, seat, principal: amt, balance: amt, rate, startRound: s.round, dueRound: s.round + rounds, status: 'active' });
-      log(s, `🐷 ${me.name} ฝากประจำ ${fmt(amt)} ดอกเบี้ย ${rate}%/รอบ ครบกำหนดรอบที่ ${s.round + rounds}`);
-      break;
-    }
-    case 'breakFixed': {
-      const D = s.deposits.find(x => x.id === act.id);
-      need(D && D.seat === seat && D.status === 'active', 'ไม่พบบัญชีฝากประจำนี้');
-      D.status = 'broken';
-      credit(s, seat, D.principal, 'fixed', 'ถอนฝากประจำก่อนกำหนด (ไม่ได้ดอก)');
-      log(s, `🔨 ${me.name} ถอนฝากประจำก่อนกำหนด ได้คืนเงินต้น ${fmt(D.principal)} (ทิ้งดอกเบี้ย ${fmt(D.balance - D.principal)})`);
-      break;
-    }
-    // ---------- หุ้น ----------
-    case 'buyStock': case 'sellStock': {
-      notOut();
-      const k = STOCK_BY_ID[act.id]; need(k, 'ไม่พบหุ้นตัวนี้');
-      const q = Math.round(+act.qty); need(q > 0 && q <= 100000, 'จำนวนหุ้นไม่ถูกต้อง');
-      const price = s.market.prices[k.id], gross = price * q, fee = Math.ceil(gross * (s.settings.stockFee ?? 1) / 100);
-      if (act.type === 'buyStock') {
-        const total = gross + fee;
-        need(me.bal >= total, `ยอดในบัญชีไม่พอ (ต้องใช้ ${fmt(total)} มี ${fmt(me.bal)})`);
-        debit(s, seat, total, 'stock', `ซื้อ ${k.icon} ${k.name} ${fmt(q)} หุ้น @${fmt(price)}`); bankReceive(s, total);
-        me.shares[k.id] = (me.shares[k.id] || 0) + q; me.cost[k.id] = (me.cost[k.id] || 0) + total;
-        log(s, `📈 ${me.name} ซื้อ ${k.icon} ${k.name} ${fmt(q)} หุ้น ราคา ${fmt(price)} (รวมค่าธรรมเนียม ${fmt(total)})`);
-      } else {
-        const own = me.shares[k.id] || 0; need(q <= own, `มีหุ้นตัวนี้แค่ ${fmt(own)} หุ้น`);
-        const net = gross - fee;
-        bankSpend(s, net);
-        credit(s, seat, net, 'stock', `ขาย ${k.icon} ${k.name} ${fmt(q)} หุ้น @${fmt(price)}`);
-        me.cost[k.id] = Math.round((me.cost[k.id] || 0) * (own - q) / own); me.shares[k.id] = own - q;
-        log(s, `📉 ${me.name} ขาย ${k.icon} ${k.name} ${fmt(q)} หุ้น ราคา ${fmt(price)} (ได้สุทธิ ${fmt(net)})`);
-      }
-      break;
-    }
-    // ---------- ประกัน ----------
-    case 'buyIns': {
-      notOut();
-      const pl = INS_PLANS[act.plan]; need(pl, 'ไม่พบแผนประกันนี้');
-      need(!me.ins || me.ins.plan !== act.plan, 'มีประกันแผนนี้อยู่แล้ว');
-      const pr = money(s, pl.premium);
-      need(me.bal >= pr, `ยอดในบัญชีไม่พอจ่ายเบี้ยงวดแรก (${fmt(pr)})`);
-      debit(s, seat, pr, 'insurance', `เบี้ย${pl.name} งวดแรก`); bankReceive(s, pr);
-      me.ins = { plan: act.plan, since: s.round };
-      log(s, `${pl.icon} ${me.name} ซื้อ${pl.name} (เบี้ย ${fmt(pr)}/รอบ คุ้มครอง ${pl.cover}%)`);
-      break;
-    }
-    case 'cancelIns':
-      need(me.ins, 'ไม่มีประกันให้ยกเลิก');
-      log(s, `✂️ ${me.name} ยกเลิก${INS_PLANS[me.ins.plan].name}`);
-      me.ins = null;
-      break;
-    // ---------- จำนองโฉนด (ไถ่ถอน) ----------
-    case 'redeemDeed': {
-      const M = s.mortgages.find(x => x.id === act.id);
-      need(M && M.seat === seat && M.status === 'active', 'ไม่พบโฉนดที่จำนองไว้');
-      const cost = redeemCost(s, M);
-      need(me.bal >= cost, `ยอดในบัญชีไม่พอไถ่ถอน (ต้องใช้ ${fmt(cost)})`);
-      debit(s, seat, cost, 'mortgage', `ไถ่ถอน ${M.name}`); bankReceive(s, cost);
-      M.status = 'redeemed'; M.redeemRound = s.round;
-      log(s, `🏡 ${me.name} ไถ่ถอนโฉนด "${M.name}" จ่าย ${fmt(cost)} (หงายโฉนดกลับได้เลย)`);
-      break;
-    }
-    // ---------- บัตรเครดิต ----------
-    case 'cardSpend': {
-      notOut();
-      const amt = posInt(act.amount), to = act.to == null || act.to < 0 ? null : act.to;
-      if (to != null) need(s.players[to] && to !== seat && !s.players[to].out, 'เลือกผู้รับให้ถูกต้อง');
-      const lim = cardLimit(s, seat), owed = cardOwed(me);
-      need(owed + amt <= lim, `เกินวงเงินบัตร รูดได้อีก ${fmt(Math.max(0, lim - owed))}`);
-      need(me.cardLate < 2 || me.card === 0, 'บัตรถูกระงับชั่วคราว — ค้างชำระนานเกินไป จ่ายยอดค้างก่อน');
-      const note = String(act.note || '').slice(0, 40);
-      if (to != null) { bankSpend(s, amt); s.players[to].bal += amt; } // ธนาคารจ่ายแทนให้ผู้รับ แล้วเก็บกับเจ้าของบัตรทีหลัง
-      addTx(s, 'card', seat, to, amt, note);
-      me.cardNew += amt;
-      log(s, `💳 ${me.name} รูดบัตรจ่าย${to == null ? 'ธนาคาร' : ' ' + s.players[to].name} ${fmt(amt)}${note ? ` (${note})` : ''}`);
-      break;
-    }
-    case 'cardPay': {
-      const owed = cardOwed(me); need(owed > 0, 'ไม่มียอดค้างในบัตร');
-      const amt = Math.round(+act.amount); need(amt > 0 && amt <= owed, `ยอดต้องอยู่ระหว่าง 1–${fmt(owed)}`);
-      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
-      debit(s, seat, amt, 'cardPay', 'ชำระบัตรเครดิต'); bankReceive(s, amt);
-      const a1 = Math.min(me.card, amt); me.card -= a1; me.cardNew -= amt - a1; // ตัดยอดยกมา (มีดอก) ก่อน
-      log(s, `💳 ${me.name} ชำระบัตรเครดิต ${fmt(amt)} (คงค้าง ${fmt(cardOwed(me))})`);
-      break;
-    }
     // ---------- ตา / รอบ ----------
     case 'endTurn':
       // ธนาคาร (แบงก์เกอร์/แอดมิน) ไม่ต้องมีตาเดินเอง แต่คุมจังหวะเกมได้ กดจบตาแทนคนอื่นได้เลย
@@ -1184,34 +918,31 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       notOut();
       const to = act.to, amt = posInt(act.amount);
       need(s.players[to] && to !== seat && !s.players[to].out, 'เลือกผู้รับให้ถูกต้อง');
-      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      need(avail(s, seat) >= amt, me.hold ? `ยอดที่ใช้ได้ไม่พอ (มี ${fmt(me.bal)} แต่ถูกอายัด ${fmt(me.hold)})` : `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
       const note = String(act.note || '').slice(0, 40);
       xfer(s, seat, to, amt, 'transfer', note);
       log(s, `💸 ${me.name} โอน ${fmt(amt)} ให้ ${s.players[to].name}${note ? ` (${note})` : ''}`);
       break;
     }
     case 'payBank': {
+      // จ่ายธนาคาร: เป็นการที่ผู้เล่นยื่นเรื่องทางการเงินกับธนาคาร ถ้าตั้งไว้ต้องยืนยัน ต้องรอแบงก์เกอร์กดยืนยันก่อนถึงจะตัดเงินจริง (แบงก์เกอร์ทำให้ตัวเองได้ทันที)
       notOut();
       const amt = posInt(act.amount);
-      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      need(avail(s, seat) >= amt, me.hold ? `ยอดที่ใช้ได้ไม่พอ (มี ${fmt(me.bal)} แต่ถูกอายัด ${fmt(me.hold)})` : `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
       const note = String(act.note || '').slice(0, 40);
-      debit(s, seat, amt, 'payBank', note);
-      bankReceive(s, amt);
-      log(s, `🏦 ${me.name} จ่ายธนาคาร ${fmt(amt)}${note ? ` (${note})` : ''}`);
+      if (!s.settings.cashConfirm || isBanker) { applyReq(s, { seat, kind: 'payBank', amt, note }); break; }
+      need(s.reqs.filter(r => r.seat === seat).length < 5, 'มีคำขอค้างอยู่หลายรายการ รอแบงก์เกอร์ยืนยันก่อน');
+      s.reqs.push({ id: s.nextReq++, seat, kind: 'payBank', amt, note, r: s.round });
+      log(s, `🙋 ${me.name} ขอจ่ายธนาคาร ${fmt(amt)}${note ? ` (${note})` : ''} — รอแบงก์เกอร์ยืนยัน`);
       break;
     }
     case 'request': {
       // ฝาก/ถอนเงินสด หรือขอรับเงินจากธนาคาร: ถ้าต้องยืนยัน จะรอแอดมินกด (แอดมินทำให้ตัวเองได้ทันที)
       notOut();
-      need(REQ_KIND[act.kind], 'ประเภทคำขอไม่ถูกต้อง');
+      need(REQ_KIND[act.kind] && ['deposit', 'withdraw', 'claim'].includes(act.kind), 'ประเภทคำขอไม่ถูกต้อง');
       const amt = posInt(act.amount);
-      if (act.kind === 'withdraw') need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
-      const note = String(act.note || '').trim().slice(0, 40);
-      if (act.kind === 'mortgage') {
-        need(note, 'ใส่ชื่อโฉนดที่จะจำนอง');
-        need(amt <= s.settings.start, 'ยอดจำนองสูงเกินไป — ใส่ตามราคาจำนองบนโฉนด');
-        need(!s.mortgages.some(M => M.seat === seat && M.status === 'active' && M.name === note), 'โฉนดนี้จำนองอยู่แล้ว');
-      }
+      if (act.kind === 'withdraw') need(avail(s, seat) >= amt, me.hold ? `ยอดที่ใช้ได้ไม่พอ (มี ${fmt(me.bal)} แต่ถูกอายัด ${fmt(me.hold)})` : `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      const note = String(act.note || '').slice(0, 40);
       if (!s.settings.cashConfirm || isBanker) { applyReq(s, { seat, kind: act.kind, amt, note }); break; }
       need(s.reqs.filter(r => r.seat === seat).length < 5, 'มีคำขอค้างอยู่หลายรายการ รอแบงก์เกอร์ยืนยันก่อน');
       s.reqs.push({ id: s.nextReq++, seat, kind: act.kind, amt, note, r: s.round });
@@ -1231,9 +962,16 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(i >= 0, 'คำขอนี้ถูกจัดการไปแล้ว');
       const r = s.reqs[i];
       if (act.ok) {
-        if (r.kind === 'withdraw') need(s.players[r.seat].bal >= r.amt, `${s.players[r.seat].name} ยอดในบัญชีไม่พอแล้ว`);
+        // ยอดอาจเปลี่ยนไปตั้งแต่ผู้เล่นยื่นคำขอ ตรวจซ้ำอีกครั้งก่อนอนุมัติจริง
+        if (r.kind === 'withdraw' || r.kind === 'payBank') need(avail(s, r.seat) >= r.amt, `${s.players[r.seat].name} ยอดที่ใช้ได้ไม่พอแล้ว`);
+        if (r.kind === 'loan') {
+          need(!s.loans.some(L => L.borrower === r.seat && L.status === 'active' && L.overdue), `${s.players[r.seat].name} มีหนี้ค้างชำระอยู่ ธนาคารไม่ให้กู้เพิ่ม`);
+          const room = bankCap(s, r.seat) - bankDebt(s, r.seat);
+          need(r.amt <= room, `เกินวงเงินกู้ของ ${s.players[r.seat].name} แล้ว (กู้ได้อีกไม่เกิน ${fmt(Math.max(0, room))})`);
+        }
         s.reqs.splice(i, 1);
-        applyReq(s, r);
+        if (r.kind === 'loan') issueLoan(s, r.seat, r.amt, r.rounds, r.into);
+        else applyReq(s, r);
       } else {
         s.reqs.splice(i, 1);
         log(s, `❌ ${isAdmin ? 'แอดมิน' : 'แบงก์เกอร์'}ปฏิเสธคำขอ${REQ_KIND[r.kind]}ของ ${s.players[r.seat].name}`);
@@ -1252,6 +990,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
     }
     // ---------- กู้ยืม ----------
     case 'bankLoan': {
+      // กู้ธนาคาร: ต้องให้แบงก์เกอร์/แอดมินอนุมัติก่อนเสมอ (แบงก์เกอร์/แอดมินกู้ให้ตัวเองได้ทันที) — เข้าคิวเดียวกับหน้าเคาน์เตอร์ธนาคาร
       notOut();
       const amt = Math.round(+act.amount), rounds = Math.round(+act.rounds);
       need(amt > 0 && amt % unitOf(s) === 0, `ยอดกู้ต้องเป็นทวีคูณของ ${fmt(unitOf(s))}`);
@@ -1259,13 +998,11 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(!s.loans.some(L => L.borrower === seat && L.status === 'active' && L.overdue), 'มีหนี้ค้างชำระอยู่ ธนาคารไม่ให้กู้เพิ่ม');
       const room = bankCap(s, seat) - bankDebt(s, seat);
       need(amt <= room, `เกินวงเงิน กู้ได้อีกไม่เกิน ${fmt(Math.max(0, room))}`);
-      const intoCash = act.into === 'cash';
-      bankSpend(s, amt); // ธนาคารจ่ายเงินกู้ออกจริง ไม่ว่าจะเข้าบัญชีหรือรับเป็นเงินสด
-      const L = { id: s.nextLoan++, lender: null, borrower: seat, principal: amt, balance: amt, rate: bankRate(s, seat), interest: 0,
-        startRound: s.round, dueRound: s.round + rounds, status: 'active', overdue: false, via: intoCash ? 'cash' : 'account' };
-      s.loans.push(L);
-      if (!intoCash) credit(s, seat, amt, 'loan', 'เงินกู้ธนาคาร');
-      log(s, `🏦 ${me.name} กู้ธนาคาร ${fmt(amt)} คืนภายในรอบที่ ${L.dueRound} → ${intoCash ? 'รับเงินสดจากธนาคาร' : 'เงินเข้าบัญชีแล้ว'}`);
+      const into = act.into === 'cash' ? 'cash' : 'account';
+      if (isBanker) { issueLoan(s, seat, amt, rounds, into); break; }
+      need(s.reqs.filter(r => r.seat === seat).length < 5, 'มีคำขอค้างอยู่หลายรายการ รอแบงก์เกอร์ยืนยันก่อน');
+      s.reqs.push({ id: s.nextReq++, seat, kind: 'loan', amt, note: '', r: s.round, rounds, into });
+      log(s, `🙋 ${me.name} ขอกู้ธนาคาร ${fmt(amt)} ระยะเวลา ${rounds} รอบ (${into === 'cash' ? 'รับเป็นเงินสด' : 'เข้าบัญชี'}) — รอแบงก์เกอร์อนุมัติ`);
       break;
     }
     case 'offerLoan': {
@@ -1319,7 +1056,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(L.status === 'active' && L.borrower === seat, 'เฉพาะผู้กู้ของสัญญานี้');
       const amt = Math.round(+act.amount);
       need(amt > 0 && amt <= L.balance, `ยอดต้องอยู่ระหว่าง 1–${fmt(L.balance)}`);
-      need(me.bal >= amt, `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      need(avail(s, seat) >= amt, me.hold ? `ยอดที่ใช้ได้ไม่พอ (มี ${fmt(me.bal)} แต่ถูกอายัด ${fmt(me.hold)})` : `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
       if (L.lender == null) { debit(s, seat, amt, 'repay', 'คืนหนี้ธนาคาร'); bankReceive(s, amt); }
       else xfer(s, seat, L.lender, amt, 'repay', 'คืนหนี้');
       L.balance -= amt;
@@ -1332,6 +1069,34 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(L.status === 'active' && L.lender === seat, 'เฉพาะผู้ให้กู้');
       L.status = 'forgiven';
       log(s, `😇 ${me.name} ยกหนี้ ${fmt(L.balance)} ให้ ${nm(s, L.borrower)}`);
+      break;
+    }
+    // ---------- แบงก์เกอร์: ตัดเงิน/อายัดวงเงินบัญชีผู้เล่นได้โดยตรง (ไม่ต้องรอเจ้าของบัญชียืนยัน — ใช้ยามผู้เล่นไม่ยอมจ่ายเอง) ----------
+    case 'bankerTransfer': {
+      need(isBanker, 'เฉพาะแอดมินหรือแบงก์เกอร์เท่านั้น');
+      const from = act.from, p = s.players[from];
+      need(p && !p.out, 'ไม่พบบัญชีผู้เล่นนี้');
+      const amt = posInt(act.amount);
+      need(p.bal >= amt, `${p.name} ยอดในบัญชีไม่พอ (มี ${fmt(p.bal)})`);
+      const note = String(act.note || '').slice(0, 40);
+      if (act.to === 'bank') {
+        debit(s, from, amt, 'bankerCut', note || 'แบงก์เกอร์ตัดเงินเข้าธนาคาร');
+        bankReceive(s, amt);
+        log(s, `🏦 แบงก์เกอร์ตัดเงิน ${p.name} ${fmt(amt)} เข้าธนาคาร${note ? ` (${note})` : ''}`);
+      } else {
+        const to = act.to;
+        need(s.players[to] && to !== from && !s.players[to].out, 'เลือกผู้รับให้ถูกต้อง');
+        xfer(s, from, to, amt, 'bankerCut', note);
+        log(s, `🏦 แบงก์เกอร์ตัดเงิน ${p.name} ${fmt(amt)} ให้ ${s.players[to].name}${note ? ` (${note})` : ''}`);
+      }
+      break;
+    }
+    case 'setHold': {
+      need(isBanker, 'เฉพาะแอดมินหรือแบงก์เกอร์เท่านั้น');
+      const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
+      const amt = Math.max(0, Math.round(+act.amount || 0));
+      p.hold = amt;
+      log(s, amt > 0 ? `🔒 แบงก์เกอร์อายัดวงเงิน ${p.name} ${fmt(amt)} (โอน/จ่าย/ถอนเกินยอดคงเหลือไม่ได้)` : `🔓 แบงก์เกอร์ปลดอายัดวงเงิน ${p.name} แล้ว`);
       break;
     }
     // ---------- แอดมิน ----------
@@ -1429,16 +1194,22 @@ function applyReq(s, r) {
   // ฝากเงินสด = ธนาคารรับเงินสดจริงเข้ามือ (เติมงบกลาง) / ถอนเงินสด-รับจากธนาคาร = ธนาคารจ่ายเงินสดออกจริง (เบิกงบกลาง งบไม่พอบล็อกทันที)
   if (r.kind === 'deposit') { credit(s, r.seat, r.amt, 'deposit', r.note || 'ฝากเงินสด'); bankReceive(s, r.amt); log(s, `🏧 ${p.name} ฝากเงินสด ${fmt(r.amt)} เข้าบัญชี (ยื่นแบงก์ให้คนถือธนาคาร)`); }
   if (r.kind === 'withdraw') { bankSpend(s, r.amt); debit(s, r.seat, r.amt, 'withdraw', r.note || 'ถอนเงินสด'); log(s, `🏧 ${p.name} ถอนเงินสด ${fmt(r.amt)} (รับแบงก์จากคนถือธนาคาร)`); }
-  if (r.kind === 'mortgage') {
-    bankSpend(s, r.amt); credit(s, r.seat, r.amt, 'mortgage', `จำนอง ${r.note}`);
-    s.mortgages.push({ id: s.nextMort++, seat: r.seat, name: r.note, amt: r.amt, round: s.round, status: 'active' });
-    log(s, `🏠 ${p.name} จำนองโฉนด "${r.note}" รับ ${fmt(r.amt)} เข้าบัญชี (คว่ำโฉนดไว้บนกระดาน)`);
-  }
   if (r.kind === 'claim') { bankSpend(s, r.amt); credit(s, r.seat, r.amt, 'claim', r.note || 'รับจากธนาคาร'); log(s, `🏦 ธนาคารจ่าย ${fmt(r.amt)} เข้าบัญชี ${p.name}${r.note ? ` (${r.note})` : ''}`); }
+  if (r.kind === 'payBank') { debit(s, r.seat, r.amt, 'payBank', r.note || 'จ่ายธนาคาร'); bankReceive(s, r.amt); log(s, `🏦 ${p.name} จ่ายธนาคาร ${fmt(r.amt)}${r.note ? ` (${r.note})` : ''} (แบงก์เกอร์ยืนยันแล้ว)`); }
+}
+// อนุมัติเงินกู้ธนาคารจริง (ทั้งกรณีแบงก์เกอร์อนุมัติให้ตัวเองทันที และกรณีอนุมัติคำขอที่ค้างในคิว)
+function issueLoan(s, seat, amt, rounds, into) {
+  bankSpend(s, amt); // ธนาคารจ่ายเงินกู้ออกจริง ไม่ว่าจะเข้าบัญชีหรือรับเป็นเงินสด
+  const L = { id: s.nextLoan++, lender: null, borrower: seat, principal: amt, balance: amt, rate: bankRate(s, seat), interest: 0,
+    startRound: s.round, dueRound: s.round + rounds, status: 'active', overdue: false, via: into === 'cash' ? 'cash' : 'account' };
+  s.loans.push(L);
+  if (into !== 'cash') credit(s, seat, amt, 'loan', 'เงินกู้ธนาคาร');
+  log(s, `🏦 ธนาคารอนุมัติให้ ${nm(s, seat)} กู้ ${fmt(amt)} คืนภายในรอบที่ ${L.dueRound} → ${into === 'cash' ? 'รับเงินสดจากธนาคาร' : 'เงินเข้าบัญชีแล้ว'}`);
+  return L;
 }
 
-if (typeof module !== 'undefined') module.exports = { STOCKS, INS_PLANS, cardLimit, cardOwed, redeemCost, sharesValue, fixedOf, mortgageOwed, applyAction, newRoom, EVENTS, EVENT_BY_ID, CREDIT, TOKENS, GameError, bankCap, bankDebt, debtOf, lentOf, loanRate, bankRate,
-  unitOf, money, EVENT_MODES, isAdminUid, isBankerUid, netWorth, gameStats, REQ_KIND, findEvent, ADMIN_PASSWORD };
+if (typeof module !== 'undefined') module.exports = { applyAction, newRoom, EVENTS, EVENT_BY_ID, CREDIT, TOKENS, GameError, bankCap, bankDebt, debtOf, lentOf, loanRate, bankRate,
+  unitOf, money, EVENT_MODES, isAdminUid, isBankerUid, netWorth, gameStats, REQ_KIND, findEvent, ADMIN_PASSWORD, avail };
 
 </script>
 
@@ -1455,7 +1226,7 @@ const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
 
 const App = { mode: null, state: null, room: null, uid: null, busy: false, unsub: null, tab: 'me', actor: 0, seenEvent: null,
-  token: +(store('bb_token') || 0), sound: store('bb_sound') !== 'off', audio: null, titleTimer: null, seenHowTo: false, seenTurnHelpKey: null };
+  token: +(store('bb_token') || 0), sound: store('bb_sound') !== 'off', audio: null, titleTimer: null, seenHowTo: false, seenTurnHelpKey: null, live: null };
 function getUid() {
   let u = null; try { u = sessionStorage.getItem('bb_uid'); } catch (e) {}
   if (!u) { u = 'u' + Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('bb_uid', u); } catch (e) {} }
@@ -1604,7 +1375,10 @@ function enterRoom(code) {
   App.mode = 'online'; App.room = code;
   try { history.replaceState(null, '', '?room=' + code); } catch (e) {}
   if (App.unsub) App.unsub();
-  App.unsub = FB.onSnapshot(roomRef(code), snap => { if (snap.exists()) setState(JSON.parse(snap.data().data)); else toast('ห้องถูกลบแล้ว'); }, err => toast('การเชื่อมต่อขาด: ' + err.message));
+  App.unsub = FB.onSnapshot(roomRef(code), snap => {
+    if (snap.exists()) { App.live = !(snap.metadata && snap.metadata.fromCache); setState(JSON.parse(snap.data().data)); }
+    else toast('ห้องถูกลบแล้ว');
+  }, err => { App.live = false; toast('การเชื่อมต่อขาด: ' + err.message); render(); });
 }
 function startLocal(names) {
   App.mode = 'local';
@@ -1659,7 +1433,6 @@ function renderHome() {
       <li><b>🏦 กู้ยืม</b>กู้ธนาคารหรือกู้กันเอง ดอกเบี้ยคิดทุกรอบ เครดิตขึ้นลงตามพฤติกรรม</li>
       <li><b>🎴 อีเว้นท์พิเศษ</b>${EVENTS.length} แบบ ตัด/เติมเงินในบัญชีให้อัตโนมัติ</li>
     </ul>
-    ${installCard()}
     <div class="home-grid">
       <section class="panel stack" aria-labelledby="h-on">
         <h2 id="h-on">ทุกคนใช้มือถือตัวเอง</h2>
@@ -1713,13 +1486,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
     <div class="field"><label for="${pf}-cap">วงเงินกู้ธนาคาร (% ของเงินเริ่มต้น)</label><input id="${pf}-cap" type="number" inputmode="numeric" value="${st.capPct}" ${d}><small>เครดิต B = ${st.capPct}% · AAA ได้มากกว่า</small></div>
     <div class="field"><label for="${pf}-pen">ค่าปรับค้างชำระ (%)</label><input id="${pf}-pen" type="number" inputmode="numeric" value="${st.penalty}" ${d}><small>คิดครั้งเดียวตอนเลยกำหนด</small></div>
     <div class="field"><label for="${pf}-minbal">ยอดขั้นต่ำในบัญชี (% ของเงินเริ่มต้น)</label><input id="${pf}-minbal" type="number" inputmode="numeric" value="${st.minBalPct ?? 13}" ${d}><small>ต่ำกว่านี้ = ล้มละลายอัตโนมัติทันที (0 = ปิด)</small></div>
-    <div class="field"><label for="${pf}-sav">ดอกเบี้ยออมทรัพย์ (%/รอบ)</label><input id="${pf}-sav" type="number" inputmode="decimal" step="0.5" value="${st.savingsRate ?? 1}" ${d}><small>ยอดบัญชีที่เป็นบวกได้ดอกทุกรอบ (0 = ปิด)</small></div>
-    <div class="field"><label for="${pf}-fix">ดอกเบี้ยฝากประจำ (%/รอบ)</label><input id="${pf}-fix" type="number" inputmode="decimal" step="0.5" value="${st.fixedRate ?? 2}" ${d}><small>ฝาก 3 รอบ · 5 รอบ +1% · 8 รอบ +2%</small></div>
-    <div class="field"><label for="${pf}-sfee">ค่าธรรมเนียมซื้อขายหุ้น (%)</label><input id="${pf}-sfee" type="number" inputmode="decimal" step="0.5" value="${st.stockFee ?? 1}" ${d}><small>คิดทั้งตอนซื้อและขาย</small></div>
-    <div class="field"><label for="${pf}-cpct">วงเงินบัตรเครดิต (% ของเงินเริ่มต้น)</label><input id="${pf}-cpct" type="number" inputmode="numeric" value="${st.cardPct ?? 20}" ${d}><small>เครดิต B = ค่านี้ · AAA ได้มากกว่า (0 = ปิดบัตร)</small></div>
-    <div class="field"><label for="${pf}-crate">ดอกเบี้ยบัตรเครดิต (%/รอบ)</label><input id="${pf}-crate" type="number" inputmode="numeric" value="${st.cardRate ?? 8}" ${d}><small>คิดเฉพาะยอดที่ไม่จ่ายภายในรอบถัดไป</small></div>
-    <div class="field"><label for="${pf}-mfee">ค่าไถ่ถอนโฉนด (%)</label><input id="${pf}-mfee" type="number" inputmode="numeric" value="${st.mortgageFee ?? 10}" ${d}><small>ไถ่ถอน = ยอดจำนอง + %</small></div>
-    <div class="field"><label for="${pf}-bankbud">งบกลางธนาคาร (% ของเงินเริ่มต้น × จำนวนผู้เล่น)</label><input id="${pf}-bankbud" type="number" inputmode="numeric" value="${st.bankBudgetPct ?? 0}" ${d}><small>ธนาคารจ่ายเกินงบไม่ได้ ต้องรอรับเงินเข้าก่อน (0 = ปิด งบไม่จำกัดแบบเดิม)</small></div>
+    <div class="field"><label for="${pf}-bankbud">งบกลางธนาคาร (% ของเงินเริ่มต้น × จำนวนผู้เล่น)</label><input id="${pf}-bankbud" type="number" inputmode="numeric" value="${st.bankBudgetPct ?? 0}" ${d}><small>⚠️ ถ้าธนาคารจ่ายเงินเกินงบที่ตั้งไว้จริง ถือว่าธนาคารล้มละลาย เกมจบทันทีทุกคนแพ้ (0 = ปิด งบไม่จำกัด ล้มละลายไม่ได้)</small></div>
   </div>
   <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
   ${chk(pf + '-allin', st.startAllInApp !== false, 'เริ่มด้วยเงินในระบบทั้งหมด (ไม่แจกเงินสดกระดาษ)', 'แนะนำ — เงินเริ่มต้นเข้าบัญชีในแอปให้เลย ใครอยากได้เงินสดค่อยกด "ถอนเงินสด" แลกทีหลัง จะได้รู้ยอดรวมทุกคนตลอดเวลา ปิดถ้าจะแจกเงินสดกระดาษตามปกติแล้วกำหนดยอดในบัญชีเอง')}
@@ -1729,8 +1496,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, startAllInApp: v('allin').checked, rate: +v('rate').value,
-    capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value,
-    savingsRate: +v('sav').value, fixedRate: +v('fix').value, stockFee: +v('sfee').value, cardPct: +v('cpct').value, cardRate: +v('crate').value, mortgageFee: +v('mfee').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
+    capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 // ---------- แถบบนแบบแอปธนาคาร + เมนูรวมปุ่มทั้งหมด (แทนปุ่มเรียงเต็มหัวจอแบบเดิม) ----------
@@ -1742,11 +1508,23 @@ function roleTag() {
   if (isHostUser()) return '<span class="role">🏠 เจ้าของห้อง</span>';
   return '<span class="role">🎲 ผู้เล่น</span>';
 }
+// ป้ายสถานะการเชื่อมต่อ (Live) — ให้รู้ว่าตอนนี้ข้อมูลอัปเดตเรียลไทม์จริงหรือขาดการเชื่อมต่ออยู่
+// พ่วงข้อมูลสดในเกม (รอบที่เท่าไหร่ + มีคิวรออนุมัติกี่รายการ) ไว้ในป้ายเดียว จะได้เห็นได้จากทุกแท็บโดยไม่ต้องสลับไปหน้าอื่น
+function liveBadge() {
+  if (App.mode !== 'online') return '';
+  const live = App.live !== false, s = S();
+  const nReq = s ? (s.reqs || []).length : 0;
+  const info = s && s.status === 'playing' ? ` · ร.${s.round}${nReq ? ` · ⏳${nReq}` : ''}` : '';
+  const title = (live ? 'เชื่อมต่อธนาคารกลางแบบเรียลไทม์อยู่' : 'ขาดการเชื่อมต่อ กำลังพยายามเชื่อมต่อใหม่') + (info ? ` — รอบที่ ${s.round}${nReq ? `, มีคิวรออนุมัติ ${nReq} รายการ` : ''}` : '');
+  const jump = nReq && isBanker() ? ' data-a="goTab:counter"' : ''; // กดที่ป้ายเพื่อไปหน้าคิวรออนุมัติได้เลยถ้ามีแบงก์เกอร์เป็นคนดู
+  return `<span class="livebadge ${live ? 'on' : 'off'}" title="${title}"${jump}><i></i><span>${live ? 'Live' : 'ขาดการเชื่อมต่อ'}${info}</span></span>`;
+}
 function appBar() {
   const where = App.mode === 'online' ? `ห้อง <b class="num">${App.room}</b>` : 'เล่นบนเครื่องเดียว';
   return `<header class="appbar">
     <span class="logo" aria-hidden="true">฿</span>
     <div class="brand"><b>ธนาคาร<span>เศรษฐี</span></b><small>${where} · ${roleTag()}</small></div>
+    ${liveBadge()}
     <button class="ib" data-a="howto" aria-label="วิธีเล่น" title="วิธีเล่น">❓</button>
     <button class="ib" data-a="menu" aria-label="เมนู" title="เมนู">☰</button>
   </header>`;
@@ -1757,7 +1535,6 @@ function menuItems() {
   const it = [];
   if (online) it.push(['📷', 'ชวนเพื่อนเข้าห้อง', `QR และลิงก์ห้อง ${App.room}`, 'invite']);
   it.push(['❓', 'วิธีเล่น', 'ขั้นตอนเล่นกับกระดานจริงทีละข้อ', 'howto']);
-  if (canInstall()) it.push(['📲', 'เพิ่มไว้หน้าจอหลัก', 'เปิดเหมือนแอป ไม่ต้องพิมพ์ลิงก์', 'install']);
   if (online) it.push([App.sound ? '🔔' : '🔕', App.sound ? 'ปิดเสียงเตือน' : 'เปิดเสียงเตือน', 'เสียง + สั่นตอนถึงตาหรือได้รับเงิน', 'sound']);
   it.push('-');
   // ย้อนกลับได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริง
@@ -1831,12 +1608,14 @@ function nextSeat(s) {
 }
 function myAlerts(s, seat) {
   if (seat < 0) return 0;
-  return s.loans.filter(L => (L.status === 'offer' && L.borrower === seat) || (L.status === 'active' && L.borrower === seat && L.overdue)).length + (P(seat).bal < 0 ? 1 : 0) + (P(seat).card > 0 ? 1 : 0);
+  return s.loans.filter(L => (L.status === 'offer' && L.borrower === seat) || (L.status === 'active' && L.borrower === seat && L.overdue)).length + (P(seat).bal < 0 ? 1 : 0);
 }
 const goAmount = s => s.settings.goSalary * ((s.effects || []).some(e => e.key === 'go2') ? 2 : 1);
 
 // แถบสถานะตา (กะทัดรัด): บอกว่าตาใคร รอบไหน คนต่อไปคือใคร + ปุ่มคุมจังหวะเกมสำหรับคนที่มีสิทธิ์
 function turnBar(s) {
+  if (s.status === 'over' && s.bankBankrupt) return `<section class="turnbar over bankrupt"><span style="font-size:30px">💥</span>
+    <div class="tt"><b>ธนาคารล้มละลาย!</b><span>งบกลางธนาคารจ่ายไม่พอ — จบเกมทันที ถือว่าทุกคนแพ้</span></div></section>`;
   if (s.status === 'over') return `<section class="turnbar over"><span style="font-size:30px">🏁</span>
     <div class="tt"><b>จบเกมแล้ว</b><span>นับเงินสดกระดาษ + มูลค่าที่ดิน แล้วแจ้งในหน้า "ผลการแข่งขัน"</span></div></section>`;
   const t = s.turn, nx = nextSeat(s), mine = t === mySeat() || (App.mode === 'local' && t === App.actor);
@@ -1863,7 +1642,6 @@ function gameTabs(s) {
   return [
     ...(over ? [['result', '🏆', 'ผลการแข่ง']] : []),
     ...(seated ? [['me', '🏠', 'บัญชีของฉัน']] : []),
-    ['fin', '📈', 'การเงิน'],
     ...(!over && isBanker() ? [['counter', '🏧', 'เคาน์เตอร์']] : []),
     ['all', '👥', 'ทุกคน'], ['ev', '🎴', 'อีเว้นท์'], ['log', '🧾', 'ประวัติ'],
   ];
@@ -1877,7 +1655,7 @@ function renderGame() {
   $('#app').innerHTML = `<main class="wrap">${appBar()}
     ${turnBar(s)}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
-    <section id="tab">${({ result: tabResult, me: tabMe, fin: tabFin, counter: tabCounter, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
+    <section id="tab">${({ result: tabResult, me: tabMe, counter: tabCounter, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
   </main>
   <nav class="bnav" role="tablist"><div class="in">
     ${tabs.map(([k, ic, l]) => `<button role="tab" aria-selected="${App.tab === k}" data-tab="${k}"><span class="bi">${ic}</span>${l}
@@ -1890,15 +1668,14 @@ function renderGame() {
 
 // ---------- แท็บ: บัญชีของฉัน ----------
 const TX_LABEL = { transfer: 'โอน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'รับจากธนาคาร', go: 'ผ่านจุดเริ่มต้น',
-  loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน',
-  savings: 'ดอกเบี้ยเงินฝาก', fixed: 'ฝากประจำ', stock: 'หุ้น', dividend: 'ปันผล', insurance: 'ประกัน', mortgage: 'จำนองโฉนด', card: 'รูดบัตรเครดิต', cardPay: 'ชำระบัตรเครดิต' };
+  loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน' };
 function txRow(t, v, showRound = true) {
   const inbound = t.t === v;
   const other = inbound ? t.f : t.t;
   const who = t.k === 'deposit' || t.k === 'withdraw' ? 'เงินสด ↔ บัญชี' : other == null ? 'ธนาคาร' : esc(P(other).name);
   return `<div class="txr"><span class="tx-ic ${inbound ? 'in' : 'out'}">${inbound ? '↓' : '↑'}</span>
     <span class="tx-main"><b>${TX_LABEL[t.k] || t.k}</b> <span class="muted">${inbound ? 'จาก' : 'ไป'} ${who}</span>${t.n ? `<small>${esc(t.n)}</small>` : ''}</span>
-    <span class="tx-amt num ${t.k === 'card' && !inbound ? 'card' : inbound ? 'in' : 'out'}">${t.k === 'card' && !inbound ? '💳 ' : inbound ? '+' : '−'}${fmt(t.a)}</span>${showRound ? `<span class="tx-r num muted">ร.${t.r}</span>` : ''}</div>`;
+    <span class="tx-amt num ${inbound ? 'in' : 'out'}">${inbound ? '+' : '−'}${fmt(t.a)}</span>${showRound ? `<span class="tx-r num muted">ร.${t.r}</span>` : ''}</div>`;
 }
 // สเตทเมนต์: จัดกลุ่มรายการตามรอบ (ใหม่สุดอยู่บน) เหมือนหน้าเดินบัญชีของแอปธนาคาร
 function statementHtml(txs, v) {
@@ -1938,7 +1715,7 @@ function loanCard(s, L, view) {
 function worthForm(s, v) {
   const p = P(v), done = p.cash != null;
   return `<div class="panel stack worth"><div class="label">นับเงินจบเกม</div>
-    <p class="muted" style="margin:0;font-size:13.5px">นับเงินสดกระดาษในมือ และรวมมูลค่าที่ดิน/บ้านบนกระดาน (ราคาซื้อตามโฉนด ติดจำนองนับครึ่งเดียว — ยกเว้นโฉนดที่จำนองในแอป ให้นับเต็มราคา แอปหักค่าไถ่ถอนให้เอง) แล้วกรอกตรงนี้ · ฝากประจำ หุ้น หนี้บัตร แอปรวมให้อัตโนมัติ</p>
+    <p class="muted" style="margin:0;font-size:13.5px">นับเงินสดกระดาษในมือ และรวมมูลค่าที่ดิน/บ้านบนกระดาน (ราคาซื้อตามโฉนด ติดจำนองนับครึ่งเดียว) แล้วกรอกตรงนี้</p>
     <div class="grid2"><div class="field"><label for="w-cash">เงินสดกระดาษ</label><input id="w-cash" type="number" inputmode="numeric" value="${p.cash ?? ''}" placeholder="0"></div>
     <div class="field"><label for="w-assets">มูลค่าทรัพย์สินบนกระดาน</label><input id="w-assets" type="number" inputmode="numeric" value="${p.assets ?? ''}" placeholder="0"></div></div>
     <button class="primary" data-a="declare" data-as="${v}">${done ? 'แก้ไขยอดที่แจ้ง' : 'แจ้งยอด'}</button></div>`;
@@ -1969,7 +1746,7 @@ function tabMe(s) {
   const notices = [
     p.out ? `<div class="notice bad"><span class="ni">💀</span><div><b>ออกจากเกมแล้ว</b><small>ทำรายการเงินเพิ่มไม่ได้</small></div><span></span></div>` : '',
     !p.out && p.bal < 0 ? `<div class="notice bad"><span class="ni">🔴</span><div><b>บัญชีติดลบ ${baht(p.bal)}</b><small>โดนดอกเบี้ยทุกรอบ — ฝากเงินสดเข้าบัญชีเพื่อปิดยอดติดลบ</small></div><span></span></div>` : '',
-    !p.out && p.card > 0 ? `<div class="notice bad"><span class="ni">💳</span><div><b>บัตรเครดิตค้างชำระ ${fmt(p.card)}</b><small>โดนดอกเบี้ยทุกรอบ — ไปที่แท็บ "การเงิน" แล้วกดชำระบัตร</small></div><button class="sm" data-a="goTab:fin">ไปจ่าย</button></div>` : '',
+    !p.out && p.hold > 0 ? `<div class="notice"><span class="ni">🔒</span><div><b>วงเงินถูกอายัด ${fmt(p.hold)}</b><small>โอน/จ่ายธนาคาร/ถอนเงินสดได้ไม่เกิน ${fmt(Math.max(0, p.bal - p.hold))}</small></div><span></span></div>` : '',
     overdue ? `<div class="notice bad"><span class="ni">🚨</span><div><b>มีหนี้เลยกำหนด ${overdue} สัญญา</b><small>รีบคืนก่อนเครดิตลดลงอีก (ดูด้านล่าง)</small></div><span></span></div>` : '',
     ...reqs.map(r => `<div class="notice"><span class="ni">⏳</span><div><b>${REQ_KIND[r.kind]} ${fmt(r.amt)}</b>
       <small>${r.kind === 'deposit' ? 'ยื่นเงินสดให้แบงก์เกอร์ แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอแบงก์เกอร์ส่งเงินสดให้และกดยืนยัน' : 'รอแบงก์เกอร์อนุมัติ' + (r.note ? ` · ${esc(r.note)}` : '')}</small></div>
@@ -1981,14 +1758,13 @@ function tabMe(s) {
       <div class="cb-acct">${acctNo(v)}</div>
       <div class="cb-label">${p.bal < 0 ? 'เบิกเกินบัญชี' : 'ยอดเงินที่ใช้ได้'}</div>
       <div class="cb-bal num">${baht(p.bal)}<small>บาท</small></div>
-      <div class="cb-foot"><span>หนี้ค้าง<b>${fmt(debtOf(s, v) + cardOwed(p) + mortgageOwed(s, v))}</b></span><span>ให้คนอื่นยืม<b>${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก<b>${fmt(room)}</b></span></div>
+      <div class="cb-foot"><span>หนี้ค้าง<b>${fmt(debtOf(s, v))}</b></span><span>ให้คนอื่นยืม<b>${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก<b>${fmt(room)}</b></span></div>
     </div>
     ${notices}
     ${over ? worthForm(s, v) : ''}
     ${live ? `<section class="panel qa" aria-label="ทำรายการ">
       <div class="qa-g">${qa('transfer', '💸', 'โอนให้<br>ผู้เล่น', 't1')}${qa('payBank', '🏦', 'จ่าย<br>ธนาคาร', 't1')}${qa('req:deposit', '📥', 'ฝาก<br>เงินสด', 't2')}${qa('req:withdraw', '📤', 'ถอน<br>เงินสด', 't2')}
-        ${qa('req:claim', '🙋', 'รับเงิน<br>จากธนาคาร', 't2')}${qa('bankLoan', '🏛️', 'กู้<br>ธนาคาร', 't3')}${qa('offer', '🤝', 'ให้เพื่อน<br>กู้', 't3')}${(s.settings.cardPct ?? 20) > 0 ? qa('cardSpend', '💳', 'รูด<br>บัตรเครดิต', 't3') : ''}
-        ${qa('goTab:fin', '📈', 'ลงทุน<br>ฝาก ประกัน', 't1')}</div>
+        ${qa('req:claim', '🙋', 'รับเงิน<br>จากธนาคาร', 't2')}${qa('bankLoan', '🏛️', 'กู้<br>ธนาคาร', 't3')}${qa('offer', '🤝', 'ให้เพื่อน<br>กู้', 't3')}</div>
       <div class="qa-h"><small>💡 ปุ่มสีทอง = ต้องยื่น/รับเงินสดจริงกับแบงก์เกอร์ แล้วรอเขากดยืนยัน</small></div>
     </section>` : ''}
     ${incoming.length ? `<div class="section-h"><h2>📩 ข้อเสนอเงินกู้ถึงคุณ</h2></div>${incoming.map(L => loanCard(s, L, v)).join('')}` : ''}
@@ -1998,156 +1774,6 @@ function tabMe(s) {
     <div class="section-h"><h2>รายการเดินบัญชี</h2><span class="muted" style="font-size:12.5px">ล่าสุด ${txs.length} รายการ</span></div>
     ${txs.length ? statementHtml(txs, v) : '<p class="empty">ยังไม่มีรายการในบัญชี</p>'}
   </div>`;
-}
-
-// ---------- แท็บ: การเงิน (ฝากประจำ / หุ้น / ประกัน / บัตรเครดิต / จำนองโฉนด) ----------
-// กราฟเส้นจิ๋วราคาหุ้นย้อนหลัง
-function sparkSvg(h) {
-  if (!h || h.length < 2) return '';
-  const lo = Math.min(...h), hi = Math.max(...h), w = 64, ht = 22, span = hi - lo || 1;
-  const pts = h.map((v, i) => `${(i / (h.length - 1) * w).toFixed(1)},${(ht - 2 - (v - lo) / span * (ht - 4)).toFixed(1)}`).join(' ');
-  return `<svg class="spark ${h[h.length - 1] >= h[0] ? 'up' : 'down'}" viewBox="0 0 ${w} ${ht}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-}
-const pctTxt = x => `${x > 0 ? '▲' : x < 0 ? '▼' : '•'} ${Math.abs(x).toFixed(1)}%`;
-function tabFin(s) {
-  ensureBankPlus(s);
-  const v = viewSeat(), seated = v >= 0, p = seated ? P(v) : null;
-  const live = seated && s.status === 'playing' && !p.out && canAct(v);
-  const pick = App.mode === 'local' ? `<div class="who-pick" role="group" aria-label="ใช้งานในนาม">${s.players.map((q, i) => `<button class="sm" data-actor="${i}" aria-pressed="${i === App.actor}">${TOKENS[q.token].icon} ${esc(q.name)}</button>`).join('')}</div>` : '';
-  const m = s.market, st = s.settings;
-  // ---- ตลาดหุ้น ----
-  const stocks = STOCKS.map(k => {
-    const pr = m.prices[k.id], prev = m.prev[k.id] || pr, ch = (pr - prev) / prev * 100;
-    const own = seated ? p.shares[k.id] || 0 : 0, val = own * pr, cost = seated ? p.cost[k.id] || 0 : 0, pl = val - cost;
-    return `<div class="stk"><span class="si">${k.icon}</span>
-      <div class="sn"><b>${k.name}</b><small>${k.fund ? 'กองทุน · ความเสี่ยงต่ำ' : k.vol >= 0.12 ? 'ผันผวนสูง' : k.vol >= 0.08 ? 'ผันผวนกลาง' : 'ผันผวนต่ำ'}${k.div ? ` · ปันผล ${k.div}%/รอบ` : ''}</small></div>
-      <div class="sp">${sparkSvg(m.hist[k.id])}<b>${fmt(pr)}</b><small class="${ch > 0 ? 'up' : ch < 0 ? 'down' : 'muted'}">${pctTxt(ch)}</small></div>
-      ${seated ? `<div class="own">${own ? `<span>ถือ <b class="num">${fmt(own)}</b> หุ้น · มูลค่า <b class="num">${fmt(val)}</b> · <span class="${pl >= 0 ? 'up' : 'down'}">${pl >= 0 ? 'กำไร' : 'ขาดทุน'} ${fmt(Math.abs(pl))}</span></span>` : '<span>ยังไม่มีหุ้นตัวนี้</span>'}
-        ${live ? `<span class="row"><button class="sm primary" data-a="buy:${k.id}" data-as="${v}">ซื้อ</button>${own ? `<button class="sm" data-a="sell:${k.id}" data-as="${v}">ขาย</button>` : ''}</span>` : ''}</div>` : ''}
-    </div>`;
-  }).join('');
-  const market = `<div class="section-h"><h2>📈 ตลาดหุ้น</h2><span class="muted" style="font-size:12.5px">ราคาขยับทุกรอบใหม่ · ค่าธรรมเนียม ${st.stockFee ?? 1}%</span></div>
-    <div class="panel" style="padding:2px 14px">${stocks}</div>`;
-  if (!seated) return `<div class="stack">${pick}${market}</div>`;
-  // ---- สรุป ----
-  const deps = s.deposits.filter(D => D.seat === v && D.status === 'active');
-  const morts = s.mortgages.filter(M => M.seat === v && M.status === 'active');
-  const sum = `<div class="fin-sum">
-    <div><small>🐷 ฝากประจำ</small><b>${fmt(fixedOf(s, v))}</b></div><div><small>📈 มูลค่าหุ้น</small><b>${fmt(sharesValue(s, v))}</b></div>
-    <div><small>💳 หนี้บัตรเครดิต</small><b>${fmt(cardOwed(p))}</b></div><div><small>🏠 ค่าไถ่ถอนโฉนด</small><b>${fmt(mortgageOwed(s, v))}</b></div></div>`;
-  // ---- เงินฝาก ----
-  const depCards = deps.map(D => {
-    const span = D.dueRound - D.startRound, pct = Math.min(100, (s.round - D.startRound) / span * 100);
-    return `<div class="loan"><div class="l1"><b>ฝากประจำ ${span} รอบ</b><span class="badge">${D.rate}%/รอบ</span><span class="amt">${fmt(D.balance)}</span></div>
-      <div class="meta"><span>เงินต้น ${fmt(D.principal)}</span><span>ดอกสะสม ${fmt(D.balance - D.principal)}</span><span>ครบกำหนดรอบ ${D.dueRound} (อีก ${Math.max(0, D.dueRound - s.round)} รอบ)</span></div>
-      <div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
-      ${live ? `<div class="row"><button class="sm" data-a="breakFixed:${D.id}" data-as="${v}">ถอนก่อนกำหนด (ไม่ได้ดอก)</button></div>` : ''}</div>`;
-  }).join('');
-  const sr = st.savingsRate ?? 1;
-  const savings = `<div class="section-h"><h2>🐷 เงินฝาก</h2>${live ? `<button class="sm primary" data-a="fixed" data-as="${v}">+ เปิดฝากประจำ</button>` : ''}</div>
-    <div class="plan"><div class="meta" style="font-size:13.5px"><span>💰 ออมทรัพย์: ยอดในบัญชีที่เป็นบวกได้ดอก <b>${sr}%/รอบ</b> อัตโนมัติ (รอบหน้าได้ประมาณ <b class="num">${fmt(p.bal > 0 ? roundFine(s, p.bal * sr / 100) : 0)}</b>)</span>
-      <span>🐷 ฝากประจำ: ดอกสูงกว่า ${fixedRateOf(s, 3)}–${fixedRateOf(s, 8)}%/รอบ ทบต้น แต่ถอนก่อนกำหนดไม่ได้ดอก</span></div></div>
-    ${depCards}`;
-  // ---- ประกัน ----
-  const insCovered = EVENTS.filter(e => e.ins).map(e => e.icon + ' ' + e.title).join(' · ');
-  const plans = Object.entries(INS_PLANS).map(([id, pl]) => {
-    const on = p.ins && p.ins.plan === id;
-    return `<div class="plan ${on ? 'on' : ''}"><div class="l1"><span style="font-size:22px">${pl.icon}</span><b>${pl.name}</b>${on ? '<span class="badge me">คุ้มครองอยู่</span>' : ''}
-        <span class="num" style="margin-left:auto">${fmt(money(s, pl.premium))}<small class="muted">/รอบ</small></span></div>
-      <div class="meta"><span>ชดเชย ${pl.cover}% ของความเสียหาย</span><span>สูงสุด ${fmt(money(s, pl.cap))}/ครั้ง</span>${on ? `<span>เริ่มรอบ ${p.ins.since}</span>` : ''}</div>
-      ${live ? `<div class="row">${on ? `<button class="sm" data-a="cancelIns" data-as="${v}">ยกเลิกประกัน</button>` : `<button class="sm primary" data-a="ins:${id}" data-as="${v}">${p.ins ? 'เปลี่ยนเป็นแผนนี้' : 'ซื้อประกัน'}</button>`}</div>` : ''}</div>`;
-  }).join('');
-  const insurance = `<div class="section-h"><h2>🛡️ ประกันภัย</h2></div>${plans}
-    <p class="muted" style="margin:0;font-size:12.5px">คุ้มครองอีเว้นท์: ${insCovered} — เคลมอัตโนมัติ เบี้ยตัดจากบัญชีทุกต้นรอบ ถ้ายอดไม่พอกรมธรรม์ขาดอายุ</p>`;
-  // ---- บัตรเครดิต ----
-  const lim = cardLimit(s, v), owed = cardOwed(p), cardOn = (st.cardPct ?? 20) > 0;
-  const card = cardOn ? `<div class="section-h"><h2>💳 บัตรเครดิต</h2></div>
-    <div class="cc"><div class="c1"><span>ธนาคารเศรษฐี · ${CREDIT[p.credit].name}</span><span>💳</span></div>
-      <div class="c2">${fmt(Math.max(0, lim - owed))} <small style="font-size:13px;opacity:.8">วงเงินคงเหลือ</small></div>
-      <div class="bar" aria-hidden="true"><i style="width:${lim ? Math.min(100, owed / lim * 100) : 0}%"></i></div>
-      <div class="c3"><span>วงเงิน<b>${fmt(lim)}</b></span><span>รูดรอบนี้ (ปลอดดอก)<b>${fmt(p.cardNew)}</b></span><span>ยอดยกมา (คิดดอก ${st.cardRate ?? 8}%)<b>${fmt(p.card)}</b></span></div></div>
-    ${live ? `<div class="row"><button class="primary" data-a="cardSpend" data-as="${v}">💳 รูดบัตรจ่าย</button>${owed ? `<button data-a="cardPay" data-as="${v}">ชำระบัตร</button>` : ''}</div>` : ''}
-    <p class="muted" style="margin:0;font-size:12.5px">รูดจ่ายค่าเช่า/ซื้อที่ดินได้แม้เงินในบัญชีไม่พอ · จ่ายคืนก่อนจบรอบถัดไปไม่เสียดอก · ค้างนาน 3 รอบติด เครดิตลด</p>` : '';
-  // ---- จำนองโฉนด ----
-  const mort = `<div class="section-h"><h2>🏠 จำนองโฉนด</h2>${live ? `<button class="sm primary" data-a="mortgage" data-as="${v}">+ จำนองโฉนด</button>` : ''}</div>
-    ${morts.length ? morts.map(M => `<div class="loan"><div class="l1"><b>${esc(M.name)}</b><span class="badge">จำนองรอบ ${M.round}</span><span class="amt">${fmt(M.amt)}</span></div>
-      <div class="meta"><span>ไถ่ถอน ${fmt(redeemCost(s, M))} (รวมค่าธรรมเนียม ${st.mortgageFee ?? 10}%)</span></div>
-      ${live ? `<div class="row"><button class="sm primary" data-a="redeem:${M.id}" data-as="${v}">ไถ่ถอนจากบัญชี</button></div>` : ''}</div>`).join('')
-      : '<p class="muted" style="margin:0;font-size:13px">เงินช็อต? คว่ำโฉนดบนกระดานแล้วจำนองกับธนาคาร รับเงินเข้าบัญชีตามราคาจำนองบนโฉนด ไถ่ถอนคืนเมื่อพร้อม</p>'}`;
-  return `<div class="stack">${pick}${sum}${savings}${market}${insurance}${card}${mort}</div>`;
-}
-function openFixed(v) {
-  const s = S();
-  openModal('🐷 เปิดบัญชีฝากประจำ', `${balLine(v)}
-    <div class="field"><label for="in-amt">จำนวนเงินฝาก</label><input id="in-amt" type="number" inputmode="numeric" min="1" value="${money(s, 300)}"></div>
-    ${quickBtns(quickAmounts(s))}
-    <div class="field"><label for="in-rounds">ระยะเวลา</label><select id="in-rounds">${FIXED_TERMS.map(t => `<option value="${t.r}">${t.r} รอบ · ดอก ${fixedRateOf(s, t.r)}%/รอบ</option>`).join('')}</select></div>
-    <div class="preview" id="pv"></div>
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ฝากเลย</button></div>`);
-  const upd = () => { const a = +$('#in-amt').value || 0, n = +$('#in-rounds').value, r = fixedRateOf(S(), n); let b = a; for (let k = 0; k < n; k++) b += roundFine(S(), b * r / 100);
-    $('#pv').innerHTML = `<span>ครบกำหนดรอบ ${S().round + n} ได้คืนประมาณ <b class="num">${fmt(b)}</b> (ดอก ${fmt(b - a)})</span><span class="muted" style="font-size:12.5px">คืนเข้าบัญชีอัตโนมัติ · ถอนก่อนกำหนดได้แค่เงินต้น</span>`; };
-  wireQuick(); $('#in-amt').oninput = upd; $('#in-rounds').onchange = upd; upd();
-  $('#b-go').onclick = async () => { const a = +$('#in-amt').value, n = +$('#in-rounds').value;
-    if (await dispatch(v, { type: 'openFixed', amount: a, rounds: n })) showSlip('เปิดฝากประจำสำเร็จ', a, [['บัญชี', pn(v)], ['ดอกเบี้ย', `${fixedRateOf(S(), n)}% ต่อรอบ`], ['ครบกำหนด', `รอบที่ ${S().round + n}`]]); };
-}
-function openTrade(v, id, side) {
-  const s = S(), k = STOCK_BY_ID[id], pr = s.market.prices[id], fee = s.settings.stockFee ?? 1, own = P(v).shares[id] || 0, buy = side === 'buy';
-  const maxQ = buy ? Math.max(0, Math.floor(P(v).bal / (pr * (1 + fee / 100)))) : own;
-  if (maxQ <= 0) return toast(buy ? 'ยอดในบัญชีไม่พอซื้อแม้แต่ 1 หุ้น' : 'ไม่มีหุ้นตัวนี้');
-  openModal(`${buy ? '🛒 ซื้อ' : '💰 ขาย'} ${k.icon} ${k.name}`, `${balLine(v)}
-    <div class="muted" style="font-size:14px">ราคาตอนนี้ <b class="num">${fmt(pr)}</b>/หุ้น · ถืออยู่ ${fmt(own)} หุ้น · ${buy ? 'ซื้อได้' : 'ขายได้'}สูงสุด ${fmt(maxQ)} หุ้น</div>
-    <div class="field"><label for="in-amt">จำนวนหุ้น</label><input id="in-amt" type="number" inputmode="numeric" min="1" max="${maxQ}" value="${Math.min(maxQ, buy ? 1 : own)}"></div>
-    ${quickBtns([1, 5, 10, maxQ].filter((x, i, a) => x <= maxQ && a.indexOf(x) === i))}
-    <div class="preview" id="pv"></div>
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${buy ? 'ซื้อ' : 'ขาย'}</button></div>`);
-  const calc = () => { const q = Math.max(0, Math.round(+$('#in-amt').value || 0)), g = pr * q, f = Math.ceil(g * fee / 100); return { q, g, f, t: buy ? g + f : g - f }; };
-  const upd = () => { const c = calc(); $('#pv').innerHTML = `<span>${buy ? 'จ่ายรวม' : 'ได้รับสุทธิ'} <b class="num">${fmt(c.t)}</b></span><span class="muted" style="font-size:12.5px">ราคา ${fmt(c.g)} ${buy ? '+' : '−'} ค่าธรรมเนียม ${fmt(c.f)} (${fee}%)</span>`; };
-  $$('#modal-root [data-q]').forEach(b => b.onclick = () => { $('#in-amt').value = b.dataset.q; upd(); });
-  $('#in-amt').oninput = upd; upd();
-  $('#b-go').onclick = async () => { const c = calc();
-    if (await dispatch(v, { type: buy ? 'buyStock' : 'sellStock', id, qty: c.q })) showSlip(`${buy ? 'ซื้อ' : 'ขาย'}หุ้นสำเร็จ`, c.t, [['หุ้น', `${k.icon} ${k.name}`], ['จำนวน', `${fmt(c.q)} หุ้น @${fmt(pr)}`], ['ค่าธรรมเนียม', fmt(c.f)]]); };
-}
-function openCardSpend(v) {
-  const s = S(), p = P(v), room = Math.max(0, cardLimit(s, v) - cardOwed(p)), others = s.order.filter(i => i !== v && !P(i).out);
-  if (room <= 0) return toast('วงเงินบัตรเต็มแล้ว ชำระบัตรก่อน');
-  openModal('💳 รูดบัตรเครดิต', `<div class="muted" style="font-size:14px">${pn(v)} · วงเงินคงเหลือ <b class="num">${fmt(room)}</b> (ไม่ตัดยอดบัญชีตอนนี้)</div>
-    <div class="field"><label for="in-to">จ่ายให้</label><select id="in-to"><option value="-1">🏦 ธนาคาร (ซื้อที่ดิน/สร้างบ้าน/ภาษี)</option>${others.map(i => `<option value="${i}">${pn(i)}</option>`).join('')}</select></div>
-    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1" max="${room}"></div>
-    ${quickBtns(quickAmounts(s).filter(x => x <= room))}
-    <div class="field"><label for="in-note">หมายเหตุ</label><input id="in-note" maxlength="40" placeholder="เช่น ค่าเช่าสยาม"></div>
-    <div class="quick">${['ค่าเช่า', 'ซื้อที่ดิน', 'สร้างบ้าน', 'ภาษี'].map(n => `<button class="sm" data-note="${n}">${n}</button>`).join('')}</div>
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">รูดบัตร</button></div>`);
-  wireQuick();
-  $$('#modal-root [data-note]').forEach(b => b.onclick = () => $('#in-note').value = b.dataset.note);
-  $('#in-amt').focus();
-  $('#b-go').onclick = async () => { const to = +$('#in-to').value, amt = +$('#in-amt').value, note = $('#in-note').value;
-    if (await dispatch(v, { type: 'cardSpend', to, amount: amt, note })) showSlip('รูดบัตรสำเร็จ', amt, [['ผู้ถือบัตร', pn(v)], ['จ่ายให้', to < 0 ? '🏦 ธนาคาร' : pn(to)], ['หมายเหตุ', esc(note)], ['ชำระ', 'ก่อนจบรอบถัดไปไม่เสียดอก']]); };
-}
-function openCardPay(v) {
-  const s = S(), p = P(v), owed = cardOwed(p), max = Math.min(owed, Math.max(0, p.bal));
-  if (max <= 0) return toast('ยอดในบัญชีไม่พอ ฝากเงินสดเข้าบัญชีก่อน');
-  openModal('💳 ชำระบัตรเครดิต', `${balLine(v)}
-    <div class="muted" style="font-size:14px">ยอดค้างทั้งหมด <b class="num">${fmt(owed)}</b> (ยกมา ${fmt(p.card)} + รอบนี้ ${fmt(p.cardNew)})</div>
-    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" value="${max}" min="1" max="${max}"></div>
-    ${quickBtns([max, p.card].filter((x, i, a) => x > 0 && x <= max && a.indexOf(x) === i))}
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ชำระ</button></div>`);
-  wireQuick();
-  $('#b-go').onclick = async () => { const amt = +$('#in-amt').value;
-    if (await dispatch(v, { type: 'cardPay', amount: amt })) showSlip('ชำระบัตรสำเร็จ', amt, [['ผู้ถือบัตร', pn(v)], ['คงค้าง', fmt(Math.max(0, owed - amt))]]); };
-}
-function openMortgage(v) {
-  const s = S(), needConfirm = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
-  openModal('🏠 จำนองโฉนดกับธนาคาร', `${balLine(v)}
-    <p class="muted" style="margin:0;font-size:13.5px">คว่ำโฉนดบนกระดาน แล้วใส่ราคาจำนองตามที่พิมพ์บนโฉนด เงินเข้าบัญชีทันที${needConfirm ? ' <b>หลังแบงก์เกอร์อนุมัติ</b>' : ''} · ไถ่ถอนคืน = ยอดจำนอง + ${s.settings.mortgageFee ?? 10}%</p>
-    <div class="field"><label for="in-note">ชื่อโฉนด</label><input id="in-note" maxlength="40" placeholder="เช่น สยาม, สุขุมวิท"></div>
-    <div class="field"><label for="in-amt">ราคาจำนอง (ตามโฉนด)</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
-    ${quickBtns(quickAmounts(s))}
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${needConfirm ? 'ส่งคำขอ' : 'จำนอง'}</button></div>`);
-  wireQuick();
-  $('#in-note').focus();
-  $('#b-go').onclick = async () => { const amt = +$('#in-amt').value, note = $('#in-note').value;
-    if (await dispatch(v, { type: 'request', kind: 'mortgage', amount: amt, note })) showSlip('จำนองโฉนด', amt, [['บัญชี', pn(v)], ['โฉนด', esc(note)], ['ไถ่ถอน', fmt(amt + roundUnit(S(), amt * (S().settings.mortgageFee ?? 10) / 100, true))],
-      ...(needConfirm ? [['สถานะ', 'รอแบงก์เกอร์อนุมัติ']] : [])], needConfirm); };
 }
 
 function tabAll(s) {
@@ -2176,10 +1802,11 @@ function tabCounter(s) {
     const who = esc(P(r.seat).name), a = `<b class="num">${fmt(r.amt)}</b>`;
     if (r.kind === 'deposit') return `① รับเงินสด ${a} จาก ${who}<br>② กด "ยืนยัน" → เงินเข้าบัญชี${who}`;
     if (r.kind === 'withdraw') return `① ส่งเงินสด ${a} ให้ ${who}<br>② กด "ยืนยัน" → หักจากบัญชี${who} (ตอนนี้มี ${baht(P(r.seat).bal)})`;
-    if (r.kind === 'mortgage') return `① ดูให้ ${who} คว่ำโฉนด <b>${esc(r.note)}</b> บนกระดาน และยอดตรงราคาจำนองบนโฉนด<br>② กด "อนุมัติ" → ธนาคารจ่าย ${a} เข้าบัญชี${who}`;
+    if (r.kind === 'payBank') return `เหตุผล: <b>${esc(r.note || 'ไม่ระบุ')}</b><br>ตรวจว่าถูกต้อง แล้วกด "ยืนยัน" → หักจากบัญชี${who} เข้าธนาคาร`;
+    if (r.kind === 'loan') return `ขอกู้คืนภายใน <b>${r.rounds} รอบ</b> · รับเป็น <b>${r.into === 'cash' ? 'เงินสด' : 'เงินเข้าบัญชี'}</b><br>ตรวจวงเงินแล้วกด "อนุมัติ" → ธนาคารจ่าย ${a} ให้ ${who}`;
     return `เหตุผล: <b>${esc(r.note || 'ไม่ระบุ')}</b><br>ตรวจว่าถูกต้อง แล้วกด "อนุมัติ" → ธนาคารจ่าย ${a} เข้าบัญชี${who}`;
   };
-  const kind = { deposit: ['in', '📥 ฝากเงินสด'], withdraw: ['out', '📤 ถอนเงินสด'], claim: ['out', '🙋 ขอรับเงินจากธนาคาร'], mortgage: ['out', '🏠 จำนองโฉนด'] };
+  const kind = { deposit: ['in', '📥 ฝากเงินสด'], withdraw: ['out', '📤 ถอนเงินสด'], claim: ['out', '🙋 ขอรับเงินจากธนาคาร'], payBank: ['in', '🏦 จ่ายธนาคาร'], loan: ['out', '🧾 ขอกู้ธนาคาร'] };
   return `<div class="stack">
     <div class="teller">
       <div class="t1">🏧 เคาน์เตอร์ธนาคาร · คุณคือ${isAdmin() ? 'แอดมิน (ทำหน้าที่แบงก์เกอร์ได้)' : 'แบงก์เกอร์'}</div>
@@ -2188,24 +1815,28 @@ function tabCounter(s) {
         ${budget != null ? `<span>งบกลางธนาคาร <b>${baht(budget)}</b></span>` : ''}</div>
     </div>
     ${budget != null && budget <= 0 ? '<div class="notice bad"><span class="ni">⚠️</span><div><b>งบกลางธนาคารหมดแล้ว</b><small>จ่ายเงินออกเพิ่มไม่ได้ จนกว่าจะมีคนฝากเงินสด/จ่ายธนาคาร/คืนหนี้</small></div><span></span></div>' : ''}
+    <div class="row"><button class="sm" data-a="bankerCut">✂️ ตัดเงินผู้เล่น</button></div>
     <div class="section-h"><h2>คิวรอยืนยัน</h2>${reqs.length ? `<span class="count">${reqs.length}</span>` : ''}</div>
     ${reqs.length ? reqs.map(r => `<div class="q">
       <div class="qh">${tokHtml(r.seat)}<div><b>${esc(P(r.seat).name)}</b><br><span class="qk ${kind[r.kind][0]}">${kind[r.kind][1]}</span></div><span class="qamt">${fmt(r.amt)}</span></div>
       <div class="qdo">${how(r)}</div>
-      <div class="row"><button class="danger" data-a="reqNo:${r.id}">ปฏิเสธ</button><button class="primary" data-a="reqOk:${r.id}">${r.kind === 'claim' || r.kind === 'mortgage' ? 'อนุมัติ' : 'ยืนยัน'}</button></div>
+      <div class="row"><button class="danger" data-a="reqNo:${r.id}">ปฏิเสธ</button><button class="primary" data-a="reqOk:${r.id}">${['claim', 'loan'].includes(r.kind) ? 'อนุมัติ' : 'ยืนยัน'}</button></div>
     </div>`).join('') : '<p class="empty" style="padding:4px 0">ยังไม่มีใครขอฝาก/ถอน — มีคำขอเมื่อไหร่จะขึ้นตรงนี้ พร้อมเสียงเตือน</p>'}
     <details class="panel"><summary><b>📋 หน้าที่ของแบงก์เกอร์</b></summary>
       <ol class="howto" style="margin-top:10px">
         <li>คนเล่นทอยลูกเต๋า/เดินบนกระดานเอง — แบงก์เกอร์<b>ไม่ต้องมีตาเดิน</b></li>
         <li>ใครผ่านจุดเริ่มต้น บอกคุณ → กด <b>🏁 ผ่านจุดเริ่มต้นให้</b> ที่แถบด้านบน (เงินเข้าบัญชีคนที่ถึงตาเท่านั้น)</li>
-        <li>มีคำขอฝาก/ถอนเงินสด → รับ/ส่งแบงก์จริงก่อน แล้วค่อยกด <b>ยืนยัน</b> ในคิว</li>
+        <li>มีคำขอฝาก/ถอนเงินสด/จ่ายธนาคาร/กู้ธนาคาร → ตรวจให้ถูกต้อง (รับ/ส่งแบงก์จริงถ้าเป็นเงินสด) แล้วค่อยกด <b>ยืนยัน/อนุมัติ</b> ในคิว</li>
+        <li>ใครไม่ยอมจ่ายเอง กด <b>✂️ ตัดเงินผู้เล่น</b> เพื่อหักบัญชีโดยตรงได้เลย หรือ <b>🔒 อายัดวงเงิน</b> กันไม่ให้ใช้เงินเกินที่กำหนด</li>
         <li>เล่นเสร็จตา กด <b>จบตา ➜</b> แทนคนเล่นได้ ถ้าเขาลืมกด</li>
         <li>กดผิด → เมนู ☰ → <b>ย้อนกลับคำสั่งล่าสุด</b></li>
       </ol></details>
     <div class="section-h"><h2>บัญชีลูกค้า</h2><span class="muted num">${s.order.length}</span></div>
+    <p class="muted" style="margin:0;font-size:12.5px">แบงก์เกอร์ตัดเงินออกจากบัญชีใครก็ได้ทันที (ไม่ต้องรอเจ้าของบัญชียืนยัน) หรืออายัดวงเงินกันไม่ให้โอน/จ่าย/ถอนเกินที่กำหนด — ใช้ตอนบังคับเก็บค่าเช่า/ค่าปรับที่ไม่ยอมจ่ายเอง</p>
     <div class="panel" style="padding:2px 14px">${s.order.map(i => { const p = P(i); return `<div class="acc" style="${p.out ? 'opacity:.5' : ''}">${tokHtml(i)}
-      <div><b>${esc(p.name)}</b> ${creditHtml(i)}${i === s.turn ? ' <span class="badge me">ถึงตา</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}<small>หนี้ ${fmt(debtOf(s, i))}</small></div>
-      <b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b></div>`; }).join('')}</div>
+      <div><b>${esc(p.name)}</b> ${creditHtml(i)}${i === s.turn ? ' <span class="badge me">ถึงตา</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}${p.hold ? ' <span class="badge bad">🔒 อายัด ' + fmt(p.hold) + '</span>' : ''}<small>หนี้ ${fmt(debtOf(s, i))}</small></div>
+      <b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b>
+      <span class="acc-actions">${!p.out ? `<button class="sm" data-a="bankerCut:${i}" title="ตัดเงินจากบัญชีนี้">✂️</button><button class="sm" data-a="hold:${i}" title="อายัดวงเงิน">🔒</button>` : ''}</span></div>`; }).join('')}</div>
     ${isAdmin() ? '<button data-a="admin">🛡️ เปิดแผงแอดมิน (แก้ยอด/เครดิต/สัญญา)</button>' : ''}
   </div>`;
 }
@@ -2232,6 +1863,7 @@ function tabResult(s) {
   const v = viewSeat();
   const canDeclareOthers = isAdmin();
   return `<div class="stack">
+    ${s.bankBankrupt ? '<div class="notice bad"><span class="ni">💥</span><div><b>ธนาคารล้มละลาย — ทุกคนแพ้</b><small>งบกลางธนาคารจ่ายไม่พอ เกมจบทันทีโดยไม่มีผู้ชนะ อันดับด้านล่างมีไว้ดูอ้างอิงเท่านั้น</small></div><span></span></div>' : ''}
     ${s.status === 'over' ? `<div class="row">
       <button class="sm" data-a="shareResult">📸 แชร์ผลเป็นรูป</button>
       ${canHost() ? '<button class="sm gold" data-a="restart" style="margin-left:auto">🔁 เริ่มเกมใหม่ในห้องเดิม</button>' : ''}
@@ -2239,7 +1871,7 @@ function tabResult(s) {
     ${missing.length ? `<div class="warn">ยังไม่ได้แจ้งเงินสด/ทรัพย์สิน: ${missing.map(i => esc(P(i).name)).join(', ')} — อันดับอาจเปลี่ยนเมื่อแจ้งครบ</div>` : ''}
     <div class="podium">${ranked.map((i, k) => {
       const p = P(i);
-      return `<div class="rank ${k === 0 && !missing.length ? 'win' : ''}"><span class="pos">${medal[k] || k + 1}</span>${tokHtml(i)}
+      return `<div class="rank ${k === 0 && !missing.length && !s.bankBankrupt ? 'win' : ''}"><span class="pos">${medal[k] || k + 1}</span>${tokHtml(i)}
         <span class="rk-name"><b>${esc(p.name)}</b><small>บัญชี ${baht(p.bal)} · เงินสด ${p.cash == null ? '—' : fmt(p.cash)} · ทรัพย์สิน ${p.assets == null ? '—' : fmt(p.assets)} · ให้ยืม ${fmt(lentOf(s, i))} · หนี้ −${fmt(debtOf(s, i))}</small></span>
         <span class="rk-net num">${baht(netWorth(s, i))}</span>
         ${canDeclareOthers && App.mode === 'online' && i !== mySeat() ? `<button class="sm" data-a="declareFor:${i}">แจ้งแทน</button>` : ''}</div>`;
@@ -2335,17 +1967,17 @@ function howToStepsHtml(steps) {
   return `<ol class="howto">${steps.map(t => `<li>${t}</li>`).join('')}</ol>`;
 }
 function howToPlayBody() {
+  // เวอร์ชันสั้น กระชับ อ่านง่าย — เอาแต่สิ่งที่ต้องรู้ก่อนเริ่มเล่นจริงๆ รายละเอียดปลีกย่อยไปดูเองในแต่ละหน้าได้
   const steps = [
-    'เล่นบนกระดานจริงตามปกติ: ทอยลูกเต๋า เดินตัวเดิน ทำตามช่องที่ตก (จ่ายค่าเช่า ซื้อที่ดิน จับการ์ด ฯลฯ)',
-    'จ่าย/รับเงินได้ 2 ทาง — ใช้เงินสดกระดาษตามปกติ หรือกดปุ่มในหน้า "🏠 บัญชีของฉัน" (โอน, จ่ายธนาคาร) ก็ได้ ทำเสร็จจะได้สลิปยืนยันทุกครั้ง',
-    'อยากแปลงเงินสด ↔ เงินในบัญชีแอป กด "ฝากเงินสด" / "ถอนเงินสด" แล้วยื่น-รับแบงก์จริงกับคนถือธนาคาร',
-    'ผ่านจุดเริ่มต้น บอกแบงก์เกอร์ แล้วแบงก์เกอร์จะกด "🏁 ผ่านจุดเริ่มต้นให้" เงินเดือนเข้าบัญชีคุณทันที',
-    'อยากกู้เงิน กด "กู้ธนาคาร" หรือ "ให้เพื่อนกู้" ระบบคิดดอกเบี้ยและเตือนวันครบกำหนดให้เอง',
-    'เล่นเสร็จตาตัวเองแล้ว กด "จบตา ➜" เพื่อส่งไม้ต่อให้คนถัดไป (ระบบจะสุ่มอีเว้นท์พิเศษขึ้นเป็นระยะ ทำตามข้อความบนการ์ดได้เลย)',
-    'ใครแพ้ทางการเงิน ให้แอดมินตั้งเป็น "ล้มละลาย" เกมจบเมื่อกดปุ่ม "จบเกม" แล้วทุกคนแจ้งเงินสด/ทรัพย์สินในแท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
+    '🎲 เล่นบนกระดานจริงตามปกติ ทอยเต๋า เดินตัวเดิน ทำตามช่องที่ตก',
+    '💳 จ่าย/รับเงินในแอปแทนเงินสดก็ได้ — กดที่หน้า "🏠 บัญชีของฉัน" ทำเสร็จมีสลิปให้ทุกครั้ง',
+    '🏧 อยากแลกเงินสด ↔ เงินในแอป กด "ฝาก/ถอนเงินสด" แล้วยื่น-รับแบงก์จริงกับแบงก์เกอร์',
+    '🧾 รายการที่ทำกับธนาคารโดยตรง (จ่ายธนาคาร, กู้ธนาคาร, ฝาก/ถอน) ต้องรอแบงก์เกอร์กดอนุมัติก่อนเงินถึงจะเข้า/ออกจริง',
+    '✅ เล่นเสร็จตาตัวเอง กด "จบตา ➜" ส่งไม้ต่อ — มีอีเว้นท์พิเศษเด้งขึ้นเป็นระยะ ทำตามการ์ดได้เลย',
+    '🏁 จบเกมแล้วทุกคนแจ้งเงินสด/ทรัพย์สินที่แท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
   ];
   return `${howToStepsHtml(steps)}
-    <p class="muted" style="margin:0;font-size:12.5px">กดปุ่ม ❓ มุมขวาบนดูซ้ำได้ทุกเมื่อ · ปุ่มอื่นๆ (ชวนเพื่อน ย้อนกลับ แบงก์เกอร์ แอดมิน ออก) อยู่ในเมนู ☰ — เปิดป๊อปอัพเตือนอัตโนมัติทุกตาได้ที่กติกาเสริมถ้าต้องการ</p>
+    <p class="muted" style="margin:0;font-size:12.5px">กดปุ่ม ❓ มุมขวาบนดูซ้ำได้ทุกเมื่อ · ปุ่มอื่นๆ อยู่ในเมนู ☰</p>
     <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว เริ่มเล่นเลย</button></div>`;
 }
 function showHowToPlay() { // เด้งอัตโนมัติตอนเริ่มเกม (ครั้งเดียวต่อเกม)
@@ -2423,22 +2055,24 @@ function openTransfer(v) {
   };
 }
 function openPayBank(v) {
-  const s = S();
+  const s = S(), needConfirm = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
   openModal('🏦 จ่ายธนาคาร', `${balLine(v)}
+    <p class="muted" style="margin:0;font-size:13.5px">${needConfirm ? 'ต้องรอแบงก์เกอร์ตรวจแล้วกดยืนยันก่อน ยอดถึงจะถูกหัก' : 'ยอดจะถูกหักทันที'}</p>
     <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
     ${quickBtns(quickAmounts(s))}
     <div class="field"><label for="in-note">จ่ายค่าอะไร</label><input id="in-note" maxlength="40" placeholder="เช่น ภาษีเงินได้"></div>
     <div class="quick">${['ภาษี', 'ซื้อที่ดิน', 'สร้างบ้าน', 'ค่าประกันตัว', 'การ์ด'].map(n => `<button class="sm" data-note="${n}">${n}</button>`).join('')}</div>
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">จ่าย</button></div>`);
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${needConfirm ? 'ส่งคำขอ' : 'จ่าย'}</button></div>`);
   wireQuick();
   $$('#modal-root [data-note]').forEach(b => b.onclick = () => $('#in-note').value = b.dataset.note);
   $('#in-amt').focus();
   $('#b-go').onclick = async () => { const amt = +$('#in-amt').value, note = $('#in-note').value;
-    if (await dispatch(v, { type: 'payBank', amount: amt, note })) showSlip('จ่ายธนาคารสำเร็จ', amt, [['จาก', pn(v)], ['ไปยัง', '🏦 ธนาคาร'], ['ค่า', esc(note)]]); };
+    if (await dispatch(v, { type: 'payBank', amount: amt, note })) showSlip('จ่ายธนาคาร' + (needConfirm ? '' : 'สำเร็จ'), amt,
+      [['จาก', pn(v)], ['ไปยัง', '🏦 ธนาคาร'], ['ค่า', esc(note)], ...(needConfirm ? [['สถานะ', 'รอแบงก์เกอร์ยืนยัน']] : [])], needConfirm); };
 }
 function openRequest(v, kind) {
   const s = S(), needConfirm = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
-  const help = { deposit: 'ยื่นเงินสดกระดาษให้คนถือธนาคาร แล้วยอดจะเข้าบัญชี', withdraw: 'ยอดในบัญชีจะลดลง แล้วรับเงินสดกระดาษจากคนถือธนาคาร', claim: 'เช่น ขายบ้านคืนธนาคาร หรือรับเงินจากการ์ดบนกระดาน (จำนองโฉนดใช้เมนู "การเงิน" จะได้ไถ่ถอนได้)' }[kind];
+  const help = { deposit: 'ยื่นเงินสดกระดาษให้คนถือธนาคาร แล้วยอดจะเข้าบัญชี', withdraw: 'ยอดในบัญชีจะลดลง แล้วรับเงินสดกระดาษจากคนถือธนาคาร', claim: 'เช่น ขายบ้านคืนธนาคาร จำนองที่ดิน หรือรับเงินจากการ์ดบนกระดาน' }[kind];
   openModal({ deposit: '📥 ฝากเงินสดเข้าบัญชี', withdraw: '📤 ถอนเป็นเงินสด', claim: '🙋 ขอรับเงินจากธนาคาร' }[kind], `${balLine(v)}
     <p class="muted" style="margin:0;font-size:13.5px">${help}${needConfirm ? ' · <b>ต้องรอแอดมินกดยืนยัน</b>' : ''}</p>
     <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
@@ -2454,17 +2088,18 @@ function openRequest(v, kind) {
   };
 }
 function openBankLoan(v) {
-  const s = S(), u = unitOf(s), room = Math.max(0, bankCap(s, v) - bankDebt(s, v)), r = bankRate(s, v);
+  const s = S(), u = unitOf(s), room = Math.max(0, bankCap(s, v) - bankDebt(s, v)), r = bankRate(s, v), needApprove = !isBanker();
   if (room < u) return toast('วงเงินกู้ธนาคารเต็มแล้ว');
   const quick = [0.1, 0.25, 0.5, 1].map(f => f === 1 ? Math.floor(room / u) * u : Math.max(u, Math.floor(room * f / (u * 5)) * u * 5)).filter((x, i, a) => x >= u && x <= room && a.indexOf(x) === i);
   openModal('🧾 กู้ธนาคาร', `
     <div class="muted" style="font-size:14px">${pn(v)} · วงเงินคงเหลือ <b class="num">${fmt(room)}</b> · ดอกเบี้ย ${r}%/รอบ</div>
+    ${needApprove ? '<p class="muted" style="margin:0;font-size:13.5px">คำขอกู้ต้องรอแบงก์เกอร์หรือแอดมินอนุมัติก่อนเงินถึงจะออก</p>' : ''}
     <div class="field"><label for="in-amt">ยอดกู้</label><input id="in-amt" type="number" inputmode="numeric" step="${u}" min="${u}" max="${room}" value="${quick[Math.min(1, quick.length - 1)]}"></div>
     ${quickBtns(quick)}
     <div class="grid2"><div class="field"><label for="in-rounds">คืนภายใน</label><select id="in-rounds">${roundOpts(3)}</select></div>
     <div class="field"><label for="in-into">รับเงินเป็น</label><select id="in-into"><option value="account">เข้าบัญชี</option><option value="cash">เงินสดกระดาษ</option></select></div></div>
     <div class="preview" id="pv"></div>
-    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">กู้เงิน</button></div>`);
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${needApprove ? 'ส่งคำขอกู้' : 'กู้เงิน'}</button></div>`);
   const upd = () => { const a = +$('#in-amt').value || 0, n = +$('#in-rounds').value; let b = a; for (let k = 0; k < n; k++) b += Math.ceil(b * r / 100 / u) * u;
     $('#pv').innerHTML = `<span>ถ้าคืนตอนครบกำหนด (รอบ ${S().round + n}) ประมาณ <b class="num">${fmt(b)}</b></span><span class="muted" style="font-size:12.5px">ดอกเบี้ยเปลี่ยนได้ตามอีเว้นท์ · เลยกำหนดโดนปรับ ${S().settings.penalty}% และเครดิตลด</span>`; };
   wireQuick(); $('#in-amt').oninput = upd; $('#in-rounds').onchange = upd; upd();
@@ -2472,8 +2107,9 @@ function openBankLoan(v) {
     const a = +$('#in-amt').value, into = $('#in-into').value;
     if (a % u) return toast(`ยอดต้องเป็นทวีคูณของ ${fmt(u)}`);
     const rounds = +$('#in-rounds').value;
-    if (await dispatch(v, { type: 'bankLoan', amount: a, rounds, into })) showSlip('กู้ธนาคารสำเร็จ', a, [['ผู้กู้', pn(v)], ['ดอกเบี้ย', `${r}% ต่อรอบ`], ['คืนภายใน', `รอบที่ ${S().round + rounds}`],
-      ['รับเงินเป็น', into === 'cash' ? 'เงินสด — รับจากแบงก์เกอร์ได้เลย' : 'เข้าบัญชีแล้ว']]);
+    if (await dispatch(v, { type: 'bankLoan', amount: a, rounds, into })) showSlip(needApprove ? 'ส่งคำขอกู้ธนาคารแล้ว' : 'กู้ธนาคารสำเร็จ', a,
+      [['ผู้กู้', pn(v)], ['ดอกเบี้ย', `${r}% ต่อรอบ`], ['คืนภายใน', `รอบที่ ${S().round + rounds}`],
+      ['รับเงินเป็น', into === 'cash' ? 'เงินสด' : 'เข้าบัญชี'], ...(needApprove ? [['สถานะ', 'รอแบงก์เกอร์/แอดมินอนุมัติ']] : [])], needApprove);
   };
 }
 function openOffer(v) {
@@ -2540,6 +2176,40 @@ function openPinPrompt(onSubmit, title, successMsg) {
 }
 function openBankerClaim() { openPinPrompt(pin => dispatch(null, { type: 'claimBanker', pin }), '🏧 กรอกรหัส PIN แบงก์เกอร์', 'เข้าสู่โหมดแบงก์เกอร์แล้ว'); }
 
+// แบงก์เกอร์ตัดเงินจากบัญชีผู้เล่นได้โดยตรง (ไม่ต้องรอเจ้าของบัญชียืนยัน) — ให้อีกคน หรือยึดเข้าธนาคาร
+function openBankerCut(seat) {
+  const s = S(), players = s.order.filter(i => !P(i).out);
+  if (!players.length) return toast('ไม่มีผู้เล่น');
+  const from0 = players.includes(seat) ? seat : players[0];
+  openModal('✂️ ตัดเงินจากบัญชีผู้เล่น', `
+    <p class="muted" style="margin:0;font-size:13.5px">ตัดเงินออกจากบัญชีทันที ไม่ต้องรอเจ้าของบัญชียืนยัน — ใช้ตอนบังคับเก็บค่าเช่า/ค่าปรับที่ไม่ยอมจ่ายเอง</p>
+    <div class="field"><label for="bc-from">ตัดเงินจากบัญชี</label><select id="bc-from">${players.map(i => `<option value="${i}" ${i === from0 ? 'selected' : ''}>${pn(i)} (มี ${fmt(P(i).bal)})</option>`).join('')}</select></div>
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    <div class="field"><label for="bc-to">โอนเข้า</label><select id="bc-to"><option value="bank">🏦 ธนาคาร (ยึดเข้าธนาคาร)</option>${players.map(i => `<option value="${i}">${pn(i)}</option>`).join('')}</select></div>
+    <div class="field"><label for="in-note">เหตุผล</label><input id="in-note" maxlength="40" placeholder="เช่น ไม่ยอมจ่ายค่าเช่าเอง"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary danger" id="b-go">ตัดเงิน</button></div>`);
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => {
+    const from = +$('#bc-from').value, amt = +$('#in-amt').value, toRaw = $('#bc-to').value, note = $('#in-note').value;
+    const act = { type: 'bankerTransfer', from, amount: amt, to: toRaw === 'bank' ? 'bank' : +toRaw, note };
+    if (await dispatch(null, act)) { closeModal(); toast(`✂️ ตัดเงิน ${fmt(amt)} จาก ${esc(P(from).name)} แล้ว`); }
+  };
+}
+// อายัดวงเงิน: กันไม่ให้บัญชีโอน/จ่าย/ถอนเกินยอดคงเหลือหลังหักอายัด (ยังรับเงินเข้าได้ปกติ)
+function openHold(seat) {
+  const p = P(seat);
+  openModal(`🔒 อายัดวงเงิน — ${esc(p.name)}`, `
+    <p class="muted" style="margin:0;font-size:13.5px">ใส่ 0 เพื่อปลดอายัด — บัญชีนี้ยังรับเงินเข้าได้ปกติ แต่โอน/จ่ายธนาคาร/ถอนเงินสด/คืนหนี้เกินยอดที่เหลือหลังหักอายัดไม่ได้</p>
+    <div class="muted" style="font-size:14px">ยอดในบัญชี <b class="num">${baht(p.bal)}</b>${p.hold ? ` · อายัดอยู่ <b class="num">${fmt(p.hold)}</b>` : ''}</div>
+    <div class="field"><label for="in-amt">จำนวนเงินที่อายัด</label><input id="in-amt" type="number" inputmode="numeric" min="0" value="${p.hold || 0}"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">บันทึก</button></div>`);
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => {
+    const amt = +$('#in-amt').value || 0;
+    if (await dispatch(null, { type: 'setHold', seat, amount: amt })) { closeModal(); toast(amt > 0 ? `🔒 อายัดวงเงิน ${esc(p.name)} ${fmt(amt)} แล้ว` : `🔓 ปลดอายัด ${esc(p.name)} แล้ว`); }
+  };
+}
+
 // ---------- แอดมิน (หลังบ้าน — รหัสผ่านตายตัว รู้เฉพาะเจ้าของระบบ) ----------
 function openAdminLogin(onSubmit) {
   openModal('🔒 เข้าสู่ระบบแอดมิน', `
@@ -2568,7 +2238,7 @@ function bankBudgetHtml(s) {
   return `<div class="panel stack" style="padding:10px 14px;${low ? 'border-color:var(--danger)' : ''}">
     <div class="row" style="flex-wrap:nowrap"><span class="label" style="margin:0">💰 งบกลางธนาคารคงเหลือ</span>
       <b class="num" style="margin-left:auto;${low ? 'color:var(--danger)' : ''}">${baht(s.bankBudget)}</b></div>
-    ${low ? '<div class="muted" style="font-size:12.5px;color:var(--danger)">งบหมดแล้ว! จ่ายเงินเพิ่มไม่ได้จนกว่าจะมีคนฝากเงินสด/จ่ายธนาคาร/คืนหนี้เข้ามาก่อน</div>' : ''}
+    ${low ? '<div class="muted" style="font-size:12.5px;color:var(--danger)">⚠️ งบใกล้หมด! ถ้าอนุมัติรายการที่ธนาคารจ่ายเงินเกินงบที่เหลือจริง ถือว่าธนาคารล้มละลาย เกมจบทันทีทุกคนแพ้ — รีบรับเงินฝาก/จ่ายธนาคาร/คืนหนี้เข้ามาก่อน</div>' : ''}
   </div>`;
 }
 const EV_ICONS = ['⭐', '🍺', '🎉', '💣', '🧨', '🎁', '💔', '👑', '🐍', '🍀', '🚓', '🏥'];
@@ -2786,8 +2456,6 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
   const [a, x] = b.dataset.a.split(':'); const as = b.dataset.as != null ? +b.dataset.as : null; const s = S();
   if (b.closest('.menu')) closeModal(); // กดรายการในเมนูแล้วปิดเมนูก่อนทำต่อ
-  if (a === 'install') return doInstall(); // ใช้ได้ทั้งหน้าแรก (ยังไม่มีห้อง) และในเกม
-  if (a === 'installHide') { store('bb_install_hide', '1'); return render(); }
   const turnActor = canAct(s.turn) ? s.turn : null; // ถึงตาใคร กดในนามคนนั้น (หรือแอดมิน)
   switch (a) {
     case 'endTurn': return dispatch(turnActor, { type: 'endTurn' });
@@ -2798,18 +2466,6 @@ document.addEventListener('click', e => {
     case 'req': return openRequest(as, x);
     case 'cancelReq': return dispatch(as, { type: 'cancelReq', id: +x });
     case 'bankLoan': return openBankLoan(as);
-    case 'fixed': return openFixed(as);
-    case 'breakFixed': return confirmBox('ถอนฝากประจำก่อนกำหนด?', 'จะได้คืนแค่เงินต้น ดอกเบี้ยที่สะสมมาทั้งหมดจะหายไป', 'ถอนเลย', () => dispatch(as, { type: 'breakFixed', id: +x }));
-    case 'buy': return openTrade(as, x, 'buy');
-    case 'sell': return openTrade(as, x, 'sell');
-    case 'ins': { const pl = INS_PLANS[x]; return confirmBox(`ซื้อ${pl.name}?`, `จ่ายเบี้ย ${fmt(money(s, pl.premium))} ตอนนี้ และทุกต้นรอบ · ชดเชย ${pl.cover}% เมื่อโดนอีเว้นท์ร้ายที่คุ้มครอง (สูงสุด ${fmt(money(s, pl.cap))}/ครั้ง)`, 'ซื้อประกัน',
-      () => dispatch(as, { type: 'buyIns', plan: x }).then(ok => { if (ok) toast(`${pl.icon} คุ้มครองแล้ว`); })); }
-    case 'cancelIns': return confirmBox('ยกเลิกประกัน?', 'เบี้ยที่จ่ายไปแล้วไม่คืน และจะไม่ได้รับความคุ้มครองอีก', 'ยกเลิกประกัน', () => dispatch(as, { type: 'cancelIns' }));
-    case 'cardSpend': return openCardSpend(as);
-    case 'cardPay': return openCardPay(as);
-    case 'mortgage': return openMortgage(as);
-    case 'redeem': { const M = s.mortgages.find(m => m.id === +x); return confirmBox(`ไถ่ถอน "${M.name}"?`, `ตัดจากบัญชี ${fmt(redeemCost(s, M))} แล้วหงายโฉนดกลับบนกระดานได้เลย`, 'ไถ่ถอน',
-      () => dispatch(as, { type: 'redeemDeed', id: +x }).then(ok => { if (ok) toast('🏡 ไถ่ถอนแล้ว'); })); }
     case 'offer': return openOffer(as);
     case 'accept': return dispatch(as, { type: 'acceptLoan', id: +x });
     case 'cancel': return dispatch(as, { type: 'cancelLoan', id: +x });
@@ -2836,6 +2492,8 @@ document.addEventListener('click', e => {
     // ยืนยัน/ปฏิเสธคำขอจากหน้าเคาน์เตอร์ธนาคาร
     case 'reqOk': return dispatch(null, { type: 'resolveReq', id: +x, ok: true }).then(ok => { if (ok) toast('✓ ยืนยันรายการแล้ว'); });
     case 'reqNo': return confirmBox('ปฏิเสธคำขอนี้?', 'ผู้เล่นจะเห็นว่าคำขอถูกปฏิเสธ และยอดในบัญชีไม่เปลี่ยน', 'ปฏิเสธ', () => dispatch(null, { type: 'resolveReq', id: +x, ok: false }));
+    case 'bankerCut': return openBankerCut(x != null && x !== '' ? +x : null);
+    case 'hold': return openHold(+x);
     case 'invite': return openInvite();
     case 'copy': return copyText(inviteLink());
     case 'sound': App.sound = !App.sound; store('bb_sound', App.sound ? 'on' : 'off'); if (App.sound) { unlockAudio(); beep('ping'); buzz(60); } return render();
@@ -2843,43 +2501,6 @@ document.addEventListener('click', e => {
   }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); $('#ev-root').innerHTML = ''; } });
-
-// ---------- ติดตั้งลงหน้าจอหลัก (PWA) ----------
-const ua = navigator.userAgent;
-const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPad รุ่นใหม่แกล้งเป็น Mac
-const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-let installEvt = null; // Android/Chrome เก็บอีเว้นท์ไว้กดติดตั้งทีหลัง
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; if (!S()) render(); });
-window.addEventListener('appinstalled', () => { installEvt = null; toast('ติดตั้งแล้ว เปิดจากหน้าจอหลักได้เลย'); if (!S()) render(); });
-const canInstall = () => !isStandalone() && (!!installEvt || isIOS);
-function installCard() {
-  if (!canInstall() || store('bb_install_hide')) return '';
-  return `<div class="install-card" role="region" aria-label="ติดตั้งแอป">
-    <img src="icons/icon-192.png" alt="">
-    <div><b>เพิ่มไว้หน้าจอหลัก</b><span class="muted">กดเปิดเหมือนแอป เต็มจอ ไม่ต้องพิมพ์ลิงก์</span></div>
-    <button class="primary sm" data-a="install">ติดตั้ง</button>
-    <button class="x" data-a="installHide" aria-label="ซ่อน">✕</button>
-  </div>`;
-}
-async function doInstall() {
-  if (installEvt) { // Android: ขึ้นหน้าต่างติดตั้งของระบบ
-    installEvt.prompt();
-    try { await installEvt.userChoice; } catch (e) {}
-    installEvt = null; return render();
-  }
-  if (isIOS) { // iOS: Apple ไม่ให้เว็บสั่งติดตั้งเอง ต้องบอกขั้นตอน
-    const inSafari = !/CriOS|FxiOS|EdgiOS|Line\/|FBAN|FBAV|Instagram/.test(ua);
-    return openModal('📲 เพิ่มไว้หน้าจอหลัก (iPhone/iPad)', inSafari || /CriOS|EdgiOS/.test(ua) ? `<ol class="ios-steps">
-      <li>กดปุ่มแชร์ <span class="k">⬆︎</span> ${/CriOS|EdgiOS/.test(ua) ? 'ข้างช่องลิงก์ด้านบน' : 'ที่แถบล่าง (หรือบนสุดใน iPad)'}</li>
-      <li>เลื่อนลงแล้วเลือก <span class="k">เพิ่มไปยังหน้าจอโฮม</span> (Add to Home Screen)</li>
-      <li>กด <span class="k">เพิ่ม</span> มุมขวาบน</li></ol>
-      <p class="muted" style="margin:.8em 0 0;font-size:14px">ถ้าไม่เจอ ให้เลื่อนแถวไอคอนไปทางขวาแล้วกด "แก้ไขการทำงาน" เพื่อเพิ่มเมนูนี้</p>`
-      : `<p style="margin:0">ตอนนี้เปิดอยู่ในแอปแชท (เช่น LINE) ซึ่งติดตั้งไม่ได้</p>
-      <ol class="ios-steps"><li>กด <span class="k">⋯</span> หรือ <span class="k">⬆︎</span> แล้วเลือก <b>เปิดใน Safari</b></li><li>ใน Safari กดแชร์ <span class="k">⬆︎</span> → <span class="k">เพิ่มไปยังหน้าจอโฮม</span></li></ol>`);
-  }
-  openModal('📲 เพิ่มไว้หน้าจอหลัก', `<p style="margin:0">กดเมนู <span class="k">⋮</span> ของเบราว์เซอร์ แล้วเลือก <b>ติดตั้งแอป</b> หรือ <b>เพิ่มลงในหน้าจอหลัก</b></p>`);
-}
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(e => console.warn(e));
 
 // ---------- เริ่มต้น ----------
 App.uid = getUid();
