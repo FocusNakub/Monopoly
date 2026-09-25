@@ -2,7 +2,7 @@
 // - ทำให้ Android ขึ้นปุ่ม "ติดตั้งแอป" ได้
 // - หน้าเว็บใช้แบบ "เน็ตก่อน" = ได้เวอร์ชันล่าสุดเสมอ ถ้าเน็ตหลุดค่อยใช้ของที่เก็บไว้ (โหมดเครื่องเดียวเล่นออฟไลน์ได้)
 // - ไม่ยุ่งกับ Firebase / ฟอนต์ / เว็บอื่น เพื่อไม่ให้ข้อมูลห้องค้าง
-const CACHE = 'bb-v1';
+const CACHE = 'bb-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
