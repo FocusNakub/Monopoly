@@ -85,6 +85,13 @@ input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px 
 .effects{display:flex;gap:6px;flex-wrap:wrap}
 .effect{display:flex;align-items:center;gap:6px;font-size:13.5px;padding:5px 12px;border-radius:999px;background:var(--note);border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line))}
 .effect small{color:var(--muted);font-family:var(--mono)}
+.newsticker{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.newsticker .nt-ic{flex:none}
+.newsticker .nt-tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.newsticker.up{border-color:color-mix(in srgb,var(--danger) 45%,var(--line));background:color-mix(in srgb,var(--danger) 8%,var(--surface2))}
+.newsticker.down{border-color:color-mix(in srgb,var(--jade) 45%,var(--line));background:color-mix(in srgb,var(--jade) 10%,var(--surface2))}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge-chip{font-size:12px;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--gold) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 45%,var(--line));white-space:nowrap}
 .tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:12px;border:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 .tabs button{flex:1;border:0;background:transparent;padding:.5em .3em;font-size:14px;border-radius:9px;position:relative}
 .tabs button[aria-selected="true"]{background:var(--surface);box-shadow:var(--shadow);font-weight:600}
@@ -399,6 +406,7 @@ const DEFAULT_SETTINGS = {
   disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
   minBalPct: 13,       // ยอดเงินขั้นต่ำในบัญชี (% ของเงินเริ่มต้นบนกระดาน) ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติทันที — ค่าเริ่มต้น 13% ≈ 2,000 ที่กระดาน 15,000 — ตั้งเป็น 0 เพื่อปิดฟีเจอร์นี้
   bankBudgetPct: 0,    // งบกลางเริ่มต้นของธนาคาร (% ของเงินเริ่มต้นบนกระดาน คูณจำนวนผู้เล่น) — ธนาคารต้องบริหารเงินตัวเอง จ่ายเกินงบไม่ได้ (0 = ปิดฟีเจอร์นี้ = งบไม่จำกัดแบบเดิม)
+  luckySpin: true,     // เปิดมินิเกม "ลุ้นโชคธนาคาร" (เสี่ยงดวงจ่ายค่าเข้าร่วมแลกโอกาสได้เงินคืนหลายเท่า เล่นได้คนละ 1 ครั้ง/รอบ)
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร', payBank: 'จ่ายธนาคาร', loan: 'กู้ธนาคาร' };
@@ -443,7 +451,7 @@ const avail = (s, seat) => s.players[seat].bal - (s.players[seat].hold || 0);
 // ---------- ดอกเบี้ย / วงเงิน ----------
 function bankRate(s, seat) {
   if (hasEffect(s, 'rate0')) return 0;
-  let r = Math.max(1, s.settings.rate + CREDIT[s.players[seat].credit].adj);
+  let r = Math.max(1, s.settings.rate + CREDIT[s.players[seat].credit].adj + (s.marketMod || 0));
   if (hasEffect(s, 'rateX2')) r *= 2;
   if (hasEffect(s, 'rateHalf')) r = Math.max(1, Math.round(r / 2));
   return r;
@@ -603,10 +611,34 @@ function drawEvent(s, rng, forceId, adhoc) {
   log(s, `${e.icon} อีเว้นท์: ${e.title} — ${text}`);
 }
 
+// ---------- ตลาด/ข่าวธนาคาร: ผันแปรดอกเบี้ยเล็กน้อยทุกรอบ + พาดหัวข่าวสร้างบรรยากาศ ----------
+const BANK_NEWS = {
+  up: ['📈 ตลาดเงินตึงตัว ธนาคารขึ้นดอกเบี้ยรับมือเงินเฟ้อ', '📈 ธนาคารกลางส่งสัญญาณขึ้นดอกเบี้ยกะทันหัน', '📈 สินเชื่อแพงขึ้น ธนาคารเข้มงวดการปล่อยกู้รอบนี้'],
+  down: ['📉 ธนาคารกระตุ้นเศรษฐกิจ ลดดอกเบี้ยจูงใจให้กู้', '📉 ดอกเบี้ยผ่อนคลาย ธนาคารเปิดให้กู้ง่ายขึ้น', '📉 ธนาคารกลางหั่นดอกเบี้ยเซอร์ไพรส์ตลาด'],
+  flat: ['📊 ตลาดเงินทรงตัว ธนาคารคงอัตราดอกเบี้ยไว้เท่าเดิม', '📊 บรรยากาศธนาคารเงียบสงบ ไม่มีความเคลื่อนไหว', '📊 ธนาคารยังไม่ปรับนโยบายดอกเบี้ยรอบนี้'],
+};
+// น้ำหนักถ่วงให้ผลออกใกล้ 0 บ่อยกว่าค่าสุดขั้ว (โอกาสตลาดนิ่ง > ตลาดผันผวนแรง)
+const MARKET_TABLE = [-2, -2, -1, -1, -1, 0, 0, 0, 0, 1, 1, 1, 2, 2];
+function rollMarket(s, rng) {
+  s.marketMod = MARKET_TABLE[Math.floor(rng() * MARKET_TABLE.length)];
+  const mood = s.marketMod > 0 ? 'up' : s.marketMod < 0 ? 'down' : 'flat';
+  const pool = BANK_NEWS[mood];
+  s.bankNews = pool[Math.floor(rng() * pool.length)];
+}
+// ---------- มินิเกม "ลุ้นโชคธนาคาร": จ่ายค่าเข้าร่วมคงที่ แลกโอกาสสุ่มได้เงินคืนหลายเท่า (เล่นได้คนละ 1 ครั้ง/รอบ) ----------
+const LUCKY_TABLE = [
+  { mult: 0, w: 30, label: 'ไม่ได้อะไรเลย 😅' },
+  { mult: 1, w: 25, label: 'เท่าทุน' },
+  { mult: 2, w: 25, label: 'x2 🎉' },
+  { mult: 3, w: 12, label: 'x3 🔥' },
+  { mult: 5, w: 8,  label: 'x5 แจ็คพอต! 🎰' },
+];
+
 // ================== รอบใหม่: คิดดอกเบี้ย เช็คครบกำหนด ==================
 function newRound(s, rng) {
   s.round++;
-  log(s, `🔔 เริ่มรอบที่ ${s.round}`);
+  rollMarket(s, rng);
+  log(s, `🔔 เริ่มรอบที่ ${s.round} — ${s.bankNews}`);
   s.effects = s.effects.filter(e => e.until >= s.round);
   for (const L of s.loans) {
     if (L.status !== 'active') continue;
@@ -663,7 +695,7 @@ const UNDO_DESC = { transfer: 'โอนเงิน', payBank: 'จ่ายธ
   drawEvent: 'สุ่มอีเว้นท์', forceEvent: 'เรียกอีเว้นท์', endTurn: 'จบตา', goSalary: 'ผ่านจุดเริ่มต้น', settings: 'แก้กติกาเสริม', editLoan: 'แก้สัญญาเงินกู้',
   bankLoan: 'กู้ธนาคาร', offer: 'เสนอให้กู้', acceptLoan: 'รับข้อเสนอกู้', cancelLoan: 'ยกเลิกสัญญา', repay: 'คืนหนี้', forgive: 'ยกหนี้',
   declareWorth: 'แจ้งเงินสด/ทรัพย์สิน', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม',
-  bankerTransfer: 'แบงก์เกอร์ตัดเงินบัญชี', setHold: 'อายัด/ปลดอายัดวงเงิน' };
+  bankerTransfer: 'แบงก์เกอร์ตัดเงินบัญชี', setHold: 'อายัด/ปลดอายัดวงเงิน', luckySpin: '🎰 ลุ้นโชคธนาคาร' };
 
 // ยอดเงินขั้นต่ำในบัญชี (คำนวณจาก % ของเงินเริ่มต้นบนกระดาน) — ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติ (minBalPct = 0 คือปิดฟีเจอร์นี้)
 const minBalOf = s => Math.round(s.settings.start * (s.settings.minBalPct || 0) / 100);
@@ -804,6 +836,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
       if (v.minBalPct != null) { const x = +v.minBalPct; need(x >= 0 && x <= 100, 'ยอดขั้นต่ำต้องอยู่ระหว่าง 0–100%'); st.minBalPct = x; }
       if (v.bankBudgetPct != null) { const x = +v.bankBudgetPct; need(x >= 0 && x <= 1000, 'งบกลางธนาคารต้องอยู่ระหว่าง 0–1000%'); st.bankBudgetPct = x; }
+      if (v.luckySpin != null) st.luckySpin = !!v.luckySpin;
       if (v.disabledEvents != null) {
         need(Array.isArray(v.disabledEvents), 'รูปแบบไม่ถูกต้อง');
         st.disabledEvents = v.disabledEvents.map(String);
@@ -826,7 +859,8 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (act.shuffle) shuffle(s.players, rng);
       Object.assign(s, { status: 'playing', order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
         event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0,
-        bankBudget: bankBudgetInit(s), bankBankrupt: false });
+        bankBudget: bankBudgetInit(s), bankBankrupt: false, marketMod: 0, bankNews: null, luckyRound: {}, lastLucky: null });
+      rollMarket(s, rng);
       // startAllInApp (ค่าเริ่มต้น) = เงินเริ่มต้นทั้งหมดเข้าบัญชีในระบบเลย ไม่แจกเงินสดกระดาษ — ปิดได้แล้วกำหนด startBal เองถ้าอยากแจกเงินสดกระดาษตามปกติ
       s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null;
         const initBal = s.settings.startAllInApp ? s.settings.start : s.settings.startBal;
@@ -857,7 +891,8 @@ function applyAction(state, uid, act, rng = Math.random) {
       s.status = 'lobby';
       s.players.forEach(p => { p.credit = 2; p.out = false; p.kicked = false; p.bal = 0; p.cash = null; p.assets = null; p.hold = 0; });
       Object.assign(s, { order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
-        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0, bankBankrupt: false });
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0, bankBankrupt: false,
+        marketMod: 0, bankNews: null, luckyRound: {}, lastLucky: null });
       log(s, `🔁 ${isAdmin ? 'แอดมิน' : 'เจ้าของห้อง'}เริ่มเกมใหม่ในห้องเดิม (ผู้เล่นชุดเดิม รีเซ็ตยอดทั้งหมด)`);
       break;
     }
@@ -1097,6 +1132,26 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const amt = Math.max(0, Math.round(+act.amount || 0));
       p.hold = amt;
       log(s, amt > 0 ? `🔒 แบงก์เกอร์อายัดวงเงิน ${p.name} ${fmt(amt)} (โอน/จ่าย/ถอนเกินยอดคงเหลือไม่ได้)` : `🔓 แบงก์เกอร์ปลดอายัดวงเงิน ${p.name} แล้ว`);
+      break;
+    }
+    // ---------- มินิเกม: ลุ้นโชคธนาคาร ----------
+    case 'luckySpin': {
+      notOut();
+      need(s.settings.luckySpin, 'มินิเกมนี้ถูกปิดอยู่ตอนนี้');
+      s.luckyRound = s.luckyRound || {};
+      need(s.luckyRound[seat] !== s.round, 'เล่นได้รอบละ 1 ครั้งเท่านั้น รอรอบหน้านะ');
+      const fee = money(s, 50);
+      need(avail(s, seat) >= fee, 'ยอดที่ใช้ได้ไม่พอจ่ายค่าเข้าร่วม');
+      debit(s, seat, fee, 'luckyFee', '🎰 ค่าเข้าร่วมลุ้นโชคธนาคาร');
+      bankReceive(s, fee);
+      const total = LUCKY_TABLE.reduce((a, x) => a + x.w, 0);
+      let roll = rng() * total, picked = LUCKY_TABLE[LUCKY_TABLE.length - 1];
+      for (const row of LUCKY_TABLE) { if (roll < row.w) { picked = row; break; } roll -= row.w; }
+      const payout = Math.round(fee * picked.mult);
+      if (payout > 0) { bankSpend(s, payout); credit(s, seat, payout, 'lucky', `🎰 ลุ้นโชคธนาคาร ${picked.label}`); }
+      s.luckyRound[seat] = s.round;
+      s.lastLucky = { seat, fee, mult: picked.mult, payout, label: picked.label, r: s.round };
+      log(s, `🎰 ${me.name} ลุ้นโชคธนาคาร เสียค่าเข้าร่วม ${fmt(fee)} — ผลออก "${picked.label}"${payout > 0 ? ` ได้รับ ${fmt(payout)}` : ''}`);
       break;
     }
     // ---------- แอดมิน ----------
@@ -1385,13 +1440,14 @@ function startLocal(names) {
   let s = newRoom('L0');
   names.forEach((n, i) => { s = applyAction(s, 'L' + i, { type: 'join', name: n, token: i }); });
   s = applyAction(s, 'L0', { type: 'settings', settings: { cashConfirm: false } }); // เครื่องเดียว: คนถือเครื่องคือแบงก์เกอร์อยู่แล้ว
-  App.seenEvent = null; App.actor = 0; App.seenHowTo = false; App.seenTurnHelpKey = null;
+  App.seenEvent = null; App.actor = 0; App.seenHowTo = false; App.seenTurnHelpKey = null; App.seenLucky = null;
   setState(s);
 }
 function setState(s) {
   const prev = App.state;
   App.state = s;
   if (!prev && s.event) App.seenEvent = s.event.n; // เข้าห้องกลางเกม ไม่ต้องเด้งอีเว้นท์เก่า
+  if (!prev && s.lastLucky) App.seenLucky = s.lastLucky.seat + ':' + s.lastLucky.r; // เข้าห้องกลางเกม ไม่ต้องเด้งผลลุ้นโชคเก่า
   if (prev && prev.status === 'playing' && s.status === 'over') App.tab = 'result';
   if (s.status === 'playing' && App.tab === 'result') App.tab = 'me';
   notifyChanges(prev, s);
@@ -1492,11 +1548,13 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
   ${chk(pf + '-allin', st.startAllInApp !== false, 'เริ่มด้วยเงินในระบบทั้งหมด (ไม่แจกเงินสดกระดาษ)', 'แนะนำ — เงินเริ่มต้นเข้าบัญชีในแอปให้เลย ใครอยากได้เงินสดค่อยกด "ถอนเงินสด" แลกทีหลัง จะได้รู้ยอดรวมทุกคนตลอดเวลา ปิดถ้าจะแจกเงินสดกระดาษตามปกติแล้วกำหนดยอดในบัญชีเอง')}
   ${chk(pf + '-auto', st.autoPay, 'อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ', 'ปิดไว้ถ้าอยากจ่ายเงินสดกระดาษตามการ์ดเอง')}
   ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}
-  ${chk(pf + '-help', !!st.turnHelp, 'ป๊อปอัพวิธีเล่น อัตโนมัติ ตอนเริ่มเกม + ทุกตา', 'ปิดอยู่โดยค่าเริ่มต้น เปิดได้ถ้าอยากให้เตือนขั้นตอนอัตโนมัติทุกตา (มีปุ่ม "❓ วิธีเล่น" ด้านบนให้กดดูเองได้ตลอดอยู่แล้ว)')}`;
+  ${chk(pf + '-help', !!st.turnHelp, 'ป๊อปอัพวิธีเล่น อัตโนมัติ ตอนเริ่มเกม + ทุกตา', 'ปิดอยู่โดยค่าเริ่มต้น เปิดได้ถ้าอยากให้เตือนขั้นตอนอัตโนมัติทุกตา (มีปุ่ม "❓ วิธีเล่น" ด้านบนให้กดดูเองได้ตลอดอยู่แล้ว)')}
+  ${chk(pf + '-lucky', st.luckySpin !== false, '🎰 เปิดมินิเกม "ลุ้นโชคธนาคาร"', 'จ่ายค่าเข้าร่วมเล็กน้อยแลกโอกาสได้เงินคืนสูงสุด 5 เท่า เล่นได้คนละ 1 ครั้ง/รอบ ปิดได้ถ้าไม่อยากให้มีการพนันในเกม')}`;
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, startAllInApp: v('allin').checked, rate: +v('rate').value,
     capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
+    luckySpin: v('lucky').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 // ---------- แถบบนแบบแอปธนาคาร + เมนูรวมปุ่มทั้งหมด (แทนปุ่มเรียงเต็มหัวจอแบบเดิม) ----------
@@ -1654,6 +1712,7 @@ function renderGame() {
   document.body.classList.add('hasbar', 'ingame');
   $('#app').innerHTML = `<main class="wrap">${appBar()}
     ${turnBar(s)}
+    ${newsTicker(s)}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
     <section id="tab">${({ result: tabResult, me: tabMe, counter: tabCounter, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
   </main>
@@ -1662,13 +1721,15 @@ function renderGame() {
       ${k === 'me' && alerts ? '<span class="dot"></span>' : ''}${k === 'counter' && nReq ? `<span class="count">${nReq}</span>` : ''}</button>`).join('')}
   </div></nav>`;
   showEventIfNew(s);
+  showLuckyIfNew(s);
   showTurnHelpIfNew(s);
   refreshModal();
 }
 
 // ---------- แท็บ: บัญชีของฉัน ----------
 const TX_LABEL = { transfer: 'โอน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'รับจากธนาคาร', go: 'ผ่านจุดเริ่มต้น',
-  loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน' };
+  loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน',
+  bankerCut: 'แบงก์เกอร์ตัดเงิน', lucky: '🎰 ลุ้นโชคธนาคาร', luckyFee: '🎰 ค่าเข้าร่วมลุ้นโชค' };
 function txRow(t, v, showRound = true) {
   const inbound = t.t === v;
   const other = inbound ? t.f : t.t;
@@ -1752,6 +1813,7 @@ function tabMe(s) {
       <small>${r.kind === 'deposit' ? 'ยื่นเงินสดให้แบงก์เกอร์ แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอแบงก์เกอร์ส่งเงินสดให้และกดยืนยัน' : 'รอแบงก์เกอร์อนุมัติ' + (r.note ? ` · ${esc(r.note)}` : '')}</small></div>
       ${canAct(v) ? `<button class="sm" data-a="cancelReq:${r.id}" data-as="${v}">ยกเลิก</button>` : '<span></span>'}</div>`),
   ].join('');
+  const luckyUsed = (s.luckyRound || {})[v] === s.round;
   return `<div class="stack">${pick}
     <div class="card-bank ${p.bal < 0 ? 'neg' : ''}">
       <div class="cb-top"><span class="cb-name">${TOKENS[p.token].icon} ${esc(p.name)}</span>${creditHtml(v)}</div>
@@ -1760,11 +1822,13 @@ function tabMe(s) {
       <div class="cb-bal num">${baht(p.bal)}<small>บาท</small></div>
       <div class="cb-foot"><span>หนี้ค้าง<b>${fmt(debtOf(s, v))}</b></span><span>ให้คนอื่นยืม<b>${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก<b>${fmt(room)}</b></span></div>
     </div>
+    ${badgesHtml(s, v)}
     ${notices}
     ${over ? worthForm(s, v) : ''}
     ${live ? `<section class="panel qa" aria-label="ทำรายการ">
       <div class="qa-g">${qa('transfer', '💸', 'โอนให้<br>ผู้เล่น', 't1')}${qa('payBank', '🏦', 'จ่าย<br>ธนาคาร', 't1')}${qa('req:deposit', '📥', 'ฝาก<br>เงินสด', 't2')}${qa('req:withdraw', '📤', 'ถอน<br>เงินสด', 't2')}
-        ${qa('req:claim', '🙋', 'รับเงิน<br>จากธนาคาร', 't2')}${qa('bankLoan', '🏛️', 'กู้<br>ธนาคาร', 't3')}${qa('offer', '🤝', 'ให้เพื่อน<br>กู้', 't3')}</div>
+        ${qa('req:claim', '🙋', 'รับเงิน<br>จากธนาคาร', 't2')}${qa('bankLoan', '🏛️', 'กู้<br>ธนาคาร', 't3')}${qa('offer', '🤝', 'ให้เพื่อน<br>กู้', 't3')}
+        ${s.settings.luckySpin ? `<button data-a="lucky" data-as="${v}" ${luckyUsed ? 'disabled' : ''}><span class="qi t3">🎰</span>${luckyUsed ? 'หมุนแล้ว<br>รอรอบหน้า' : 'ลุ้นโชค<br>ธนาคาร'}</button>` : ''}</div>
       <div class="qa-h"><small>💡 ปุ่มสีทอง = ต้องยื่น/รับเงินสดจริงกับแบงก์เกอร์ แล้วรอเขากดยืนยัน</small></div>
     </section>` : ''}
     ${incoming.length ? `<div class="section-h"><h2>📩 ข้อเสนอเงินกู้ถึงคุณ</h2></div>${incoming.map(L => loanCard(s, L, v)).join('')}` : ''}
@@ -1780,7 +1844,8 @@ function tabAll(s) {
   const admin = isAdmin();
   const rows = s.order.map(i => {
     const p = P(i), od = s.loans.some(L => L.borrower === i && L.status === 'active' && L.overdue);
-    return `<tr style="${p.out ? 'opacity:.5' : ''}"><td><div class="row" style="flex-wrap:nowrap">${tokHtml(i)}<span>${esc(p.name)}${i === s.turn && s.status === 'playing' ? ' <span class="badge me">ถึงตา</span>' : ''}${od ? ' <span class="badge bad">ค้าง</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}</span></div></td>
+    const ic = achievementsOf(s, i).map(([e]) => e).join('');
+    return `<tr style="${p.out ? 'opacity:.5' : ''}"><td><div class="row" style="flex-wrap:nowrap">${tokHtml(i)}<span>${esc(p.name)}${ic ? ` <small title="ความสำเร็จ">${ic}</small>` : ''}${i === s.turn && s.status === 'playing' ? ' <span class="badge me">ถึงตา</span>' : ''}${od ? ' <span class="badge bad">ค้าง</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}</span></div></td>
       <td>${creditHtml(i)}</td><td class="r num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</td><td class="r num">${fmt(debtOf(s, i))}</td><td class="r num">${fmt(lentOf(s, i))}</td></tr>`;
   }).join('');
   const act = s.loans.filter(L => L.status === 'active');
@@ -1962,6 +2027,48 @@ function showEventIfNew(s) {
     <div class="tx">${esc(e.text)}</div><div class="ft"><button class="primary big" data-evclose>รับทราบ</button></div></div></div>`;
 }
 
+// ---------- การ์ดผลลุ้นโชคธนาคารเด้ง (เฉพาะคนที่หมุนเห็น) ----------
+function showLuckyIfNew(s) {
+  const L = s.lastLucky;
+  if (!L) return;
+  const key = L.seat + ':' + L.r;
+  if (key === App.seenLucky) return;
+  App.seenLucky = key;
+  if (viewSeat() !== L.seat) return;
+  beep('ping'); buzz(L.payout > L.fee ? [50, 40, 50, 40, 80] : 60);
+  $('#ev-root').innerHTML = `<div class="evmodal" data-evclose><div class="evcard" role="dialog" aria-modal="true" aria-label="ผลลุ้นโชคธนาคาร">
+    <div class="evtop"><div class="kicker">🎰 ลุ้นโชคธนาคาร · รอบ ${L.r}</div><div class="ic">${L.payout > L.fee ? '🎉' : L.payout > 0 ? '🙂' : '😅'}</div><h2>${esc(L.label)}</h2></div>
+    <div class="tx">จ่ายค่าเข้าร่วม ${fmt(L.fee)}${L.payout > 0 ? ` — ได้รับคืน ${fmt(L.payout)}` : ' — ไม่ได้อะไรกลับมาเลย'}</div>
+    <div class="ft"><button class="primary big" data-evclose>รับทราบ</button></div></div></div>`;
+}
+
+// ---------- ป้ายข่าวธนาคาร: บอกทิศทางดอกเบี้ยตลาดรอบนี้ ----------
+function newsTicker(s) {
+  if (s.status !== 'playing' || !s.bankNews) return '';
+  const mood = (s.marketMod || 0) > 0 ? 'up' : (s.marketMod || 0) < 0 ? 'down' : 'flat';
+  return `<div class="newsticker ${mood}"><span class="nt-ic">📰</span><span class="nt-tx">${esc(s.bankNews)}</span></div>`;
+}
+
+// ---------- ป้ายรางวัล/ความสำเร็จ (คำนวณสดจากสถานะปัจจุบัน ไม่บันทึกแยก) ----------
+function achievementsOf(s, v) {
+  const act = s.order.filter(i => !P(i).out);
+  if (!act.length || !act.includes(v)) return [];
+  const badges = [];
+  const byWorth = act.slice().sort((a, b) => netWorth(s, b) - netWorth(s, a));
+  if (byWorth[0] === v && netWorth(s, v) > 0) badges.push(['👑', 'รวยที่สุด']);
+  if (P(v).credit === CREDIT.length - 1) badges.push(['💎', 'เครดิต AAA']);
+  const byLent = act.slice().sort((a, b) => lentOf(s, b) - lentOf(s, a));
+  if (byLent[0] === v && lentOf(s, v) > 0) badges.push(['🏦', 'เจ้าหนี้ตัวยง']);
+  if (s.loans.some(L => L.lender === v && L.status === 'forgiven')) badges.push(['💖', 'ใจบุญ']);
+  if (P(v).bal < 0) badges.push(['🔴', 'เบิกเกินบัญชี']);
+  if (s.loans.some(L => L.borrower === v && L.status === 'active' && L.overdue)) badges.push(['🚨', 'หนี้ค้าง']);
+  return badges;
+}
+function badgesHtml(s, v) {
+  const b = achievementsOf(s, v);
+  return b.length ? `<div class="badges">${b.map(([ic, t]) => `<span class="badge-chip">${ic} ${t}</span>`).join('')}</div>` : '';
+}
+
 // ---------- ป๊อปอัพวิธีเล่น (ตอนเริ่มเกม + ทุกตา) ----------
 function howToStepsHtml(steps) {
   return `<ol class="howto">${steps.map(t => `<li>${t}</li>`).join('')}</ol>`;
@@ -1974,6 +2081,7 @@ function howToPlayBody() {
     '🏧 อยากแลกเงินสด ↔ เงินในแอป กด "ฝาก/ถอนเงินสด" แล้วยื่น-รับแบงก์จริงกับแบงก์เกอร์',
     '🧾 รายการที่ทำกับธนาคารโดยตรง (จ่ายธนาคาร, กู้ธนาคาร, ฝาก/ถอน) ต้องรอแบงก์เกอร์กดอนุมัติก่อนเงินถึงจะเข้า/ออกจริง',
     '✅ เล่นเสร็จตาตัวเอง กด "จบตา ➜" ส่งไม้ต่อ — มีอีเว้นท์พิเศษเด้งขึ้นเป็นระยะ ทำตามการ์ดได้เลย',
+    '📰 ดอกเบี้ยธนาคารผันผวนเล็กน้อยทุกรอบตามข่าว และมีมินิเกม "🎰 ลุ้นโชคธนาคาร" ให้เล่นเสี่ยงดวงได้คนละครั้ง/รอบ',
     '🏁 จบเกมแล้วทุกคนแจ้งเงินสด/ทรัพย์สินที่แท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
   ];
   return `${howToStepsHtml(steps)}
@@ -2034,6 +2142,15 @@ function showSlip(title, amt, rows, wait = false) {
     <dl>${all.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join('')}</dl>
     ${wait ? '<p class="muted" style="margin:0;font-size:13.5px">ยอดจะเปลี่ยนหลังแบงก์เกอร์กดยืนยัน — ยกเลิกได้ที่หน้าบัญชีของคุณ</p>' : ''}
     <button class="primary big" data-close>เสร็จสิ้น</button></div>`);
+}
+function openLuckySpin(v) {
+  const s = S(), fee = money(s, 50);
+  if ((s.luckyRound || {})[v] === s.round) return toast('เล่นได้รอบละ 1 ครั้งเท่านั้น รอรอบหน้านะ');
+  if (avail(s, v) < fee) return toast('ยอดที่ใช้ได้ไม่พอจ่ายค่าเข้าร่วม');
+  openModal('🎰 ลุ้นโชคธนาคาร', `${balLine(v)}
+    <p style="margin:0">จ่ายค่าเข้าร่วม <b class="num">${fmt(fee)}</b> บาท ลุ้นโอกาสได้เงินคืนสูงสุด 5 เท่า! เล่นได้คนละ 1 ครั้งต่อรอบ</p>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary gold" id="b-spin">🎰 หมุนเลย!</button></div>`);
+  $('#b-spin').onclick = async () => { closeModal(); await dispatch(v, { type: 'luckySpin' }); };
 }
 function openTransfer(v) {
   const s = S(), others = s.order.filter(i => i !== v && !P(i).out);
@@ -2466,6 +2583,7 @@ document.addEventListener('click', e => {
     case 'req': return openRequest(as, x);
     case 'cancelReq': return dispatch(as, { type: 'cancelReq', id: +x });
     case 'bankLoan': return openBankLoan(as);
+    case 'lucky': return openLuckySpin(as);
     case 'offer': return openOffer(as);
     case 'accept': return dispatch(as, { type: 'acceptLoan', id: +x });
     case 'cancel': return dispatch(as, { type: 'cancelLoan', id: +x });
