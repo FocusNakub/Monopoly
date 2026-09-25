@@ -253,7 +253,8 @@ const DEFAULT_SETTINGS = {
   goSalary: 2000,     // เงินผ่านจุดเริ่มต้น (กดรับเข้าบัญชี)
   autoPay: true,      // อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ
   cashConfirm: true,  // ฝาก/ถอนเงินสดต้องให้แอดมินยืนยัน
-  turnHelp: true,      // เด้งป๊อปอัพวิธีเล่น ตอนเริ่มเกม + ทุกตา
+  turnHelp: false,     // เด้งป๊อปอัพวิธีเล่นซ้ำทุกตา (ปิดอยู่โดยค่าเริ่มต้น เปิดเป็นตัวเลือกได้ — มีปุ่ม "❓ วิธีเล่น" กดดูเองได้เสมออยู่แล้ว)
+  disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร' };
@@ -411,18 +412,22 @@ const findEvent = (s, id) => EVENT_BY_ID[id] || (s.customEvents || []).map(c => 
 
 function drawEvent(s, rng, forceId, adhoc) {
   if (!active(s).length) return;
-  const deckIds = () => shuffle([...EVENTS.map(e => e.id), ...(s.customEvents || []).filter(c => c.inDeck).map(c => c.id)], rng);
-  if (!s.eventDeck || !s.eventDeck.length) s.eventDeck = deckIds();
+  const dis = new Set(s.settings.disabledEvents || []);
+  const deckIds = () => shuffle([...EVENTS.filter(x => !dis.has(x.id)).map(e => e.id), ...(s.customEvents || []).filter(c => c.inDeck && !dis.has(c.id)).map(c => c.id)], rng);
   let e;
   if (adhoc) e = adhoc;
-  else {
-    let id = forceId;
-    if (id) s.eventDeck = s.eventDeck.filter(x => x !== id); // เลือกเอง: ไม่ให้ใบเดิมซ้ำในสำรับ
-    else {
-      do { id = s.eventDeck.shift(); if (!s.eventDeck.length && !findEvent(s, id)) s.eventDeck = deckIds(); } while (!findEvent(s, id)); // ข้ามใบที่ถูกลบไปแล้ว
-    }
+  else if (forceId) {
+    // เรียกเจาะจงจากแอดมิน: เรียกได้แม้เป็นใบที่ปิดไว้จากสำรับสุ่ม
+    e = findEvent(s, forceId);
+    if (s.eventDeck) s.eventDeck = s.eventDeck.filter(x => x !== forceId);
+  } else {
+    if (!s.eventDeck || !s.eventDeck.length) s.eventDeck = deckIds();
+    if (!s.eventDeck.length) return; // ปิดอีเว้นท์ไว้หมดแล้ว ไม่มีให้สุ่ม
+    let id;
+    do { id = s.eventDeck.shift(); if (!s.eventDeck.length && !findEvent(s, id)) { s.eventDeck = deckIds(); if (!s.eventDeck.length) return; } } while (!findEvent(s, id)); // ข้ามใบที่ถูกลบไปแล้ว
     e = findEvent(s, id);
   }
+  if (!e) return;
   const all = () => active(s);
   let moved = false;
   const auto = s.settings.autoPay;
@@ -503,8 +508,14 @@ function newRoom(hostUid) {
 }
 
 // คำสั่งเหล่านี้เป็นของแอดมิน/แบงก์เกอร์ (กรรมการ) ไม่จำเป็นต้องเป็นผู้เล่นในห้องก็สั่งได้
-const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
-  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary'];
+const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'kickPlayer', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
+  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary', 'undo', 'restart'];
+// คำอธิบายสั้นๆ ของคำสั่งไว้โชว์ตอนย้อนกลับ
+const UNDO_DESC = { transfer: 'โอนเงิน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'ขอรับจากธนาคาร',
+  resolveReq: 'ยืนยัน/ปฏิเสธคำขอ', adjustBalance: 'ปรับยอดบัญชี', adjustCredit: 'ปรับเครดิต', setOut: 'ตั้งล้มละลาย/กลับเข้าเกม', kickPlayer: 'เตะผู้เล่นออก',
+  drawEvent: 'สุ่มอีเว้นท์', forceEvent: 'เรียกอีเว้นท์', endTurn: 'จบตา', goSalary: 'ผ่านจุดเริ่มต้น', settings: 'แก้กติกาเสริม', editLoan: 'แก้สัญญาเงินกู้',
+  bankLoan: 'กู้ธนาคาร', offer: 'เสนอให้กู้', acceptLoan: 'รับข้อเสนอกู้', cancelLoan: 'ยกเลิกสัญญา', repay: 'คืนหนี้', forgive: 'ยกหนี้',
+  declareWorth: 'แจ้งเงินสด/ทรัพย์สิน', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม' };
 
 function applyAction(state, uid, act, rng = Math.random) {
   const s = clone(state);
@@ -517,6 +528,7 @@ function applyAction(state, uid, act, rng = Math.random) {
     const same = s.players.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
     if (s.status !== 'lobby') {
       need(same >= 0, 'เกมเริ่มไปแล้ว (เข้ากลับได้ด้วยชื่อเดิมเท่านั้น)');
+      need(!s.players[same].kicked, 'คุณถูกแอดมินเตะออกจากเกมนี้แล้ว เข้ากลับไม่ได้');
       if (s.players[same].uid === s.hostUid) s.hostUid = uid;
       s.players[same].uid = uid; log(s, `🔌 ${name} กลับเข้าห้อง`); return s;
     }
@@ -550,18 +562,46 @@ function applyAction(state, uid, act, rng = Math.random) {
   if (!ADMIN_NO_SEAT.includes(act.type)) need(seat >= 0, 'คุณไม่ได้อยู่ในห้องนี้');
 
   switch (act.type) {
+    case 'undo': {
+      need(isBanker || isHost, 'เฉพาะแอดมิน แบงก์เกอร์ หรือเจ้าของห้องเท่านั้น');
+      need(state.undo, 'ไม่มีคำสั่งให้ย้อนกลับแล้ว');
+      const restored = clone(state.undo.snapshot);
+      restored.seq = s.seq;
+      log(restored, `↩️ ย้อนกลับคำสั่งล่าสุด (${state.undo.desc})`);
+      return restored; // ไม่ผ่านการบันทึก undo ใหม่ด้านล่าง กันย้อนซ้อน (ย้อนได้ทีละขั้นเท่านั้น)
+    }
     case 'leave':
       need(s.status === 'lobby', 'ออกระหว่างเกมไม่ได้ ให้แอดมินตั้งเป็น "ออกจากเกม" แทน');
       s.players.splice(seat, 1);
       if (isHost && s.players.length) s.hostUid = s.players[0].uid;
       log(s, `🚪 ${me.name} ออกจากห้อง`);
       break;
+    case 'kickPlayer': {
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      const kseat = act.seat;
+      const kp = s.players[kseat]; need(kp, 'ไม่พบผู้เล่น');
+      if (s.status === 'lobby') {
+        // ในห้องยังไม่เริ่มเกม: ลบออกจากห้องได้ตรงๆ
+        s.players.splice(kseat, 1);
+        if (s.hostUid === kp.uid && s.players.length) s.hostUid = s.players[0].uid;
+        log(s, `🚫 แอดมินเตะ ${kp.name} ออกจากห้อง`);
+      } else {
+        // ระหว่างเล่น: เอาออกจากเกมถาวร (คงตำแหน่งในอาเรย์ไว้ ไม่งั้นข้อมูลอ้างอิงอื่นพัง) ห้ามกลับเข้ามาอีก
+        need(!kp.kicked, 'ผู้เล่นนี้ถูกเตะออกไปแล้ว');
+        kp.out = true; kp.kicked = true;
+        for (const L of s.loans) if (L.status === 'offer' && (L.lender === kseat || L.borrower === kseat)) L.status = 'declined';
+        s.reqs = (s.reqs || []).filter(r => r.seat !== kseat);
+        if (s.turn === kseat && active(s).length) nextTurn(s, rng);
+        log(s, `🚫 แอดมินเตะ ${kp.name} ออกจากเกม (ห้ามกลับเข้ามาอีก)`);
+      }
+      break;
+    }
     case 'pickToken':
       need(s.status === 'lobby', 'เปลี่ยนตัวเดินได้เฉพาะก่อนเริ่ม');
       need(!s.players.some((p, i) => i !== seat && p.token === act.token), 'มีคนใช้ตัวนี้แล้ว');
       me.token = act.token; break;
     case 'settings': {
-      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      need(isAdmin || isHost, 'เฉพาะแอดมินหรือเจ้าของห้องเท่านั้น');
       const v = act.settings || {};
       const st = s.settings;
       if (v.start != null) { const x = Math.round(+v.start); need(x >= 100 && x <= 10000000, 'เงินเริ่มต้นไม่ถูกต้อง'); st.start = x; }
@@ -574,18 +614,23 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.autoPay != null) st.autoPay = !!v.autoPay;
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
-      if (s.status === 'playing') log(s, `⚙️ แอดมินปรับการตั้งค่า`);
+      if (v.disabledEvents != null) {
+        need(Array.isArray(v.disabledEvents), 'รูปแบบไม่ถูกต้อง');
+        st.disabledEvents = v.disabledEvents.map(String);
+        if (s.eventDeck) s.eventDeck = s.eventDeck.filter(id => !st.disabledEvents.includes(id)); // เอาใบที่เพิ่งปิดออกจากสำรับปัจจุบันทันที
+      }
+      if (s.status === 'playing') log(s, `⚙️ ${isAdmin ? 'แอดมิน' : 'เจ้าของห้อง'}ปรับการตั้งค่า`);
       break;
     }
     case 'reorder': {
-      need(isAdmin && s.status === 'lobby', 'จัดลำดับได้เฉพาะแอดมินก่อนเริ่ม');
+      need((isAdmin || isHost) && s.status === 'lobby', 'จัดลำดับได้เฉพาะแอดมินหรือเจ้าของห้องก่อนเริ่ม');
       const i = act.seat, j = i + act.dir;
       need(s.players[i] && s.players[j], 'ย้ายไม่ได้');
       [s.players[i], s.players[j]] = [s.players[j], s.players[i]];
       break;
     }
     case 'start':
-      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      need(isAdmin || isHost, 'เฉพาะแอดมินหรือเจ้าของห้องเท่านั้น');
       need(s.status === 'lobby', 'เริ่มไปแล้ว');
       need(s.players.length >= 2, 'ต้องมีผู้เล่นอย่างน้อย 2 คน');
       if (act.shuffle) shuffle(s.players, rng);
@@ -611,10 +656,24 @@ function applyAction(state, uid, act, rng = Math.random) {
       log(s, `🧮 ${s.players[target].name} แจ้งเงินสด ${fmt(c)} + ทรัพย์สิน ${fmt(as)}`);
       break;
     }
+    case 'restart': {
+      // เริ่มเกมใหม่ในห้องเดิม (หลังจบเกมแล้ว) — ผู้เล่นชุดเดิมกลับไปที่ห้องรอเริ่ม รีเซ็ตยอด/เครดิต/สถานะทั้งหมด
+      need(isAdmin || isHost, 'เฉพาะแอดมินหรือเจ้าของห้องเท่านั้น');
+      need(s.status === 'over', 'เริ่มเกมใหม่ได้หลังจบเกมแล้วเท่านั้น (ถ้ายังไม่เริ่ม ให้กด "เริ่มเกม" ในห้องรอเริ่มได้เลย)');
+      s.status = 'lobby';
+      s.players.forEach(p => { p.credit = 2; p.out = false; p.kicked = false; p.bal = 0; p.cash = null; p.assets = null; });
+      Object.assign(s, { order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0 });
+      log(s, `🔁 ${isAdmin ? 'แอดมิน' : 'เจ้าของห้อง'}เริ่มเกมใหม่ในห้องเดิม (ผู้เล่นชุดเดิม รีเซ็ตยอดทั้งหมด)`);
+      break;
+    }
     default:
       need(s.status === 'playing', 'เกมยังไม่เริ่มหรือจบไปแล้ว');
       playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng);
   }
+  // เก็บ snapshot ของ state ก่อนคำสั่งนี้ไว้ย้อนกลับได้ 1 ขั้น (ตัด undo เดิมทิ้งกันข้อมูลพอกพูน)
+  const { undo: _prevUndo, ...prevClean } = state;
+  s.undo = { snapshot: prevClean, desc: UNDO_DESC[act.type] || act.type, by: uid, at: state.seq || 0 };
   return s;
 }
 
@@ -864,6 +923,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
     case 'setOut': {
       need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
       const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
+      need(!p.kicked, 'ผู้เล่นนี้ถูกเตะออกจากเกมแล้ว ไม่สามารถกลับเข้าเกมได้');
       p.out = !p.out;
       log(s, p.out ? `💀 ${p.name} ออกจากเกม (ล้มละลาย)` : `↩️ ${p.name} กลับเข้าเกม`);
       if (p.out) {
@@ -874,7 +934,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       break;
     }
     case 'endGame':
-      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
+      need(isAdmin || isHost, 'เฉพาะแอดมินหรือเจ้าของห้องเท่านั้น');
       s.status = 'over';
       s.reqs = [];
       log(s, '🏁 จบเกม — ทุกคนนับเงินสดกระดาษ + มูลค่าที่ดินบนกระดาน แล้วแจ้งในแอปเพื่อจัดอันดับ');
@@ -921,6 +981,9 @@ const viewSeat = () => App.mode === 'local' ? App.actor : mySeat();       // บ
 const isHostUser = () => !!S() && S().hostUid === App.uid;          // เจ้าของห้อง (แค่ตำแหน่งในห้อง ไม่ได้แปลว่าเป็นแอดมิน)
 const isAdmin = () => App.mode === 'local' || (!!S() && isAdminUid(S(), App.uid)); // เฉพาะคนที่ใส่รหัสผ่านแอดมินถูกเท่านั้น
 const isBanker = () => App.mode === 'local' || (!!S() && isBankerUid(S(), App.uid)); // แอดมิน หรือคนถือเงินสดธนาคารที่ใส่ PIN แบงก์เกอร์ถูก
+// รันเกมได้ (เริ่ม/ตั้งค่า/จัดลำดับ/จบเกม/เริ่มใหม่) — แอดมิน หรือเจ้าของห้อง ไม่ต้องมีรหัสผ่านก็ได้ (กันเกมล่มถ้าไม่มีใครอยากเป็นแอดมิน)
+// แก้ยอดเงิน/เครดิต/เตะคน ฯลฯ ยังต้องเป็นแอดมิน (มีรหัสผ่าน) เท่านั้นเหมือนเดิม
+const canHost = () => App.mode === 'local' || isAdmin() || isHostUser();
 const canAct = seat => App.mode === 'local' || seat === mySeat();
 const P = i => S().players[i];
 const tokHtml = (i, cls = '') => { const p = P(i), t = TOKENS[p.token]; return `<span class="tok ${cls}" style="--c:${t.color}">${t.icon}</span>`; };
@@ -1072,7 +1135,7 @@ function setState(s) {
   if (prev && prev.status === 'playing' && s.status === 'over') App.tab = 'result';
   if (s.status === 'playing' && App.tab === 'result') App.tab = 'me';
   notifyChanges(prev, s);
-  if (prev && prev.status === 'lobby' && s.status === 'playing' && s.settings.turnHelp !== false) showHowToPlay();
+  if (prev && prev.status === 'lobby' && s.status === 'playing' && s.settings.turnHelp) showHowToPlay();
   render();
 }
 function leaveToHome() {
@@ -1165,7 +1228,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
   <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
   ${chk(pf + '-auto', st.autoPay, 'อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ', 'ปิดไว้ถ้าอยากจ่ายเงินสดกระดาษตามการ์ดเอง')}
   ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}
-  ${chk(pf + '-help', st.turnHelp !== false, 'ป๊อปอัพวิธีเล่น ตอนเริ่มเกม + ทุกตา', 'เตือนขั้นตอนเล่นให้อัตโนมัติ เหมาะกับมือใหม่ ปิดได้ถ้าเล่นคล่องแล้ว')}`;
+  ${chk(pf + '-help', !!st.turnHelp, 'ป๊อปอัพวิธีเล่น อัตโนมัติ ตอนเริ่มเกม + ทุกตา', 'ปิดอยู่โดยค่าเริ่มต้น เปิดได้ถ้าอยากให้เตือนขั้นตอนอัตโนมัติทุกตา (มีปุ่ม "❓ วิธีเล่น" ด้านบนให้กดดูเองได้ตลอดอยู่แล้ว)')}`;
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, rate: +v('rate').value,
@@ -1176,9 +1239,12 @@ const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.so
 function roleButtons() {
   const s = S(); if (!s) return '';
   const admin = isAdmin(), banker = isBanker(), n = s.reqs ? s.reqs.length : 0;
-  if (admin) return `<button class="sm gold" data-a="admin">🛡️ แอดมิน${n ? ` <span class="count">${n}</span>` : ''}</button>`;
+  const help = `<button class="sm" data-a="howto" title="ดูวิธีเล่น">❓ วิธีเล่น</button>`;
+  // ย้อนกลับคำสั่งล่าสุด — เห็นได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริงๆ
+  const undoBtn = (banker || isHostUser()) && s.undo ? `<button class="sm" data-a="undo" title="ย้อนกลับ: ${esc(s.undo.desc)}">↩️ ย้อนกลับ</button>` : '';
+  if (admin) return `${help}${undoBtn}<button class="sm gold" data-a="admin">🛡️ แอดมิน${n ? ` <span class="count">${n}</span>` : ''}</button>`;
   // ไม่ใช่แอดมิน: แสดงปุ่มเข้าโหมดแอดมิน และปุ่มแบงก์เกอร์ (หรือปุ่มเข้าโหมดแบงก์เกอร์ ถ้ายังไม่ได้เป็น)
-  return `<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
+  return `${help}${undoBtn}<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
     <button class="sm ${banker ? 'gold' : ''}" data-a="banker">🏧 ${banker ? 'แบงก์เกอร์' : 'เข้าโหมดแบงก์เกอร์'}${banker && n ? ` <span class="count">${n}</span>` : ''}</button>`;
 }
 function invitePanel(s) {
@@ -1193,7 +1259,7 @@ function invitePanel(s) {
 }
 
 function renderLobby() {
-  const s = S(), admin = isAdmin(), me = mySeat();
+  const s = S(), admin = isAdmin(), host = canHost(), me = mySeat();
   $('#app').innerHTML = `<main class="wrap">
     <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>${App.mode === 'online' ? `<span class="chip">ห้อง <b class="num">${App.room}</b></span>` : '<span class="chip">เครื่องเดียว</span>'}
       ${App.mode === 'online' ? soundBtn() : ''}${roleButtons()}</div>
@@ -1201,18 +1267,22 @@ function renderLobby() {
     <section class="panel stack"><div class="label">ลำดับการเล่น (${s.players.length} คน)</div>
       ${s.players.map((p, i) => `<div class="row" style="flex-wrap:nowrap"><span class="num muted">${i + 1}</span>${tokHtml(i)}<b style="flex:1">${esc(p.name)}</b>
         ${p.uid === s.hostUid && App.mode === 'online' ? '<span class="badge">เจ้าของห้อง</span>' : ''}${p.uid === App.uid ? '<span class="badge me">คุณ</span>' : ''}
-        ${admin ? `<button class="sm" data-mv="${i}:-1" ${i === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">↑</button><button class="sm" data-mv="${i}:1" ${i === s.players.length - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">↓</button>` : ''}</div>`).join('')}
+        ${host ? `<button class="sm" data-mv="${i}:-1" ${i === 0 ? 'disabled' : ''} aria-label="เลื่อนขึ้น">↑</button><button class="sm" data-mv="${i}:1" ${i === s.players.length - 1 ? 'disabled' : ''} aria-label="เลื่อนลง">↓</button>` : ''}${admin ? `<button class="sm danger" data-kick="${i}" aria-label="เตะออกจากห้อง">✕</button>` : ''}</div>`).join('')}
       ${me >= 0 ? `<div class="field"><span class="label">ตัวเดินของคุณ</span>${tokenPicker(s.players[me].token, s.players.filter((_, i) => i !== me).map(p => p.token))}</div>` : ''}
     </section>
-    <section class="panel stack"><div class="label">กติกาเสริม ${admin ? '' : '(แอดมินตั้งค่า)'}</div>${settingsFields(s.settings, !admin)}
-      ${admin ? '<button id="b-save">บันทึกการตั้งค่า</button>' : ''}</section>
-    <div class="row">${admin ? `<label class="row" style="gap:6px"><input type="checkbox" id="cb-shuf" style="width:auto"> สุ่มลำดับ</label>
-      <button class="primary big" id="b-start" ${s.players.length < 2 ? 'disabled' : ''} style="margin-left:auto">เริ่มเกม</button>` : '<span class="muted">รอแอดมินกดเริ่ม…</span>'}</div>
+    <section class="panel stack"><div class="label">กติกาเสริม ${host ? '' : '(แอดมิน/เจ้าของห้องตั้งค่า)'}</div>${settingsFields(s.settings, !host)}
+      ${host ? '<button id="b-save">บันทึกการตั้งค่า</button>' : ''}</section>
+    <div class="row">${host ? `<label class="row" style="gap:6px"><input type="checkbox" id="cb-shuf" style="width:auto"> สุ่มลำดับ</label>
+      <button class="primary big" id="b-start" ${s.players.length < 2 ? 'disabled' : ''} style="margin-left:auto">เริ่มเกม</button>` : '<span class="muted">รอเจ้าของห้องกดเริ่ม…</span>'}</div>
     <button class="danger" id="b-leave">${me >= 0 ? (App.mode === 'online' ? 'ออกจากห้อง' : 'ยกเลิก') : 'ออกจากโหมดกรรมการ'}</button>
   </main>`;
   $$('[data-mv]').forEach(b => b.onclick = () => { const [i, d] = b.dataset.mv.split(':').map(Number); dispatch(null, { type: 'reorder', seat: i, dir: d }); });
   $$('[data-tok]').forEach(b => b.onclick = () => { App.token = +b.dataset.tok; store('bb_token', App.token); dispatch(null, { type: 'pickToken', token: App.token }); });
-  if (admin) {
+  $$('[data-kick]').forEach(b => b.onclick = () => {
+    const i = +b.dataset.kick;
+    confirmBox(`เตะ ${esc(S().players[i].name)} ออกจากห้อง?`, 'ผู้เล่นคนนี้จะถูกนำออกจากห้องทันที', 'เตะออก', () => dispatch(null, { type: 'kickPlayer', seat: i }));
+  });
+  if (host) {
     $('#b-save').onclick = async () => { if (await dispatch(null, { type: 'settings', settings: readSettings() })) toast('บันทึกแล้ว'); };
     $('#b-start').onclick = async () => {
       if (!await dispatch(null, { type: 'settings', settings: readSettings() })) return;
@@ -1240,8 +1310,8 @@ const goAmount = s => s.settings.goSalary * ((s.effects || []).some(e => e.key =
 function renderGame() {
   const s = S(), over = s.status === 'over';
   const t = s.turn, nx = nextSeat(s);
-  const admin = isAdmin();
-  const ctlTurn = canAct(t) || admin;
+  const host = canHost();
+  const ctlTurn = canAct(t) || host;
   const alerts = myAlerts(s, viewSeat());
   const tabs = [...(over ? [['result', 'ผลการแข่งขัน']] : []), ['me', 'บัญชีของฉัน'], ['all', 'ทุกคน'], ['ev', 'อีเว้นท์'], ['log', 'บันทึก']];
   if (!tabs.some(x => x[0] === App.tab)) App.tab = tabs[0][0];
@@ -1250,6 +1320,7 @@ function renderGame() {
     <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>
       ${App.mode === 'online' ? `<button class="chip" data-a="invite">ห้อง <b class="num">${App.room}</b> · QR</button>${soundBtn()}` : ''}
       ${roleButtons()}
+      ${host && !over ? '<button class="sm danger" data-a="endGame">🏁 จบเกม</button>' : ''}
       <button class="sm" data-a="home">ออก</button></div>
     ${over ? `<section class="panel turn"><div class="who">🏁 จบเกมแล้ว</div><div class="next">ทุกคนนับเงินสดกระดาษ + มูลค่าที่ดินบนกระดาน แล้วแจ้งในแท็บ "ผลการแข่งขัน"</div></section>` :
     `<section class="panel turn ${t === mySeat() ? 'mine' : ''}" aria-live="polite">
@@ -1406,6 +1477,10 @@ function tabResult(s) {
   const v = viewSeat();
   const canDeclareOthers = isAdmin();
   return `<div class="stack">
+    ${s.status === 'over' ? `<div class="row">
+      <button class="sm" data-a="shareResult">📸 แชร์ผลเป็นรูป</button>
+      ${canHost() ? '<button class="sm gold" data-a="restart" style="margin-left:auto">🔁 เริ่มเกมใหม่ในห้องเดิม</button>' : ''}
+    </div>` : ''}
     ${missing.length ? `<div class="warn">ยังไม่ได้แจ้งเงินสด/ทรัพย์สิน: ${missing.map(i => esc(P(i).name)).join(', ')} — อันดับอาจเปลี่ยนเมื่อแจ้งครบ</div>` : ''}
     <div class="podium">${ranked.map((i, k) => {
       const p = P(i);
@@ -1428,6 +1503,67 @@ function tabResult(s) {
   </div>`;
 }
 
+// ---------- แชร์ผลจบเกมเป็นรูป (วาดด้วย canvas ล้วนๆ ไม่พึ่งไลบรารีนอก) ----------
+function buildResultCanvas(s) {
+  const seats = s.players.map((_, i) => i);
+  const ranked = seats.slice().sort((a, b) => netWorth(s, b) - netWorth(s, a));
+  const medal = ['🥇', '🥈', '🥉'];
+  const W = 720, rowH = 92, headH = 150, footH = 46;
+  const H = headH + ranked.length * rowH + footH;
+  const cv = document.createElement('canvas');
+  const scale = 2; // วาด 2 เท่าแล้วย่อ ให้ภาพคมบนจอละเอียดสูง
+  cv.width = W * scale; cv.height = H * scale;
+  const ctx = cv.getContext('2d');
+  ctx.scale(scale, scale);
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0f3d2e'); grad.addColorStop(1, '#0a2b21');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#f0c419'; ctx.font = 'bold 30px sans-serif';
+  ctx.fillText('🏁 ผลการแข่งขัน', 24, 22);
+  ctx.fillStyle = '#cfe3d8'; ctx.font = '15px sans-serif';
+  ctx.fillText('ธนาคารเศรษฐี' + (App.mode === 'online' && App.room ? ` · ห้อง ${App.room}` : '') + ' · ' + new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' }), 24, 62);
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.beginPath(); ctx.moveTo(24, 100); ctx.lineTo(W - 24, 100); ctx.stroke();
+  ranked.forEach((i, k) => {
+    const p = s.players[i];
+    const y = headH + k * rowH;
+    if (k === 0) { ctx.fillStyle = 'rgba(240,196,25,.12)'; ctx.fillRect(16, y - 6, W - 32, rowH - 12); }
+    ctx.fillStyle = '#f0c419'; ctx.font = 'bold 24px sans-serif';
+    ctx.fillText(medal[k] || ('#' + (k + 1)), 26, y + 16);
+    ctx.font = '32px sans-serif';
+    ctx.fillText((TOKENS[p.token] || {}).icon || '●', 92, y + 10);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 21px sans-serif';
+    ctx.fillText(p.name, 142, y + 6);
+    ctx.fillStyle = '#a9c2b6'; ctx.font = '13.5px sans-serif';
+    ctx.fillText(`บัญชี ${fmt(p.bal)} · เงินสด ${p.cash == null ? '—' : fmt(p.cash)} · ทรัพย์สิน ${p.assets == null ? '—' : fmt(p.assets)}`, 142, y + 36);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#7fe3ad'; ctx.font = 'bold 25px sans-serif';
+    ctx.fillText(fmt(netWorth(s, i)), W - 26, y + 12);
+    ctx.textAlign = 'left';
+  });
+  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.font = '12px sans-serif';
+  ctx.fillText('มูลค่าสุทธิ = บัญชี + เงินสด + ทรัพย์สิน + ให้ยืม − หนี้ค้าง · สร้างโดยแอปธนาคารเศรษฐี', 24, H - 30);
+  return cv;
+}
+function shareResultImage(s) {
+  const cv = buildResultCanvas(s);
+  cv.toBlob(async blob => {
+    if (!blob) return toast('สร้างรูปไม่สำเร็จ ลองใหม่');
+    const fileName = `ผลการแข่งขัน-ธนาคารเศรษฐี${App.mode === 'online' && App.room ? '-' + App.room : ''}.png`;
+    try {
+      const file = new File([blob], fileName, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'ผลการแข่งขัน ธนาคารเศรษฐี' });
+        return;
+      }
+    } catch (e) { /* ผู้ใช้กดยกเลิก หรือแชร์ไม่ได้ — ลองดาวน์โหลดแทน */ }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('บันทึกรูปผลการแข่งขันแล้ว');
+  }, 'image/png');
+}
+
 // ---------- การ์ดอีเว้นท์เด้ง ----------
 function showEventIfNew(s) {
   if (!s.event || s.event.n === App.seenEvent) return;
@@ -1443,10 +1579,7 @@ function showEventIfNew(s) {
 function howToStepsHtml(steps) {
   return `<ol class="howto">${steps.map(t => `<li>${t}</li>`).join('')}</ol>`;
 }
-function showHowToPlay() {
-  if (App.seenHowTo) return;
-  App.seenHowTo = true;
-  const s = S();
+function howToPlayBody() {
   const steps = [
     'เล่นบนกระดานจริงตามปกติ: ทอยลูกเต๋า เดินตัวเดิน ทำตามช่องที่ตก (จ่ายค่าเช่า ซื้อที่ดิน จับการ์ด ฯลฯ)',
     'จ่าย/รับเงินได้ 2 ทาง — ใช้เงินสดกระดาษตามปกติ หรือกดปุ่มในแอป (โอน, จ่ายธนาคาร) ก็ได้ แล้วแต่สะดวก',
@@ -1456,12 +1589,20 @@ function showHowToPlay() {
     'เล่นเสร็จตาตัวเองแล้ว กด "จบตา ➜" เพื่อส่งไม้ต่อให้คนถัดไป (ระบบจะสุ่มอีเว้นท์พิเศษขึ้นเป็นระยะ ทำตามข้อความบนการ์ดได้เลย)',
     'ใครแพ้ทางการเงิน ให้แอดมินตั้งเป็น "ล้มละลาย" เกมจบเมื่อกดปุ่ม "จบเกม" แล้วทุกคนแจ้งเงินสด/ทรัพย์สินในแท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
   ];
-  openModal('🎲 วิธีเล่นธนาคารเศรษฐี', `${howToStepsHtml(steps)}
-    <p class="muted" style="margin:0;font-size:12.5px">ทุกตาจะมีป๊อปอัพเตือนขั้นตอนสั้นๆ ให้อีกครั้ง ปิดได้ที่กติกาเสริมถ้าไม่ต้องการแล้ว</p>
-    <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว เริ่มเล่นเลย</button></div>`);
+  return `${howToStepsHtml(steps)}
+    <p class="muted" style="margin:0;font-size:12.5px">กดปุ่ม "❓ วิธีเล่น" ด้านบนดูซ้ำได้ทุกเมื่อ — เปิดป๊อปอัพเตือนอัตโนมัติทุกตาได้ที่กติกาเสริมถ้าต้องการ</p>
+    <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว เริ่มเล่นเลย</button></div>`;
+}
+function showHowToPlay() { // เด้งอัตโนมัติตอนเริ่มเกม (ครั้งเดียวต่อเกม)
+  if (App.seenHowTo) return;
+  App.seenHowTo = true;
+  openModal('🎲 วิธีเล่นธนาคารเศรษฐี', howToPlayBody());
+}
+function openHowToPlay() { // เปิดเองได้ทุกเมื่อจากปุ่ม "❓ วิธีเล่น"
+  openModal('🎲 วิธีเล่นธนาคารเศรษฐี', howToPlayBody());
 }
 function showTurnHelpIfNew(s) {
-  if (s.status !== 'playing' || s.settings.turnHelp === false) return;
+  if (s.status !== 'playing' || !s.settings.turnHelp) return;
   if ($('#modal-root').innerHTML || $('#ev-root').innerHTML) return; // มีป๊อปอัพ/การ์ดอีเว้นท์เปิดอยู่ ไม่แย่งจอ
   const key = s.round + ':' + s.turn;
   if (viewSeat() !== s.turn || key === App.seenTurnHelpKey) return;
@@ -1665,12 +1806,12 @@ function adminPanelHtml(s) {
   if (playing) {
     html += `<div class="section-h"><h2>จัดการผู้เล่น</h2></div><div class="panel" style="padding:4px 14px">
       ${s.order.map(i => { const p = P(i); return `<div class="pm">
-        <div class="row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0">${pn(i)}${p.out ? ' <span class="badge bad">ออก</span>' : ''}</span><b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b></div>
+        <div class="row" style="flex-wrap:nowrap"><span style="flex:1;min-width:0">${pn(i)}${p.kicked ? ' <span class="badge bad">ถูกเตะออก</span>' : p.out ? ' <span class="badge bad">ออก</span>' : ''}</span><b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b></div>
         <div class="row" style="gap:6px"><input type="number" inputmode="numeric" data-adj="${i}" placeholder="± ปรับยอด" aria-label="ปรับยอดบัญชี ${esc(p.name)}" style="width:118px;padding:.35em .6em"><button class="sm" data-adj-go="${i}">ปรับ</button>
           <select data-credit="${i}" aria-label="เครดิต ${esc(p.name)}" style="width:auto;padding:.35em .5em">${CREDIT.map((c, ci) => `<option value="${ci}" ${p.credit === ci ? 'selected' : ''}>เครดิต ${c.name}</option>`).join('')}</select>
-          <button class="sm ${p.out ? '' : 'danger'}" data-out="${i}" style="margin-left:auto">${p.out ? 'กลับเข้าเกม' : 'ล้มละลาย'}</button></div></div>`; }).join('')}
+          ${p.kicked ? '' : `<button class="sm ${p.out ? '' : 'danger'}" data-out="${i}" style="margin-left:auto">${p.out ? 'กลับเข้าเกม' : 'ล้มละลาย'}</button><button class="sm danger" data-kick="${i}">เตะออก</button>`}</div></div>`; }).join('')}
       </div>
-      <div class="muted" style="font-size:12.5px">ปรับยอด: ใส่ตัวเลขบวกเพื่อเติม ลบเพื่อหัก (เช่น แก้ยอดที่กดผิด)</div>`;
+      <div class="muted" style="font-size:12.5px">ปรับยอด: ใส่ตัวเลขบวกเพื่อเติม ลบเพื่อหัก (เช่น แก้ยอดที่กดผิด) · "เตะออก" คือนำออกจากเกมถาวร กลับเข้าไม่ได้อีก ต่างจาก "ล้มละลาย" ที่กดกลับเข้าเกมได้ภายหลัง</div>`;
   }
   html += `<details class="panel" style="padding:12px 14px"><summary><b>กติกาเสริม</b></summary><div class="stack" style="margin-top:10px">${settingsFields(s.settings, false, 'ap')}<button id="ap-save-settings">บันทึกการตั้งค่า</button></div></details>`;
   if (playing) {
@@ -1708,8 +1849,21 @@ function adminPanelHtml(s) {
       <div class="row" style="flex-wrap:nowrap">ตอนนี้รอบที่ <b class="num">${s.round}</b><input id="ap-round" type="number" value="${s.round}" style="max-width:90px;margin-left:auto"><button class="sm" id="ap-set-round">ตั้งรอบ</button></div>
       <div class="field"><label for="ap-event">เรียกอีเว้นท์ที่เลือกทันที</label><select id="ap-event">${EVENTS.map(e => `<option value="${e.id}">${e.icon} ${esc(e.title)}</option>`).join('')}${(s.customEvents || []).map(c => `<option value="${c.id}">${c.icon} ${esc(c.title)} (สร้างเอง)</option>`).join('')}</select></div>
       <button id="ap-force-event">เรียกอีเว้นท์นี้เลย</button>
-    </div>
-    <button class="danger" data-a="endGame">จบเกม</button>`;
+    </div>`;
+    { // ---- เปิด/ปิดอีเว้นท์แต่ละใบ (ปิดแล้วจะไม่โผล่มาแบบสุ่มอีก) ----
+      const disabled = s.settings.disabledEvents || [];
+      const deckCustom = (s.customEvents || []).filter(c => c.inDeck);
+      html += `<div class="section-h"><h2>เปิด/ปิดอีเว้นท์</h2></div>
+      <details class="panel" style="padding:12px 14px"><summary><b>เลือกอีเว้นท์ที่ให้สุ่มขึ้น (${EVENTS.length + deckCustom.length - disabled.length}/${EVENTS.length + deckCustom.length})</b>
+        <div class="muted" style="font-size:12.5px;margin-top:4px">ยกเลิกติ๊กเพื่อปิดใบนั้น — ไม่โผล่มาแบบสุ่มอีก (แอดมินยังกดเรียกเองด้านบนได้เสมอ) หรือตั้ง "อีเว้นท์พิเศษ" ในกติกาเสริมเป็น "กดสุ่มเองเท่านั้น" เพื่อปิดการสุ่มอัตโนมัติทั้งหมด</div></summary>
+        <div style="display:grid;gap:2px;margin-top:10px;max-height:340px;overflow:auto">
+          ${EVENTS.map(e => `<label class="check" style="padding:4px 0"><input type="checkbox" data-evtoggle="${e.id}" ${disabled.includes(e.id) ? '' : 'checked'}><span>${e.icon} ${esc(e.title)}</span></label>`).join('')}
+          ${deckCustom.map(c => `<label class="check" style="padding:4px 0"><input type="checkbox" data-evtoggle="${c.id}" ${disabled.includes(c.id) ? '' : 'checked'}><span>${c.icon} ${esc(c.title)} <small class="muted">(สร้างเอง)</small></span></label>`).join('')}
+        </div>
+        <div class="row" style="margin-top:8px"><button class="sm" id="ap-events-all">เปิดทั้งหมด</button><button class="sm danger" id="ap-events-none">ปิดทั้งหมด</button></div>
+      </details>`;
+    }
+    html += `<button class="danger" data-a="endGame">จบเกม</button>`;
   }
   return html;
 }
@@ -1728,6 +1882,10 @@ function wireAdminPanel() {
     if (P(seat).out) return dispatch(null, { type: 'setOut', seat });
     confirmBox(`${P(seat).name} ล้มละลาย?`, 'ผู้เล่นจะถูกข้ามตา และข้อเสนอกู้/คำขอที่ค้างจะถูกยกเลิก (กดกลับเข้าเกมได้ภายหลัง)', 'ยืนยัน', () => dispatch(null, { type: 'setOut', seat }));
   });
+  $$('[data-kick]', bd).forEach(b => b.onclick = () => {
+    const seat = +b.dataset.kick;
+    confirmBox(`เตะ ${esc(P(seat).name)} ออกจากเกม?`, 'ผู้เล่นจะถูกนำออกจากเกมถาวร กลับเข้ามาไม่ได้อีก และข้ามออกจากลำดับตาเล่นทันที', 'เตะออก', () => dispatch(null, { type: 'kickPlayer', seat }));
+  });
   $$('[data-save-loan]', bd).forEach(b => b.onclick = () => {
     const id = +b.dataset.saveLoan, card = b.closest('[data-loan]');
     const val = f => card.querySelector(`[data-f="${f}"]`).value;
@@ -1735,6 +1893,17 @@ function wireAdminPanel() {
   });
   on('#ap-set-round', () => dispatch(null, { type: 'setRound', round: +$('#ap-round').value }));
   on('#ap-force-event', () => dispatch(null, { type: 'forceEvent', id: $('#ap-event').value }));
+  // เปิด/ปิดอีเว้นท์รายใบ
+  $$('[data-evtoggle]', bd).forEach(cb => cb.onchange = () => {
+    const cur = new Set(S().settings.disabledEvents || []);
+    if (cb.checked) cur.delete(cb.dataset.evtoggle); else cur.add(cb.dataset.evtoggle);
+    dispatch(null, { type: 'settings', settings: { disabledEvents: [...cur] } });
+  });
+  on('#ap-events-all', () => dispatch(null, { type: 'settings', settings: { disabledEvents: [] } }));
+  on('#ap-events-none', () => {
+    const s = S();
+    dispatch(null, { type: 'settings', settings: { disabledEvents: [...EVENTS.map(e => e.id), ...(s.customEvents || []).filter(c => c.inDeck).map(c => c.id)] } });
+  });
   // อีเว้นท์สร้างเอง
   $$('[data-evic]', bd).forEach(b => b.onclick = () => $$('[data-evic]', bd).forEach(x => x.setAttribute('aria-pressed', x === b)));
   const ce = now => {
@@ -1754,12 +1923,12 @@ function refreshAdminPanel() {
   // เก็บค่าที่กำลังพิมพ์ในฟอร์มสร้างอีเว้นท์ไว้ ไม่ให้หายตอนข้อมูลอัปเดต
   const keep = ['ce-title', 'ce-text', 'ce-target', 'ce-seat', 'ce-amt'].map(id => [id, $('#' + id, bd)?.value]);
   const deck = $('#ce-deck', bd)?.checked, ic = $('[data-evic][aria-pressed="true"]', bd)?.dataset.evic;
-  const open = $('details', bd)?.open, scroll = $('#modal-root .sheet')?.scrollTop;
+  const opens = $$('details', bd).map(d => d.open), scroll = $('#modal-root .sheet')?.scrollTop;
   bd.innerHTML = adminPanelHtml(S());
   keep.forEach(([id, v]) => { const el = $('#' + id, bd); if (el && v != null) el.value = v; });
   if ($('#ce-deck', bd) && deck != null) $('#ce-deck', bd).checked = deck;
   if (ic) $$('[data-evic]', bd).forEach(x => x.setAttribute('aria-pressed', x.dataset.evic === ic));
-  if (open && $('details', bd)) $('details', bd).open = true;
+  $$('details', bd).forEach((d, i) => { if (opens[i]) d.open = true; });
   if (scroll != null) $('#modal-root .sheet').scrollTop = scroll;
   wireAdminPanel();
 }
@@ -1830,6 +1999,15 @@ document.addEventListener('click', e => {
     case 'declare': return dispatch(as, { type: 'declareWorth', cash: +$('#w-cash').value || 0, assets: +$('#w-assets').value || 0 }).then(ok => { if (ok) toast('บันทึกยอดแล้ว'); });
     case 'declareFor': return openDeclareFor(+x);
     case 'endGame': return confirmBox('จบเกม?', 'หลังจบเกมทุกคนจะนับเงินสดกับทรัพย์สินแล้วแจ้งในแอปเพื่อจัดอันดับ ทำรายการเงินเพิ่มไม่ได้แล้ว', 'จบเกม', () => dispatch(null, { type: 'endGame' }));
+    case 'undo': {
+      const su = S(); if (!su || !su.undo) return;
+      return confirmBox('ย้อนกลับคำสั่งล่าสุด?', `จะย้อนกลับ: ${su.undo.desc} (ย้อนได้แค่ 1 ขั้นล่าสุดเท่านั้น)`, 'ย้อนกลับ',
+        () => dispatch(null, { type: 'undo' }).then(ok => { if (ok) toast('↩️ ย้อนกลับแล้ว'); }));
+    }
+    case 'restart': return confirmBox('เริ่มเกมใหม่ในห้องเดิม?', 'ผู้เล่นชุดเดิมจะกลับไปที่ห้องรอเริ่ม ยอดบัญชี เครดิต และสถานะล้มละลาย/เตะออกทั้งหมดจะถูกรีเซ็ต', 'เริ่มใหม่',
+      () => dispatch(null, { type: 'restart' }));
+    case 'shareResult': return shareResultImage(S());
+    case 'howto': return openHowToPlay();
     case 'admin': return isAdmin() ? openAdminPanel() : openAdminClaim();
     case 'banker': return isBanker() ? openBankerPanel() : openBankerClaim();
     case 'invite': return openInvite();
