@@ -196,6 +196,131 @@ td.r,th.r{text-align:right}
 .cev{padding:6px 0;border-bottom:1px dashed var(--line)}
 .pm{display:grid;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
 .pm:last-child{border-bottom:0}
+/* ================== สไตล์แอปธนาคาร (หน้าเล่น) ================== */
+body.hasbar{padding-top:0}
+body.ingame{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+/* แถบบน: โลโก้ + บทบาท + เมนู */
+.appbar{position:sticky;top:0;z-index:20;margin:0 -16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;
+  background:color-mix(in srgb,var(--ground) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.appbar .logo{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;font-family:var(--display);font-weight:600;font-size:19px;
+  background:linear-gradient(145deg,#1d7a6d,#0b3530);color:#f3d27a;box-shadow:inset 0 0 0 1px rgba(232,179,58,.35)}
+.appbar .brand{display:grid;line-height:1.2;min-width:0;margin-right:auto}
+.appbar .brand b{font-family:var(--display);font-weight:500;font-size:16.5px}
+.appbar .brand b span{color:var(--gold)}
+.appbar .brand small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar .ib{position:relative;width:40px;height:40px;padding:0;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none}
+.appbar .ib .count{position:absolute;top:-5px;right:-5px}
+.role{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;vertical-align:1px;
+  background:var(--surface2);border:1px solid var(--line);color:var(--muted)}
+.role.banker{background:color-mix(in srgb,var(--gold) 18%,var(--surface));border-color:var(--gold);color:color-mix(in srgb,var(--gold) 70%,var(--ink))}
+.role.admin{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border-color:var(--danger);color:var(--danger)}
+/* เมนู (bottom sheet) */
+.menu{display:grid;gap:2px;margin:-4px -6px}
+.menu button{display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:12px;text-align:left;border:0;background:transparent;padding:10px 8px;border-radius:12px}
+.menu button .mi{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:var(--surface2)}
+.menu button small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35}
+.menu button.danger{color:var(--danger)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
+/* แถบสถานะตา (กะทัดรัด) */
+.turnbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.turnbar .tok{width:40px;height:40px;font-size:22px}
+.turnbar .tt{min-width:0;display:grid;line-height:1.3}
+.turnbar .tt small{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.turnbar .tt b{font-family:var(--display);font-weight:500;font-size:16.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnbar .tt span{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnbar.mine{background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 22%,var(--surface)),var(--surface));border-color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 35%,transparent),var(--shadow)}
+.turnbar.mine .tt b{color:color-mix(in srgb,var(--gold) 60%,var(--ink))}
+.turnbar .extra{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.turnbar .extra button{flex:1;min-width:max-content}
+.turnbar .hint{grid-column:1/-1;font-size:12.5px;color:var(--muted);background:var(--surface2);border-radius:10px;padding:7px 10px}
+.turnbar.over{grid-template-columns:auto 1fr}
+/* แถบนำทางด้านล่าง */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;
+  background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.bnav .in{display:flex;gap:2px;width:100%;max-width:720px}
+.bnav button{flex:1;border:0;background:transparent;display:grid;justify-items:center;gap:1px;padding:6px 2px;font-size:11.5px;color:var(--muted);border-radius:12px;position:relative}
+.bnav button .bi{font-size:21px;line-height:1.15;filter:grayscale(.6);opacity:.75}
+.bnav button:hover:not(:disabled){background:transparent;color:var(--ink)}
+.bnav button[aria-selected="true"]{color:var(--jade);font-weight:600}
+.bnav button[aria-selected="true"] .bi{filter:none;opacity:1}
+.bnav button[aria-selected="true"]::before{content:"";position:absolute;top:-6px;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--jade)}
+.bnav .count{position:absolute;top:2px;left:calc(50% + 6px)}
+.bnav .dot{position:absolute;top:5px;left:calc(50% + 9px);width:8px;height:8px;border-radius:50%;background:var(--danger)}
+/* หน้าบัญชี */
+.hello{display:flex;align-items:center;gap:10px}
+.hello .tok{width:42px;height:42px;font-size:23px}
+.hello div{display:grid;line-height:1.3}
+.hello small{color:var(--muted);font-size:12.5px}
+.hello b{font-family:var(--display);font-weight:500;font-size:18px}
+.card-bank{padding:20px 20px 16px;gap:2px}
+.cb-top{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1}
+.cb-top .chipic{width:36px;height:26px;border-radius:6px;background:linear-gradient(135deg,#f3d27a,#b98613);box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.cb-acct{font-family:var(--mono);font-size:13px;letter-spacing:.14em;opacity:.8;position:relative;z-index:1}
+.cb-bal small{font-size:.45em;opacity:.8;margin-left:4px;letter-spacing:0}
+.cb-foot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid rgba(255,255,255,.14);padding-top:10px;margin-top:12px}
+.cb-foot span{display:grid;font-size:11.5px;opacity:.85;line-height:1.35}
+.cb-foot b{font-family:var(--mono);font-size:14.5px;opacity:1}
+.qa{display:grid;gap:12px;padding:14px 12px}
+.qa-h{font-size:12.5px;font-weight:600;color:var(--muted);padding:0 4px;display:flex;align-items:center;gap:6px}
+.qa-h small{font-weight:400}
+.qa-g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.qa-g button{display:grid;justify-items:center;align-content:start;gap:6px;border:0;background:transparent;padding:6px 2px;font-size:12.5px;line-height:1.25;border-radius:12px}
+.qa-g button .qi{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:23px;background:var(--qc,var(--surface2));transition:transform .12s}
+.qa-g button:hover:not(:disabled) .qi{transform:translateY(-2px)}
+.qa-g button:hover:not(:disabled){background:transparent}
+.qi.t1{--qc:color-mix(in srgb,var(--jade) 16%,var(--surface))}
+.qi.t2{--qc:color-mix(in srgb,var(--gold) 20%,var(--surface))}
+.qi.t3{--qc:color-mix(in srgb,#5b7cc4 18%,var(--surface))}
+.notice{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--note);border:1px solid color-mix(in srgb,var(--gold) 50%,var(--line))}
+.notice .ni{font-size:22px}
+.notice b{display:block;font-size:14.5px}
+.notice small{color:var(--muted);font-size:12.5px;display:block}
+.notice.bad{background:color-mix(in srgb,var(--danger) 10%,var(--surface));border-color:color-mix(in srgb,var(--danger) 50%,var(--line))}
+.stmt{padding:2px 14px}
+.stmt .rh{font-size:12px;font-weight:600;color:var(--muted);padding:10px 0 2px;border-bottom:1px solid var(--line)}
+/* เคาน์เตอร์แบงก์เกอร์ */
+.teller{border-radius:20px;padding:18px 20px;color:#f6f3e8;display:grid;gap:4px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 140% at 100% 0%,#b98613 0%,#7a5608 50%,#4a3405 100%);box-shadow:var(--shadow)}
+.teller::after{content:"🏦";position:absolute;right:14px;bottom:-14px;font-size:92px;opacity:.14}
+.teller .t1{font-size:12.5px;opacity:.85}
+.teller .t2{font-family:var(--display);font-size:22px;font-weight:500}
+.teller .t3{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-top:6px;position:relative;z-index:1}
+.teller .t3 b{font-family:var(--mono);font-weight:500}
+.q{display:grid;gap:10px;padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow)}
+.q .qh{display:flex;align-items:center;gap:10px}
+.q .qk{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px}
+.q .qk.in{background:color-mix(in srgb,var(--ok) 15%,var(--surface));color:var(--ok)}
+.q .qk.out{background:color-mix(in srgb,var(--danger) 12%,var(--surface));color:var(--danger)}
+.q .qamt{margin-left:auto;font-family:var(--mono);font-size:24px}
+.q .qdo{font-size:14px;background:var(--surface2);border-radius:10px;padding:8px 12px}
+.q .row button{flex:1}
+.acc{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.acc:last-child{border-bottom:0}
+.acc small{display:block;color:var(--muted);font-size:12px}
+/* สลิปโอนเงิน */
+.slip{display:grid;gap:12px;text-align:center}
+.slip .ok{width:64px;height:64px;border-radius:50%;margin:4px auto 0;display:grid;place-items:center;font-size:32px;color:#fff;background:var(--ok);box-shadow:0 0 0 8px color-mix(in srgb,var(--ok) 18%,transparent)}
+.slip .ok.wait{background:var(--gold);box-shadow:0 0 0 8px color-mix(in srgb,var(--gold) 20%,transparent)}
+.slip h3{font-size:19px}
+.slip .amt{font-family:var(--mono);font-size:34px;line-height:1.1}
+.slip dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;text-align:left;font-size:14px;background:var(--surface2);border-radius:14px;padding:12px 14px;
+  border-top:2px dashed var(--line)}
+.slip dt{color:var(--muted)} .slip dd{margin:0;text-align:right;overflow-wrap:anywhere}
+/* ฟอร์มเงิน: ช่องจำนวนเงินตัวใหญ่แบบแอปธนาคาร */
+.sheet #in-amt{font-family:var(--mono);font-size:28px;text-align:right;padding:.35em .6em}
+.sheet #in-amt{-moz-appearance:textfield;appearance:textfield}
+.sheet #in-amt::-webkit-inner-spin-button,.sheet #in-amt::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.sheet .quick button{flex:1;min-width:64px}
+@media (max-width:560px){
+  .modal{place-items:end center;padding:0}
+  .sheet{max-width:none;border-radius:22px 22px 0 0;max-height:92vh;padding-bottom:env(safe-area-inset-bottom,0px);animation:up .22s ease-out}
+  .sheet .hd::before{content:"";position:absolute;left:50%;top:6px;width:40px;height:4px;border-radius:4px;background:var(--line);transform:translateX(-50%)}
+  .sheet .hd{position:relative;padding-top:20px}
+}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+#toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -1219,6 +1344,7 @@ const tokenPicker = (sel, taken = []) => `<div class="tokpick" role="group" aria
 function renderHome() {
   const q = new URLSearchParams(location.search).get('room') || '';
   const online = !!FIREBASE_CONFIG;
+  document.body.classList.remove('hasbar', 'ingame');
   $('#app').innerHTML = `<main class="wrap">
     <header class="hero">
       <div class="label">ระบบเสริมสำหรับเศรษฐีกระดานจริง</div>
@@ -1296,19 +1422,47 @@ const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
     capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
-const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.sound}" title="เสียงและการสั่นเตือน">${App.sound ? '🔔' : '🔕'}</button>`;
-function roleButtons() {
-  const s = S(); if (!s) return '';
-  const admin = isAdmin(), banker = isBanker(), n = s.reqs ? s.reqs.length : 0;
-  const help = `<button class="sm" data-a="howto" title="ดูวิธีเล่น">❓ วิธีเล่น</button>`;
-  // ย้อนกลับคำสั่งล่าสุด — เห็นได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริงๆ
-  const undoBtn = (banker || isHostUser()) && s.undo ? `<button class="sm" data-a="undo" title="ย้อนกลับ: ${esc(s.undo.desc)}">↩️ ย้อนกลับ</button>` : '';
-  // เจ้าของห้อง (ไม่ใช่แอดมิน) เห็นปุ่มดู/แจก PIN แบงก์เกอร์ได้เอง ไม่ต้องรอแอดมิน
-  const bankPinBtn = (!admin && isHostUser() && App.mode === 'online') ? `<button class="sm" data-a="bankpin" title="ดู/แจก PIN แบงก์เกอร์">🔑 PIN แบงก์เกอร์</button>` : '';
-  if (admin) return `${help}${undoBtn}<button class="sm gold" data-a="admin">🛡️ แอดมิน${n ? ` <span class="count">${n}</span>` : ''}</button>`;
-  // ไม่ใช่แอดมิน: แสดงปุ่มเข้าโหมดแอดมิน และปุ่มแบงก์เกอร์ (หรือปุ่มเข้าโหมดแบงก์เกอร์ ถ้ายังไม่ได้เป็น)
-  return `${help}${undoBtn}${bankPinBtn}<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
-    <button class="sm ${banker ? 'gold' : ''}" data-a="banker">🏧 ${banker ? 'แบงก์เกอร์' : 'เข้าโหมดแบงก์เกอร์'}${banker && n ? ` <span class="count">${n}</span>` : ''}</button>`;
+// ---------- แถบบนแบบแอปธนาคาร + เมนูรวมปุ่มทั้งหมด (แทนปุ่มเรียงเต็มหัวจอแบบเดิม) ----------
+// ป้ายบอกบทบาทของเครื่องนี้ ให้รู้ตลอดว่าตัวเองเป็นใครในห้อง
+function roleTag() {
+  if (App.mode === 'local') return '<span class="role banker">📱 เครื่องเดียว</span>';
+  if (isAdmin()) return '<span class="role admin">🛡️ แอดมิน</span>';
+  if (isBanker()) return '<span class="role banker">🏧 แบงก์เกอร์</span>';
+  if (isHostUser()) return '<span class="role">🏠 เจ้าของห้อง</span>';
+  return '<span class="role">🎲 ผู้เล่น</span>';
+}
+function appBar() {
+  const where = App.mode === 'online' ? `ห้อง <b class="num">${App.room}</b>` : 'เล่นบนเครื่องเดียว';
+  return `<header class="appbar">
+    <span class="logo" aria-hidden="true">฿</span>
+    <div class="brand"><b>ธนาคาร<span>เศรษฐี</span></b><small>${where} · ${roleTag()}</small></div>
+    <button class="ib" data-a="howto" aria-label="วิธีเล่น" title="วิธีเล่น">❓</button>
+    <button class="ib" data-a="menu" aria-label="เมนู" title="เมนู">☰</button>
+  </header>`;
+}
+// รายการในเมนู: [ไอคอน, ชื่อ, คำอธิบาย, action, คลาสเพิ่ม]
+function menuItems() {
+  const s = S(), admin = isAdmin(), banker = isBanker(), host = isHostUser(), online = App.mode === 'online', playing = s.status === 'playing';
+  const it = [];
+  if (online) it.push(['📷', 'ชวนเพื่อนเข้าห้อง', `QR และลิงก์ห้อง ${App.room}`, 'invite']);
+  it.push(['❓', 'วิธีเล่น', 'ขั้นตอนเล่นกับกระดานจริงทีละข้อ', 'howto']);
+  if (online) it.push([App.sound ? '🔔' : '🔕', App.sound ? 'ปิดเสียงเตือน' : 'เปิดเสียงเตือน', 'เสียง + สั่นตอนถึงตาหรือได้รับเงิน', 'sound']);
+  it.push('-');
+  // ย้อนกลับได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริง
+  if ((banker || host) && s.undo) it.push(['↩️', 'ย้อนกลับคำสั่งล่าสุด', esc(s.undo.desc), 'undo']);
+  if (playing && banker) it.push(['🏧', 'เคาน์เตอร์ธนาคาร', 'คิวฝาก/ถอนที่รอคุณยืนยัน', 'goTab:counter']);
+  if (online && !banker) it.push(['🏧', 'เข้าโหมดแบงก์เกอร์', 'สำหรับคนถือเงินธนาคาร — ใส่ PIN 4 หลัก', 'banker']);
+  if (online && host && !admin) it.push(['🔑', 'PIN แบงก์เกอร์', 'ดู/คัดลอกรหัสไปแจกคนถือเงินธนาคาร', 'bankpin']);
+  it.push(admin ? ['🛡️', 'แผงแอดมิน', 'แก้ยอด เครดิต สัญญากู้ อีเว้นท์ กติกา', 'admin'] : ['🛡️', 'เข้าโหมดแอดมิน', 'ใช้ตอนเกิดปัญหาเท่านั้น (ต้องมีรหัสผ่าน)', 'admin']);
+  it.push('-');
+  if (playing && canHost()) it.push(['🏁', 'จบเกม', 'ทุกคนนับเงินสด+ที่ดินแล้วจัดอันดับ', 'endGame', 'danger']);
+  it.push(['🚪', 'ออกจากห้อง', online ? 'กลับเข้าได้ด้วยรหัสห้องและชื่อเดิม' : 'ข้อมูลบนเครื่องนี้จะหายไป', 'home', 'danger']);
+  return it;
+}
+function openMenu() {
+  const html = `<div class="menu">${menuItems().map(x => x === '-' ? '<hr>' :
+    `<button class="${x[4] || ''}" data-a="${x[3]}"><span class="mi">${x[0]}</span><span>${x[1]}<small>${x[2]}</small></span><span class="muted">›</span></button>`).join('')}</div>`;
+  openModal('เมนู', html);
 }
 function invitePanel(s) {
   return `<div class="invite">
@@ -1323,9 +1477,8 @@ function invitePanel(s) {
 
 function renderLobby() {
   const s = S(), admin = isAdmin(), host = canHost(), me = mySeat();
-  $('#app').innerHTML = `<main class="wrap">
-    <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>${App.mode === 'online' ? `<span class="chip">ห้อง <b class="num">${App.room}</b></span>` : '<span class="chip">เครื่องเดียว</span>'}
-      ${App.mode === 'online' ? soundBtn() : ''}${roleButtons()}</div>
+  document.body.classList.add('hasbar'); document.body.classList.remove('ingame');
+  $('#app').innerHTML = `<main class="wrap">${appBar()}
     ${App.mode === 'online' ? `<section class="panel stack"><div class="label">ชวนเพื่อนเข้าห้อง</div>${invitePanel(s)}</section>` : ''}
     <section class="panel stack"><div class="label">ลำดับการเล่น (${s.players.length} คน)</div>
       ${s.players.map((p, i) => `<div class="row" style="flex-wrap:nowrap"><span class="num muted">${i + 1}</span>${tokHtml(i)}<b style="flex:1">${esc(p.name)}</b>
@@ -1370,39 +1523,53 @@ function myAlerts(s, seat) {
 }
 const goAmount = s => s.settings.goSalary * ((s.effects || []).some(e => e.key === 'go2') ? 2 : 1);
 
-function renderGame() {
-  const s = S(), over = s.status === 'over';
-  const t = s.turn, nx = nextSeat(s);
-  const host = canHost();
-  // ควบคุมตาเล่น (จบตา/ผ่านจุดเริ่มต้น/สุ่มอีเว้นท์) เป็นสิทธิ์ของ "คนที่ถึงตา" หรือแบงก์เกอร์/แอดมิน (ธนาคารไม่ต้องมีตาเดินเอง แต่คุมจังหวะเกมได้)
-  // เจ้าของห้องเฉยๆ (ไม่ใช่แบงก์เกอร์/แอดมิน) ไม่ได้มีสิทธิ์นี้ — ให้ตรงกับ engine.js (เห็นปุ่มแต่กดแล้ว error ไม่มีประโยชน์)
+// แถบสถานะตา (กะทัดรัด): บอกว่าตาใคร รอบไหน คนต่อไปคือใคร + ปุ่มคุมจังหวะเกมสำหรับคนที่มีสิทธิ์
+function turnBar(s) {
+  if (s.status === 'over') return `<section class="turnbar over"><span style="font-size:30px">🏁</span>
+    <div class="tt"><b>จบเกมแล้ว</b><span>นับเงินสดกระดาษ + มูลค่าที่ดิน แล้วแจ้งในหน้า "ผลการแข่งขัน"</span></div></section>`;
+  const t = s.turn, nx = nextSeat(s), mine = t === mySeat() || (App.mode === 'local' && t === App.actor);
+  // จบตา = คนที่ถึงตา หรือแบงก์เกอร์/แอดมิน (ให้ตรงกับสิทธิ์ใน engine.js — เจ้าของห้องเฉยๆ ไม่มีสิทธิ์นี้)
   const ctlTurn = canAct(t) || isAdmin() || isBanker();
-  const alerts = myAlerts(s, viewSeat());
-  const tabs = [...(over ? [['result', 'ผลการแข่งขัน']] : []), ['me', 'บัญชีของฉัน'], ['all', 'ทุกคน'], ['ev', 'อีเว้นท์'], ['log', 'บันทึก']];
+  const goAmt = goAmount(s), goUsed = (s.goCount || 0) >= 2;
+  const extra = [
+    isBanker() && goAmt > 0 ? `<button class="sm" data-a="go" ${goUsed ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้นให้ ${esc(P(t).name)} +${fmt(goAmt)}</button>` : '',
+    isAdmin() ? '<button class="sm" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : '',
+  ].join('');
+  const sub = nx != null ? `ถัดไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}` : '';
+  const hint = mine && !isBanker() && goAmt > 0 && !goUsed ? '🏁 ผ่านจุดเริ่มต้น? บอกแบงก์เกอร์ให้กดเงินเดือนเข้าบัญชีให้' : !ctlTurn ? `🎲 รอ ${esc(P(t).name)} ทอยลูกเต๋าและเล่นบนกระดาน…` : '';
+  return `<section class="turnbar ${mine ? 'mine' : ''}" aria-live="polite">
+    ${tokHtml(t)}
+    <div class="tt"><small>รอบที่ ${s.round}</small><b>${mine ? '👉 ถึงตาคุณแล้ว!' : 'ตาของ ' + esc(P(t).name)}</b><span>${sub}</span></div>
+    ${ctlTurn ? '<button class="gold" data-a="endTurn">จบตา ➜</button>' : '<span></span>'}
+    ${extra ? `<div class="extra">${extra}</div>` : ''}
+    ${hint ? `<div class="hint">${hint}</div>` : ''}
+  </section>`;
+}
+// แท็บด้านล่าง: [key, ไอคอน, ชื่อ] — แบงก์เกอร์มีแท็บ "เคาน์เตอร์" เพิ่ม, คนที่ไม่ได้นั่งเล่นไม่มีแท็บ "บัญชี"
+function gameTabs(s) {
+  const over = s.status === 'over', seated = viewSeat() >= 0;
+  return [
+    ...(over ? [['result', '🏆', 'ผลการแข่ง']] : []),
+    ...(seated ? [['me', '🏠', 'บัญชีของฉัน']] : []),
+    ...(!over && isBanker() ? [['counter', '🏧', 'เคาน์เตอร์']] : []),
+    ['all', '👥', 'ทุกคน'], ['ev', '🎴', 'อีเว้นท์'], ['log', '🧾', 'ประวัติ'],
+  ];
+}
+function renderGame() {
+  const s = S();
+  const tabs = gameTabs(s);
   if (!tabs.some(x => x[0] === App.tab)) App.tab = tabs[0][0];
-  const goAmt = goAmount(s);
-  $('#app').innerHTML = `<main class="wrap">
-    <div class="top"><h1>ธนาคาร<span>เศรษฐี</span></h1>
-      ${App.mode === 'online' ? `<button class="chip" data-a="invite">ห้อง <b class="num">${App.room}</b> · QR</button>${soundBtn()}` : ''}
-      ${roleButtons()}
-      ${host && !over ? '<button class="sm danger" data-a="endGame">🏁 จบเกม</button>' : ''}
-      <button class="sm" data-a="home">ออก</button></div>
-    ${over ? `<section class="panel turn"><div class="who">🏁 จบเกมแล้ว</div><div class="next">ทุกคนนับเงินสดกระดาษ + มูลค่าที่ดินบนกระดาน แล้วแจ้งในแท็บ "ผลการแข่งขัน"</div></section>` :
-    `<section class="panel turn ${t === mySeat() ? 'mine' : ''}" aria-live="polite">
-      <div class="rnd">รอบที่ ${s.round}${t === mySeat() ? ' · ถึงตาคุณแล้ว!' : ''}</div>
-      <div class="who">${tokHtml(t)}<span>ตาของ ${esc(P(t).name)}</span></div>
-      ${nx != null ? `<div class="next">คนต่อไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}</div>` : ''}
-      <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}
-        ${isBanker() && goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้นให้ ${esc(P(t).name)} +${fmt(goAmt)}</button>` : ''}
-        ${isAdmin() ? '<button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : ''}</div>
-      ${t === mySeat() && !isBanker() && goAmt > 0 && (s.goCount || 0) < 2 ? `<div class="muted" style="font-size:12.5px;padding:0 2px">🏁 ผ่านจุดเริ่มต้นแล้ว? บอกแบงก์เกอร์ให้กดรับเงินเข้าบัญชีให้</div>` : ''}
-    </section>`}
+  const alerts = myAlerts(s, viewSeat()), nReq = (s.reqs || []).length;
+  document.body.classList.add('hasbar', 'ingame');
+  $('#app').innerHTML = `<main class="wrap">${appBar()}
+    ${turnBar(s)}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
-    <nav class="tabs" role="tablist">
-      ${tabs.map(([k, l]) => `<button role="tab" aria-selected="${App.tab === k}" data-tab="${k}">${l}${k === 'me' && alerts ? '<span class="dot"></span>' : ''}</button>`).join('')}
-    </nav>
-    <section id="tab">${({ result: tabResult, me: tabMe, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
-  </main>`;
+    <section id="tab">${({ result: tabResult, me: tabMe, counter: tabCounter, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
+  </main>
+  <nav class="bnav" role="tablist"><div class="in">
+    ${tabs.map(([k, ic, l]) => `<button role="tab" aria-selected="${App.tab === k}" data-tab="${k}"><span class="bi">${ic}</span>${l}
+      ${k === 'me' && alerts ? '<span class="dot"></span>' : ''}${k === 'counter' && nReq ? `<span class="count">${nReq}</span>` : ''}</button>`).join('')}
+  </div></nav>`;
   showEventIfNew(s);
   showTurnHelpIfNew(s);
   refreshModal();
@@ -1411,14 +1578,22 @@ function renderGame() {
 // ---------- แท็บ: บัญชีของฉัน ----------
 const TX_LABEL = { transfer: 'โอน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'รับจากธนาคาร', go: 'ผ่านจุดเริ่มต้น',
   loan: 'เงินกู้', repay: 'คืนหนี้', event: 'อีเว้นท์', admin: 'แอดมินปรับยอด', start: 'ยอดเริ่มต้น', overdraft: 'ดอกเบี้ยเบิกเกิน' };
-function txRow(t, v) {
+function txRow(t, v, showRound = true) {
   const inbound = t.t === v;
   const other = inbound ? t.f : t.t;
   const who = t.k === 'deposit' || t.k === 'withdraw' ? 'เงินสด ↔ บัญชี' : other == null ? 'ธนาคาร' : esc(P(other).name);
   return `<div class="txr"><span class="tx-ic ${inbound ? 'in' : 'out'}">${inbound ? '↓' : '↑'}</span>
     <span class="tx-main"><b>${TX_LABEL[t.k] || t.k}</b> <span class="muted">${inbound ? 'จาก' : 'ไป'} ${who}</span>${t.n ? `<small>${esc(t.n)}</small>` : ''}</span>
-    <span class="tx-amt num ${inbound ? 'in' : 'out'}">${inbound ? '+' : '−'}${fmt(t.a)}</span><span class="tx-r num muted">ร.${t.r}</span></div>`;
+    <span class="tx-amt num ${inbound ? 'in' : 'out'}">${inbound ? '+' : '−'}${fmt(t.a)}</span>${showRound ? `<span class="tx-r num muted">ร.${t.r}</span>` : ''}</div>`;
 }
+// สเตทเมนต์: จัดกลุ่มรายการตามรอบ (ใหม่สุดอยู่บน) เหมือนหน้าเดินบัญชีของแอปธนาคาร
+function statementHtml(txs, v) {
+  let html = '', r = null;
+  for (const t of txs) { if (t.r !== r) { r = t.r; html += `<div class="rh">รอบที่ ${r}</div>`; } html += txRow(t, v, false); }
+  return `<div class="panel stmt">${html}</div>`;
+}
+// เลขที่บัญชีเล่นๆ ให้ดูเหมือนบัตรธนาคาร (รหัสห้อง + ลำดับที่นั่ง)
+const acctNo = v => `${App.mode === 'online' ? App.room : 'LOCAL'} ${String(v + 1).padStart(2, '0')} ${String(1000 + ((v + 7) * 379) % 9000).slice(-4)}`;
 
 function loanCard(s, L, view) {
   const bank = L.lender == null;
@@ -1472,36 +1647,40 @@ function tabMe(s) {
   const lent = mine.filter(L => L.status === 'active' && L.lender === v);
   const room = Math.max(0, bankCap(s, v) - bankDebt(s, v));
   const reqs = (s.reqs || []).filter(r => r.seat === v);
-  const txs = s.tx.filter(t => t.f === v || t.t === v).slice(-15).reverse();
-  const isTurn = s.turn === v && !over;
+  const txs = s.tx.filter(t => t.f === v || t.t === v).slice(-20).reverse();
+  const overdue = debts.filter(L => L.overdue).length;
+  // ปุ่มลัดแบบแอปธนาคาร: ไอคอนในวงกลม + ชื่อใต้ไอคอน
+  const qa = (a, ic, label, tone) => `<button data-a="${a}" data-as="${v}"><span class="qi ${tone}">${ic}</span>${label}</button>`;
+  // แจ้งเตือนสำคัญ รวมไว้บนสุดใต้บัตร จะได้ไม่พลาด
+  const notices = [
+    p.out ? `<div class="notice bad"><span class="ni">💀</span><div><b>ออกจากเกมแล้ว</b><small>ทำรายการเงินเพิ่มไม่ได้</small></div><span></span></div>` : '',
+    !p.out && p.bal < 0 ? `<div class="notice bad"><span class="ni">🔴</span><div><b>บัญชีติดลบ ${baht(p.bal)}</b><small>โดนดอกเบี้ยทุกรอบ — ฝากเงินสดเข้าบัญชีเพื่อปิดยอดติดลบ</small></div><span></span></div>` : '',
+    overdue ? `<div class="notice bad"><span class="ni">🚨</span><div><b>มีหนี้เลยกำหนด ${overdue} สัญญา</b><small>รีบคืนก่อนเครดิตลดลงอีก (ดูด้านล่าง)</small></div><span></span></div>` : '',
+    ...reqs.map(r => `<div class="notice"><span class="ni">⏳</span><div><b>${REQ_KIND[r.kind]} ${fmt(r.amt)}</b>
+      <small>${r.kind === 'deposit' ? 'ยื่นเงินสดให้แบงก์เกอร์ แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอแบงก์เกอร์ส่งเงินสดให้และกดยืนยัน' : 'รอแบงก์เกอร์อนุมัติ' + (r.note ? ` · ${esc(r.note)}` : '')}</small></div>
+      ${canAct(v) ? `<button class="sm" data-a="cancelReq:${r.id}" data-as="${v}">ยกเลิก</button>` : '<span></span>'}</div>`),
+  ].join('');
   return `<div class="stack">${pick}
     <div class="card-bank ${p.bal < 0 ? 'neg' : ''}">
-      <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><span class="cb-name">${TOKENS[p.token].icon} ${esc(p.name)}</span>${creditHtml(v)}</div>
-      <div class="cb-label">${p.bal < 0 ? 'เบิกเกินบัญชี (โดนดอกเบี้ยทุกรอบ)' : 'ยอดเงินในบัญชี'}</div>
-      <div class="cb-bal num">${baht(p.bal)}</div>
-      <div class="cb-foot"><span>หนี้ <b class="num">${fmt(debtOf(s, v))}</b></span><span>ให้ยืม <b class="num">${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก <b class="num">${fmt(room)}</b></span></div>
+      <div class="cb-top"><span class="cb-name">${TOKENS[p.token].icon} ${esc(p.name)}</span>${creditHtml(v)}</div>
+      <div class="cb-acct">${acctNo(v)}</div>
+      <div class="cb-label">${p.bal < 0 ? 'เบิกเกินบัญชี' : 'ยอดเงินที่ใช้ได้'}</div>
+      <div class="cb-bal num">${baht(p.bal)}<small>บาท</small></div>
+      <div class="cb-foot"><span>หนี้ค้าง<b>${fmt(debtOf(s, v))}</b></span><span>ให้คนอื่นยืม<b>${fmt(lentOf(s, v))}</b></span><span>กู้ธนาคารได้อีก<b>${fmt(room)}</b></span></div>
     </div>
-    ${p.out ? '<div class="warn">ผู้เล่นนี้ออกจากเกมแล้ว</div>' : ''}
+    ${notices}
     ${over ? worthForm(s, v) : ''}
-    ${live ? `<div class="actions">
-      <button data-a="transfer" data-as="${v}"><span>💸</span>โอน</button>
-      <button data-a="payBank" data-as="${v}"><span>🏦</span>จ่ายธนาคาร</button>
-      <button data-a="req:deposit" data-as="${v}"><span>📥</span>ฝากเงินสด</button>
-      <button data-a="req:withdraw" data-as="${v}"><span>📤</span>ถอนเงินสด</button>
-      <button data-a="req:claim" data-as="${v}"><span>🙋</span>รับจากธนาคาร</button>
-      <button data-a="bankLoan" data-as="${v}"><span>🧾</span>กู้ธนาคาร</button>
-      <button data-a="offer" data-as="${v}"><span>🤝</span>ให้เพื่อนกู้</button>
-    </div>` : ''}
-    ${reqs.length ? `<div class="section-h"><h2>รอแบงก์เกอร์ยืนยัน</h2></div>${reqs.map(r => `<div class="loan offer"><div class="l1"><b>${REQ_KIND[r.kind]}</b><span class="amt">${fmt(r.amt)}</span></div>
-      <div class="row"><span class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'ยื่นแบงก์ให้คนถือธนาคาร แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอคนถือธนาคารส่งแบงก์ให้และกดยืนยัน' : esc(r.note || 'รอแบงก์เกอร์อนุมัติ')}</span>
-      ${canAct(v) ? `<button class="sm" data-a="cancelReq:${r.id}" data-as="${v}" style="margin-left:auto">ยกเลิก</button>` : ''}</div></div>`).join('')}` : ''}
-    ${incoming.length ? `<div class="section-h"><h2>ข้อเสนอถึงคุณ</h2></div>${incoming.map(L => loanCard(s, L, v)).join('')}` : ''}
-    <div class="section-h"><h2>หนี้ที่ต้องจ่าย</h2><span class="muted num">${debts.length}</span></div>
-    ${debts.length ? debts.map(L => loanCard(s, L, v)).join('') : '<p class="empty">ไม่มีหนี้ 🎉</p>'}
+    ${live ? `<section class="panel qa" aria-label="ทำรายการ">
+      <div class="qa-g">${qa('transfer', '💸', 'โอนให้<br>ผู้เล่น', 't1')}${qa('payBank', '🏦', 'จ่าย<br>ธนาคาร', 't1')}${qa('req:deposit', '📥', 'ฝาก<br>เงินสด', 't2')}${qa('req:withdraw', '📤', 'ถอน<br>เงินสด', 't2')}
+        ${qa('req:claim', '🙋', 'รับเงิน<br>จากธนาคาร', 't2')}${qa('bankLoan', '🏛️', 'กู้<br>ธนาคาร', 't3')}${qa('offer', '🤝', 'ให้เพื่อน<br>กู้', 't3')}</div>
+      <div class="qa-h"><small>💡 ปุ่มสีทอง = ต้องยื่น/รับเงินสดจริงกับแบงก์เกอร์ แล้วรอเขากดยืนยัน</small></div>
+    </section>` : ''}
+    ${incoming.length ? `<div class="section-h"><h2>📩 ข้อเสนอเงินกู้ถึงคุณ</h2></div>${incoming.map(L => loanCard(s, L, v)).join('')}` : ''}
+    ${debts.length ? `<div class="section-h"><h2>หนี้ที่ต้องจ่าย</h2><span class="muted num">${debts.length}</span></div>${debts.map(L => loanCard(s, L, v)).join('')}` : ''}
     ${lent.length ? `<div class="section-h"><h2>เงินที่ให้คนอื่นยืม</h2><span class="muted num">${lent.length}</span></div>${lent.map(L => loanCard(s, L, v)).join('')}` : ''}
-    ${outgoing.length ? `<div class="section-h"><h2>ข้อเสนอที่รอตอบ</h2></div>${outgoing.map(L => loanCard(s, L, v)).join('')}` : ''}
-    <div class="section-h"><h2>รายการล่าสุด</h2></div>
-    ${txs.length ? `<div class="panel txlist">${txs.map(t => txRow(t, v)).join('')}</div>` : '<p class="empty">ยังไม่มีรายการในบัญชี</p>'}
+    ${outgoing.length ? `<div class="section-h"><h2>ข้อเสนอที่รออีกฝ่ายตอบ</h2></div>${outgoing.map(L => loanCard(s, L, v)).join('')}` : ''}
+    <div class="section-h"><h2>รายการเดินบัญชี</h2><span class="muted" style="font-size:12.5px">ล่าสุด ${txs.length} รายการ</span></div>
+    ${txs.length ? statementHtml(txs, v) : '<p class="empty">ยังไม่มีรายการในบัญชี</p>'}
   </div>`;
 }
 
@@ -1517,7 +1696,51 @@ function tabAll(s) {
     <div class="section-h"><h2>สัญญาที่ยังเปิดอยู่</h2><span class="muted num">${act.length}</span></div>
     ${act.length ? `<div class="panel tscroll"><table><thead><tr><th>ผู้กู้</th><th>เจ้าหนี้</th><th class="r">ยอดค้าง</th><th class="r">กำหนด</th></tr></thead><tbody>
       ${act.map(L => `<tr><td>${pn(L.borrower)}</td><td>${pn(L.lender)}</td><td class="r num" style="${L.overdue ? 'color:var(--danger)' : ''}">${fmt(L.balance)}</td><td class="r num">รอบ ${L.dueRound}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">ไม่มีสัญญาค้าง</p>'}
-    ${admin ? `<div class="row"><button data-a="admin">🛡️ เปิดแผงแอดมิน</button></div>` : isBanker() ? `<div class="row"><button data-a="banker">🏧 เปิดแผงแบงก์เกอร์</button></div>` : ''}</div>`;
+    ${admin ? `<div class="row"><button data-a="admin">🛡️ เปิดแผงแอดมิน</button></div>` : ''}</div>`;
+}
+
+// ---------- แท็บ: เคาน์เตอร์ธนาคาร (สำหรับแบงก์เกอร์/แอดมิน) — ทุกอย่างที่แบงก์เกอร์ต้องทำอยู่หน้าเดียว ----------
+function tabCounter(s) {
+  const reqs = s.reqs || [], act = s.order.filter(i => !P(i).out);
+  const total = act.reduce((a, i) => a + P(i).bal, 0);
+  const bankOwed = s.loans.filter(L => L.status === 'active' && L.lender == null).reduce((a, L) => a + L.balance, 0);
+  const budget = s.bankBudget;
+  // คำอธิบายทีละขั้นว่าแบงก์เกอร์ต้องทำอะไรกับคำขอแต่ละแบบ (กันงง)
+  const how = r => {
+    const who = esc(P(r.seat).name), a = `<b class="num">${fmt(r.amt)}</b>`;
+    if (r.kind === 'deposit') return `① รับเงินสด ${a} จาก ${who}<br>② กด "ยืนยัน" → เงินเข้าบัญชี${who}`;
+    if (r.kind === 'withdraw') return `① ส่งเงินสด ${a} ให้ ${who}<br>② กด "ยืนยัน" → หักจากบัญชี${who} (ตอนนี้มี ${baht(P(r.seat).bal)})`;
+    return `เหตุผล: <b>${esc(r.note || 'ไม่ระบุ')}</b><br>ตรวจว่าถูกต้อง แล้วกด "อนุมัติ" → ธนาคารจ่าย ${a} เข้าบัญชี${who}`;
+  };
+  const kind = { deposit: ['in', '📥 ฝากเงินสด'], withdraw: ['out', '📤 ถอนเงินสด'], claim: ['out', '🙋 ขอรับเงินจากธนาคาร'] };
+  return `<div class="stack">
+    <div class="teller">
+      <div class="t1">🏧 เคาน์เตอร์ธนาคาร · คุณคือ${isAdmin() ? 'แอดมิน (ทำหน้าที่แบงก์เกอร์ได้)' : 'แบงก์เกอร์'}</div>
+      <div class="t2">${reqs.length ? `มี ${reqs.length} คิวรอคุณยืนยัน` : 'ไม่มีคิวรอ ✓'}</div>
+      <div class="t3"><span>เงินในบัญชีรวมทุกคน <b>${baht(total)}</b></span><span>ลูกหนี้ธนาคาร <b>${fmt(bankOwed)}</b></span>
+        ${budget != null ? `<span>งบกลางธนาคาร <b>${baht(budget)}</b></span>` : ''}</div>
+    </div>
+    ${budget != null && budget <= 0 ? '<div class="notice bad"><span class="ni">⚠️</span><div><b>งบกลางธนาคารหมดแล้ว</b><small>จ่ายเงินออกเพิ่มไม่ได้ จนกว่าจะมีคนฝากเงินสด/จ่ายธนาคาร/คืนหนี้</small></div><span></span></div>' : ''}
+    <div class="section-h"><h2>คิวรอยืนยัน</h2>${reqs.length ? `<span class="count">${reqs.length}</span>` : ''}</div>
+    ${reqs.length ? reqs.map(r => `<div class="q">
+      <div class="qh">${tokHtml(r.seat)}<div><b>${esc(P(r.seat).name)}</b><br><span class="qk ${kind[r.kind][0]}">${kind[r.kind][1]}</span></div><span class="qamt">${fmt(r.amt)}</span></div>
+      <div class="qdo">${how(r)}</div>
+      <div class="row"><button class="danger" data-a="reqNo:${r.id}">ปฏิเสธ</button><button class="primary" data-a="reqOk:${r.id}">${r.kind === 'claim' ? 'อนุมัติ' : 'ยืนยัน'}</button></div>
+    </div>`).join('') : '<p class="empty" style="padding:4px 0">ยังไม่มีใครขอฝาก/ถอน — มีคำขอเมื่อไหร่จะขึ้นตรงนี้ พร้อมเสียงเตือน</p>'}
+    <details class="panel"><summary><b>📋 หน้าที่ของแบงก์เกอร์</b></summary>
+      <ol class="howto" style="margin-top:10px">
+        <li>คนเล่นทอยลูกเต๋า/เดินบนกระดานเอง — แบงก์เกอร์<b>ไม่ต้องมีตาเดิน</b></li>
+        <li>ใครผ่านจุดเริ่มต้น บอกคุณ → กด <b>🏁 ผ่านจุดเริ่มต้นให้</b> ที่แถบด้านบน (เงินเข้าบัญชีคนที่ถึงตาเท่านั้น)</li>
+        <li>มีคำขอฝาก/ถอนเงินสด → รับ/ส่งแบงก์จริงก่อน แล้วค่อยกด <b>ยืนยัน</b> ในคิว</li>
+        <li>เล่นเสร็จตา กด <b>จบตา ➜</b> แทนคนเล่นได้ ถ้าเขาลืมกด</li>
+        <li>กดผิด → เมนู ☰ → <b>ย้อนกลับคำสั่งล่าสุด</b></li>
+      </ol></details>
+    <div class="section-h"><h2>บัญชีลูกค้า</h2><span class="muted num">${s.order.length}</span></div>
+    <div class="panel" style="padding:2px 14px">${s.order.map(i => { const p = P(i); return `<div class="acc" style="${p.out ? 'opacity:.5' : ''}">${tokHtml(i)}
+      <div><b>${esc(p.name)}</b> ${creditHtml(i)}${i === s.turn ? ' <span class="badge me">ถึงตา</span>' : ''}${p.out ? ' <span class="badge">ออก</span>' : ''}<small>หนี้ ${fmt(debtOf(s, i))}</small></div>
+      <b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b></div>`; }).join('')}</div>
+    ${isAdmin() ? '<button data-a="admin">🛡️ เปิดแผงแอดมิน (แก้ยอด/เครดิต/สัญญา)</button>' : ''}
+  </div>`;
 }
 
 function tabEv(s) {
@@ -1647,15 +1870,15 @@ function howToStepsHtml(steps) {
 function howToPlayBody() {
   const steps = [
     'เล่นบนกระดานจริงตามปกติ: ทอยลูกเต๋า เดินตัวเดิน ทำตามช่องที่ตก (จ่ายค่าเช่า ซื้อที่ดิน จับการ์ด ฯลฯ)',
-    'จ่าย/รับเงินได้ 2 ทาง — ใช้เงินสดกระดาษตามปกติ หรือกดปุ่มในแอป (โอน, จ่ายธนาคาร) ก็ได้ แล้วแต่สะดวก',
+    'จ่าย/รับเงินได้ 2 ทาง — ใช้เงินสดกระดาษตามปกติ หรือกดปุ่มในหน้า "🏠 บัญชีของฉัน" (โอน, จ่ายธนาคาร) ก็ได้ ทำเสร็จจะได้สลิปยืนยันทุกครั้ง',
     'อยากแปลงเงินสด ↔ เงินในบัญชีแอป กด "ฝากเงินสด" / "ถอนเงินสด" แล้วยื่น-รับแบงก์จริงกับคนถือธนาคาร',
-    'ผ่านจุดเริ่มต้น กด "🏁 ผ่านจุดเริ่มต้น" เพื่อรับเงินเดือนเข้าบัญชีทันที',
+    'ผ่านจุดเริ่มต้น บอกแบงก์เกอร์ แล้วแบงก์เกอร์จะกด "🏁 ผ่านจุดเริ่มต้นให้" เงินเดือนเข้าบัญชีคุณทันที',
     'อยากกู้เงิน กด "กู้ธนาคาร" หรือ "ให้เพื่อนกู้" ระบบคิดดอกเบี้ยและเตือนวันครบกำหนดให้เอง',
     'เล่นเสร็จตาตัวเองแล้ว กด "จบตา ➜" เพื่อส่งไม้ต่อให้คนถัดไป (ระบบจะสุ่มอีเว้นท์พิเศษขึ้นเป็นระยะ ทำตามข้อความบนการ์ดได้เลย)',
     'ใครแพ้ทางการเงิน ให้แอดมินตั้งเป็น "ล้มละลาย" เกมจบเมื่อกดปุ่ม "จบเกม" แล้วทุกคนแจ้งเงินสด/ทรัพย์สินในแท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
   ];
   return `${howToStepsHtml(steps)}
-    <p class="muted" style="margin:0;font-size:12.5px">กดปุ่ม "❓ วิธีเล่น" ด้านบนดูซ้ำได้ทุกเมื่อ — เปิดป๊อปอัพเตือนอัตโนมัติทุกตาได้ที่กติกาเสริมถ้าต้องการ</p>
+    <p class="muted" style="margin:0;font-size:12.5px">กดปุ่ม ❓ มุมขวาบนดูซ้ำได้ทุกเมื่อ · ปุ่มอื่นๆ (ชวนเพื่อน ย้อนกลับ แบงก์เกอร์ แอดมิน ออก) อยู่ในเมนู ☰ — เปิดป๊อปอัพเตือนอัตโนมัติทุกตาได้ที่กติกาเสริมถ้าต้องการ</p>
     <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว เริ่มเล่นเลย</button></div>`;
 }
 function showHowToPlay() { // เด้งอัตโนมัติตอนเริ่มเกม (ครั้งเดียวต่อเกม)
@@ -1675,7 +1898,7 @@ function showTurnHelpIfNew(s) {
   const steps = [
     '🎲 ทอยลูกเต๋าบนกระดานจริง แล้วเดินตัวเดินตามแต้ม',
     '📍 ทำตามช่องที่ตก (จ่ายค่าเช่า/ซื้อที่ดิน/จับการ์ด ฯลฯ) ด้วยเงินสดหรือปุ่มในแอป',
-    goAmount(s) > 0 ? '🏁 ถ้าผ่านจุดเริ่มต้น กด "ผ่านจุดเริ่มต้น" เพื่อรับเงินเดือน' : null,
+    goAmount(s) > 0 ? '🏁 ถ้าผ่านจุดเริ่มต้น บอกแบงก์เกอร์ให้กดเงินเดือนเข้าบัญชีให้' : null,
     '✅ เล่นเสร็จแล้วกด "จบตา ➜" เพื่อส่งไม้ต่อ',
   ].filter(Boolean);
   openModal(`👉 ถึงตาของ ${esc(P(s.turn).name)}`, `${howToStepsHtml(steps)}
@@ -1701,6 +1924,18 @@ const wireQuick = () => $$('#modal-root [data-q]').forEach(b => b.onclick = () =
 const quickAmounts = s => [100, 200, 500, 1000].map(b => money(s, b));
 const balLine = v => `<div class="muted" style="font-size:14px">${pn(v)} · ยอดในบัญชี <b class="num">${baht(P(v).bal)}</b></div>`;
 
+// สลิปทำรายการสำเร็จ (เหมือนแอปธนาคาร) — wait = ส่งคำขอแล้วแต่ยังรอแบงก์เกอร์ยืนยัน
+function showSlip(title, amt, rows, wait = false) {
+  const now = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  const all = [...rows, ['รอบที่', S().round], ['เวลา', now + ' น.']].filter(r => r[1] != null && r[1] !== '');
+  openModal(wait ? 'ส่งคำขอแล้ว' : 'ทำรายการสำเร็จ', `<div class="slip">
+    <div class="ok ${wait ? 'wait' : ''}">${wait ? '⏳' : '✓'}</div>
+    <h3>${title}</h3>
+    <div class="amt">${fmt(amt)} <small class="muted" style="font-size:15px">บาท</small></div>
+    <dl>${all.map(([k, x]) => `<dt>${k}</dt><dd>${x}</dd>`).join('')}</dl>
+    ${wait ? '<p class="muted" style="margin:0;font-size:13.5px">ยอดจะเปลี่ยนหลังแบงก์เกอร์กดยืนยัน — ยกเลิกได้ที่หน้าบัญชีของคุณ</p>' : ''}
+    <button class="primary big" data-close>เสร็จสิ้น</button></div>`);
+}
 function openTransfer(v) {
   const s = S(), others = s.order.filter(i => i !== v && !P(i).out);
   if (!others.length) return toast('ไม่มีผู้เล่นคนอื่น');
@@ -1716,7 +1951,8 @@ function openTransfer(v) {
   $('#in-amt').focus();
   $('#b-go').onclick = async () => {
     const to = +$('#in-to').value, amt = +$('#in-amt').value;
-    if (await dispatch(v, { type: 'transfer', to, amount: amt, note: $('#in-note').value })) { closeModal(); toast(`โอน ${fmt(amt)} ให้ ${P(to).name} แล้ว`); }
+    const note = $('#in-note').value;
+    if (await dispatch(v, { type: 'transfer', to, amount: amt, note })) showSlip('โอนเงินสำเร็จ', amt, [['จาก', pn(v)], ['ไปยัง', pn(to)], ['หมายเหตุ', esc(note)]]);
   };
 }
 function openPayBank(v) {
@@ -1730,7 +1966,8 @@ function openPayBank(v) {
   wireQuick();
   $$('#modal-root [data-note]').forEach(b => b.onclick = () => $('#in-note').value = b.dataset.note);
   $('#in-amt').focus();
-  $('#b-go').onclick = async () => { if (await dispatch(v, { type: 'payBank', amount: +$('#in-amt').value, note: $('#in-note').value })) { closeModal(); toast('จ่ายธนาคารแล้ว'); } };
+  $('#b-go').onclick = async () => { const amt = +$('#in-amt').value, note = $('#in-note').value;
+    if (await dispatch(v, { type: 'payBank', amount: amt, note })) showSlip('จ่ายธนาคารสำเร็จ', amt, [['จาก', pn(v)], ['ไปยัง', '🏦 ธนาคาร'], ['ค่า', esc(note)]]); };
 }
 function openRequest(v, kind) {
   const s = S(), needConfirm = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
@@ -1744,7 +1981,9 @@ function openRequest(v, kind) {
   wireQuick();
   $('#in-amt').focus();
   $('#b-go').onclick = async () => {
-    if (await dispatch(v, { type: 'request', kind, amount: +$('#in-amt').value, note: $('#in-note') ? $('#in-note').value : '' })) { closeModal(); toast(needConfirm ? 'ส่งคำขอแล้ว รอแบงก์เกอร์ยืนยัน' : 'ทำรายการแล้ว'); }
+    const amt = +$('#in-amt').value, note = $('#in-note') ? $('#in-note').value : '';
+    if (await dispatch(v, { type: 'request', kind, amount: amt, note })) showSlip({ deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'รับเงินจากธนาคาร' }[kind], amt,
+      [['บัญชี', pn(v)], ['เหตุผล', esc(note)], ...(needConfirm ? [['สถานะ', kind === 'deposit' ? 'ยื่นเงินสดให้แบงก์เกอร์' : 'รอแบงก์เกอร์ยืนยัน']] : [])], needConfirm);
   };
 }
 function openBankLoan(v) {
@@ -1765,7 +2004,9 @@ function openBankLoan(v) {
   $('#b-go').onclick = async () => {
     const a = +$('#in-amt').value, into = $('#in-into').value;
     if (a % u) return toast(`ยอดต้องเป็นทวีคูณของ ${fmt(u)}`);
-    if (await dispatch(v, { type: 'bankLoan', amount: a, rounds: +$('#in-rounds').value, into })) { closeModal(); toast(into === 'cash' ? `รับเงินสด ${fmt(a)} จากคนถือธนาคารได้เลย` : `เงินกู้ ${fmt(a)} เข้าบัญชีแล้ว`); }
+    const rounds = +$('#in-rounds').value;
+    if (await dispatch(v, { type: 'bankLoan', amount: a, rounds, into })) showSlip('กู้ธนาคารสำเร็จ', a, [['ผู้กู้', pn(v)], ['ดอกเบี้ย', `${r}% ต่อรอบ`], ['คืนภายใน', `รอบที่ ${S().round + rounds}`],
+      ['รับเงินเป็น', into === 'cash' ? 'เงินสด — รับจากแบงก์เกอร์ได้เลย' : 'เข้าบัญชีแล้ว']]);
   };
 }
 function openOffer(v) {
@@ -1797,7 +2038,8 @@ function openRepay(v, id, mode) {
     ${quickBtns([max, ...[0.5, 0.25].map(f => Math.max(u, Math.round(max * f / u) * u))].filter((x, i, a) => x > 0 && x <= max && a.indexOf(x) === i))}
     <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ยืนยัน</button></div>`);
   wireQuick();
-  $('#b-go').onclick = async () => { if (await dispatch(v, { type: acc ? 'repayAccount' : 'repay', id, amount: +$('#in-amt').value })) closeModal(); };
+  $('#b-go').onclick = async () => { const amt = +$('#in-amt').value;
+    if (await dispatch(v, { type: acc ? 'repayAccount' : 'repay', id, amount: amt })) showSlip('คืนหนี้สำเร็จ', amt, [['ผู้กู้', pn(L.borrower)], ['เจ้าหนี้', pn(L.lender)], ['ยอดคงค้าง', fmt(Math.max(0, L.balance - amt))]]); };
 }
 function openInvite() {
   const s = S();
@@ -2072,10 +2314,11 @@ document.addEventListener('pointerdown', unlockAudio, { once: true });
 document.addEventListener('click', e => {
   if (e.target.closest('[data-evclose]') && (e.target.matches('[data-evclose]') || e.target.closest('button[data-evclose]'))) { $('#ev-root').innerHTML = ''; if (S() && S().status === 'playing') showTurnHelpIfNew(S()); return; }
   if (e.target.matches('[data-backdrop]') || e.target.closest('[data-close]')) return closeModal();
-  const tab = e.target.closest('[data-tab]'); if (tab) { App.tab = tab.dataset.tab; return render(); }
+  const tab = e.target.closest('[data-tab]'); if (tab) { App.tab = tab.dataset.tab; render(); return window.scrollTo(0, 0); }
   const ac = e.target.closest('[data-actor]'); if (ac) { App.actor = +ac.dataset.actor; return render(); }
   const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
   const [a, x] = b.dataset.a.split(':'); const as = b.dataset.as != null ? +b.dataset.as : null; const s = S();
+  if (b.closest('.menu')) closeModal(); // กดรายการในเมนูแล้วปิดเมนูก่อนทำต่อ
   const turnActor = canAct(s.turn) ? s.turn : null; // ถึงตาใคร กดในนามคนนั้น (หรือแอดมิน)
   switch (a) {
     case 'endTurn': return dispatch(turnActor, { type: 'endTurn' });
@@ -2107,6 +2350,11 @@ document.addEventListener('click', e => {
     case 'admin': return isAdmin() ? openAdminPanel() : openAdminClaim();
     case 'banker': return isBanker() ? openBankerPanel() : openBankerClaim();
     case 'bankpin': return openHostBankPin();
+    case 'menu': return openMenu();
+    case 'goTab': App.tab = x; render(); return window.scrollTo(0, 0);
+    // ยืนยัน/ปฏิเสธคำขอจากหน้าเคาน์เตอร์ธนาคาร
+    case 'reqOk': return dispatch(null, { type: 'resolveReq', id: +x, ok: true }).then(ok => { if (ok) toast('✓ ยืนยันรายการแล้ว'); });
+    case 'reqNo': return confirmBox('ปฏิเสธคำขอนี้?', 'ผู้เล่นจะเห็นว่าคำขอถูกปฏิเสธ และยอดในบัญชีไม่เปลี่ยน', 'ปฏิเสธ', () => dispatch(null, { type: 'resolveReq', id: +x, ok: false }));
     case 'invite': return openInvite();
     case 'copy': return copyText(inviteLink());
     case 'sound': App.sound = !App.sound; store('bb_sound', App.sound ? 'on' : 'off'); if (App.sound) { unlockAudio(); beep('ping'); buzz(60); } return render();
