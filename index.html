@@ -249,12 +249,14 @@ const DEFAULT_SETTINGS = {
   capPct: 50,         // วงเงินกู้ธนาคาร % ของเงินเริ่มต้น
   penalty: 10,        // ค่าปรับค้างชำระ %
   eventMode: 'every', // ความถี่อีเว้นท์
-  startBal: 0,        // ยอดเงินในบัญชีตอนเริ่มเกม
+  startBal: 0,        // ยอดเงินในบัญชีตอนเริ่มเกม (ใช้เมื่อ startAllInApp = false เท่านั้น)
+  startAllInApp: true, // เริ่มเกมแล้วโอนเงินเริ่มต้นทั้งหมดเข้าบัญชีในระบบเลย ไม่แจกเงินสดกระดาษ (ใครอยากได้เงินสดค่อยกด "ถอนเงินสด" แลกทีหลัง) — ปิดได้ถ้าอยากแจกเงินสดกระดาษตามปกติแล้วกำหนด startBal เอง
   goSalary: 2000,     // เงินผ่านจุดเริ่มต้น (กดรับเข้าบัญชี)
   autoPay: true,      // อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ
   cashConfirm: true,  // ฝาก/ถอนเงินสดต้องให้แอดมินยืนยัน
   turnHelp: false,     // เด้งป๊อปอัพวิธีเล่นซ้ำทุกตา (ปิดอยู่โดยค่าเริ่มต้น เปิดเป็นตัวเลือกได้ — มีปุ่ม "❓ วิธีเล่น" กดดูเองได้เสมออยู่แล้ว)
   disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
+  minBalPct: 13,       // ยอดเงินขั้นต่ำในบัญชี (% ของเงินเริ่มต้นบนกระดาน) ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติทันที — ค่าเริ่มต้น 13% ≈ 2,000 ที่กระดาน 15,000 — ตั้งเป็น 0 เพื่อปิดฟีเจอร์นี้
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร' };
@@ -517,6 +519,25 @@ const UNDO_DESC = { transfer: 'โอนเงิน', payBank: 'จ่ายธ
   bankLoan: 'กู้ธนาคาร', offer: 'เสนอให้กู้', acceptLoan: 'รับข้อเสนอกู้', cancelLoan: 'ยกเลิกสัญญา', repay: 'คืนหนี้', forgive: 'ยกหนี้',
   declareWorth: 'แจ้งเงินสด/ทรัพย์สิน', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม' };
 
+// ยอดเงินขั้นต่ำในบัญชี (คำนวณจาก % ของเงินเริ่มต้นบนกระดาน) — ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติ (minBalPct = 0 คือปิดฟีเจอร์นี้)
+const minBalOf = s => Math.round(s.settings.start * (s.settings.minBalPct || 0) / 100);
+// ตรวจทุกคนหลังทำรายการ: ใครยอดบัญชีต่ำกว่าขั้นต่ำ ให้ล้มละลายอัตโนมัติทันที (เหมือนโดนตั้งล้มละลายเอง)
+function sweepAutoBankrupt(s, rng) {
+  if (s.status !== 'playing') return;
+  const min = minBalOf(s);
+  if (min <= 0) return;
+  for (const i of active(s)) {
+    const p = s.players[i];
+    if (p.bal < min) {
+      p.out = true;
+      log(s, `💀 ${p.name} ยอดบัญชีต่ำกว่าขั้นต่ำที่ตั้งไว้ (${fmt(min)}) — ล้มละลายอัตโนมัติ`);
+      for (const L of s.loans) if (L.status === 'offer' && (L.lender === i || L.borrower === i)) L.status = 'declined';
+      s.reqs = (s.reqs || []).filter(r => r.seat !== i);
+      if (s.turn === i && active(s).length) nextTurn(s, rng);
+    }
+  }
+}
+
 function applyAction(state, uid, act, rng = Math.random) {
   const s = clone(state);
   s.seq = (s.seq || 0) + 1;
@@ -610,10 +631,12 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.penalty != null) { const x = Math.round(+v.penalty); need(x >= 0 && x <= 100, 'ค่าปรับต้องอยู่ระหว่าง 0–100%'); st.penalty = x; }
       if (v.eventMode != null) { need(EVENT_MODES[v.eventMode], 'โหมดอีเว้นท์ไม่ถูกต้อง'); st.eventMode = v.eventMode; }
       if (v.startBal != null) { const x = Math.round(+v.startBal); need(x >= 0 && x <= 100000000, 'ยอดเริ่มต้นไม่ถูกต้อง'); st.startBal = x; }
+      if (v.startAllInApp != null) st.startAllInApp = !!v.startAllInApp;
       if (v.goSalary != null) { const x = Math.round(+v.goSalary); need(x >= 0 && x <= 100000000, 'เงินผ่านจุดเริ่มต้นไม่ถูกต้อง'); st.goSalary = x; }
       if (v.autoPay != null) st.autoPay = !!v.autoPay;
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
+      if (v.minBalPct != null) { const x = +v.minBalPct; need(x >= 0 && x <= 100, 'ยอดขั้นต่ำต้องอยู่ระหว่าง 0–100%'); st.minBalPct = x; }
       if (v.disabledEvents != null) {
         need(Array.isArray(v.disabledEvents), 'รูปแบบไม่ถูกต้อง');
         st.disabledEvents = v.disabledEvents.map(String);
@@ -636,7 +659,10 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (act.shuffle) shuffle(s.players, rng);
       Object.assign(s, { status: 'playing', order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
         event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, customEvents: s.customEvents || [], goCount: 0 });
-      s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null; if (s.settings.startBal > 0) credit(s, i, s.settings.startBal, 'start', 'ยอดเริ่มต้น'); });
+      // startAllInApp (ค่าเริ่มต้น) = เงินเริ่มต้นทั้งหมดเข้าบัญชีในระบบเลย ไม่แจกเงินสดกระดาษ — ปิดได้แล้วกำหนด startBal เองถ้าอยากแจกเงินสดกระดาษตามปกติ
+      s.players.forEach((p, i) => { p.bal = 0; p.cash = null; p.assets = null;
+        const initBal = s.settings.startAllInApp ? s.settings.start : s.settings.startBal;
+        if (initBal > 0) credit(s, i, initBal, 'start', 'ยอดเริ่มต้น'); });
       log(s, `🎲 เริ่มเกม! ลำดับ: ${s.players.map(p => p.name).join(' → ')}`);
       log(s, `▶️ ตาของ ${s.players[0].name}`);
       break;
@@ -671,6 +697,8 @@ function applyAction(state, uid, act, rng = Math.random) {
       need(s.status === 'playing', 'เกมยังไม่เริ่มหรือจบไปแล้ว');
       playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng);
   }
+  // เช็คยอดขั้นต่ำในบัญชีหลังทำรายการทุกครั้ง — ใครต่ำกว่าที่ตั้งไว้ ล้มละลายอัตโนมัติทันที (ข้ามถ้าปิดฟีเจอร์นี้ไว้ที่ 0%)
+  sweepAutoBankrupt(s, rng);
   // เก็บ snapshot ของ state ก่อนคำสั่งนี้ไว้ย้อนกลับได้ 1 ขั้น (ตัด undo เดิมทิ้งกันข้อมูลพอกพูน)
   const { undo: _prevUndo, ...prevClean } = state;
   s.undo = { snapshot: prevClean, desc: UNDO_DESC[act.type] || act.type, by: uid, at: state.seq || 0 };
@@ -694,7 +722,8 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       nextTurn(s, rng);
       break;
     case 'drawEvent':
-      need(seat === s.turn || isAdmin, 'สุ่มอีเว้นท์ได้เฉพาะคนที่ถึงตาหรือแอดมิน');
+      // สุ่มอีเว้นท์ด้วยตัวเอง (นอกเหนือจากที่สุ่มอัตโนมัติตามรอบ) สงวนไว้ให้แบงก์เกอร์/แอดมินเท่านั้น (เล่นทั่วไปใช้แบงก์เกอร์พอ ไม่ต้องพึ่งรหัสผ่านแอดมิน) กันผู้เล่นกดรัวหาใบที่ถูกใจตัวเอง
+      need(isBanker, 'สุ่มอีเว้นท์เองได้เฉพาะแบงก์เกอร์หรือแอดมินเท่านั้น (อีเว้นท์ปกติจะสุ่มขึ้นอัตโนมัติตามรอบอยู่แล้ว)');
       drawEvent(s, rng);
       break;
     case 'goSalary': {
@@ -1220,19 +1249,21 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
   return `<div class="grid2">
     <div class="field"><label for="${pf}-start">เงินเริ่มต้นบนกระดาน</label><input id="${pf}-start" type="number" inputmode="numeric" value="${st.start}" ${d}><small>ใช้คิดสัดส่วนเงินในอีเว้นท์และวงเงินกู้</small></div>
     <div class="field"><label for="${pf}-go">เงินผ่านจุดเริ่มต้น</label><input id="${pf}-go" type="number" inputmode="numeric" value="${st.goSalary}" ${d}><small>กดรับเข้าบัญชีได้ตอนถึงตา</small></div>
-    <div class="field"><label for="${pf}-bal">ยอดในบัญชีตอนเริ่ม</label><input id="${pf}-bal" type="number" inputmode="numeric" value="${st.startBal}" ${d}><small>0 = เริ่มด้วยเงินสดกระดาษอย่างเดียว</small></div>
+    <div class="field"><label for="${pf}-bal">ยอดในบัญชีตอนเริ่ม (ถ้าปิด "เริ่มด้วยเงินในระบบทั้งหมด")</label><input id="${pf}-bal" type="number" inputmode="numeric" value="${st.startBal}" ${d}><small>0 = เริ่มด้วยเงินสดกระดาษอย่างเดียว</small></div>
     <div class="field"><label for="${pf}-rate">ดอกเบี้ยธนาคาร (%/รอบ)</label><input id="${pf}-rate" type="number" inputmode="numeric" value="${st.rate}" ${d}><small>ใช้กับเงินกู้และบัญชีติดลบ</small></div>
     <div class="field"><label for="${pf}-cap">วงเงินกู้ธนาคาร (% ของเงินเริ่มต้น)</label><input id="${pf}-cap" type="number" inputmode="numeric" value="${st.capPct}" ${d}><small>เครดิต B = ${st.capPct}% · AAA ได้มากกว่า</small></div>
     <div class="field"><label for="${pf}-pen">ค่าปรับค้างชำระ (%)</label><input id="${pf}-pen" type="number" inputmode="numeric" value="${st.penalty}" ${d}><small>คิดครั้งเดียวตอนเลยกำหนด</small></div>
+    <div class="field"><label for="${pf}-minbal">ยอดขั้นต่ำในบัญชี (% ของเงินเริ่มต้น)</label><input id="${pf}-minbal" type="number" inputmode="numeric" value="${st.minBalPct ?? 13}" ${d}><small>ต่ำกว่านี้ = ล้มละลายอัตโนมัติทันที (0 = ปิด)</small></div>
   </div>
   <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+  ${chk(pf + '-allin', st.startAllInApp !== false, 'เริ่มด้วยเงินในระบบทั้งหมด (ไม่แจกเงินสดกระดาษ)', 'แนะนำ — เงินเริ่มต้นเข้าบัญชีในแอปให้เลย ใครอยากได้เงินสดค่อยกด "ถอนเงินสด" แลกทีหลัง จะได้รู้ยอดรวมทุกคนตลอดเวลา ปิดถ้าจะแจกเงินสดกระดาษตามปกติแล้วกำหนดยอดในบัญชีเอง')}
   ${chk(pf + '-auto', st.autoPay, 'อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ', 'ปิดไว้ถ้าอยากจ่ายเงินสดกระดาษตามการ์ดเอง')}
   ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}
   ${chk(pf + '-help', !!st.turnHelp, 'ป๊อปอัพวิธีเล่น อัตโนมัติ ตอนเริ่มเกม + ทุกตา', 'ปิดอยู่โดยค่าเริ่มต้น เปิดได้ถ้าอยากให้เตือนขั้นตอนอัตโนมัติทุกตา (มีปุ่ม "❓ วิธีเล่น" ด้านบนให้กดดูเองได้ตลอดอยู่แล้ว)')}`;
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
-  return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, rate: +v('rate').value,
-    capPct: +v('cap').value, penalty: +v('pen').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
+  return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, startAllInApp: v('allin').checked, rate: +v('rate').value,
+    capPct: +v('cap').value, penalty: +v('pen').value, minBalPct: +v('minbal').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.sound}" title="เสียงและการสั่นเตือน">${App.sound ? '🔔' : '🔕'}</button>`;
@@ -1242,9 +1273,11 @@ function roleButtons() {
   const help = `<button class="sm" data-a="howto" title="ดูวิธีเล่น">❓ วิธีเล่น</button>`;
   // ย้อนกลับคำสั่งล่าสุด — เห็นได้เฉพาะแอดมิน/แบงก์เกอร์/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริงๆ
   const undoBtn = (banker || isHostUser()) && s.undo ? `<button class="sm" data-a="undo" title="ย้อนกลับ: ${esc(s.undo.desc)}">↩️ ย้อนกลับ</button>` : '';
+  // เจ้าของห้อง (ไม่ใช่แอดมิน) เห็นปุ่มดู/แจก PIN แบงก์เกอร์ได้เอง ไม่ต้องรอแอดมิน
+  const bankPinBtn = (!admin && isHostUser() && App.mode === 'online') ? `<button class="sm" data-a="bankpin" title="ดู/แจก PIN แบงก์เกอร์">🔑 PIN แบงก์เกอร์</button>` : '';
   if (admin) return `${help}${undoBtn}<button class="sm gold" data-a="admin">🛡️ แอดมิน${n ? ` <span class="count">${n}</span>` : ''}</button>`;
   // ไม่ใช่แอดมิน: แสดงปุ่มเข้าโหมดแอดมิน และปุ่มแบงก์เกอร์ (หรือปุ่มเข้าโหมดแบงก์เกอร์ ถ้ายังไม่ได้เป็น)
-  return `${help}${undoBtn}<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
+  return `${help}${undoBtn}${bankPinBtn}<button class="sm" data-a="admin">🛡️ เข้าโหมดแอดมิน</button>
     <button class="sm ${banker ? 'gold' : ''}" data-a="banker">🏧 ${banker ? 'แบงก์เกอร์' : 'เข้าโหมดแบงก์เกอร์'}${banker && n ? ` <span class="count">${n}</span>` : ''}</button>`;
 }
 function invitePanel(s) {
@@ -1311,7 +1344,9 @@ function renderGame() {
   const s = S(), over = s.status === 'over';
   const t = s.turn, nx = nextSeat(s);
   const host = canHost();
-  const ctlTurn = canAct(t) || host;
+  // ควบคุมตาเล่น (จบตา/ผ่านจุดเริ่มต้น/สุ่มอีเว้นท์) เป็นสิทธิ์ของ "คนที่ถึงตา" หรือแอดมินเท่านั้น
+  // เจ้าของห้องเฉยๆ (ไม่ใช่แอดมิน) ไม่ได้มีสิทธิ์นี้ — ให้ตรงกับ engine.js (เห็นปุ่มแต่กดแล้ว error ไม่มีประโยชน์)
+  const ctlTurn = canAct(t) || isAdmin();
   const alerts = myAlerts(s, viewSeat());
   const tabs = [...(over ? [['result', 'ผลการแข่งขัน']] : []), ['me', 'บัญชีของฉัน'], ['all', 'ทุกคน'], ['ev', 'อีเว้นท์'], ['log', 'บันทึก']];
   if (!tabs.some(x => x[0] === App.tab)) App.tab = tabs[0][0];
@@ -1328,8 +1363,8 @@ function renderGame() {
       <div class="who">${tokHtml(t)}<span>ตาของ ${esc(P(t).name)}</span></div>
       ${nx != null ? `<div class="next">คนต่อไป: ${pn(nx)}${s.skip[nx] ? ' (โดนข้ามตา)' : ''}</div>` : ''}
       <div class="row">${ctlTurn ? `<button class="gold big" data-a="endTurn">จบตา ➜</button>
-        ${goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้น +${fmt(goAmt)}</button>` : ''}
-        <button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}</div>
+        ${goAmt > 0 ? `<button class="ghost" data-a="go" ${(s.goCount || 0) >= 2 ? 'disabled' : ''}>🏁 ผ่านจุดเริ่มต้น +${fmt(goAmt)}</button>` : ''}` : `<span class="next">รอ ${esc(P(t).name)} เล่นบนกระดาน…</span>`}
+        ${isBanker() ? '<button class="ghost" data-a="drawEvent">🎴 สุ่มอีเว้นท์</button>' : ''}</div>
     </section>`}
     ${s.effects.length ? `<div class="effects" aria-label="ผลที่กำลังมีผล">${s.effects.map(e => `<span class="effect">${e.icon} ${esc(e.label)} <small>ถึงรอบ ${e.until}</small></span>`).join('')}</div>` : ''}
     <nav class="tabs" role="tablist">
@@ -1749,7 +1784,7 @@ function openDeclareFor(seat) {
 // ---------- แบงก์เกอร์ ----------
 function openPinPrompt(onSubmit, title, successMsg) {
   openModal(title || '🏧 กรอกรหัส PIN แบงก์เกอร์', `
-    <p class="muted" style="margin:0;font-size:14px">ขอรหัส PIN 4 หลักจากแอดมิน (ดูได้ในแผงแอดมิน)</p>
+    <p class="muted" style="margin:0;font-size:14px">ขอรหัส PIN 4 หลักจากเจ้าของห้องหรือแอดมิน (กดปุ่ม "🔑 PIN แบงก์เกอร์" ดูได้)</p>
     <div class="field"><input id="in-pin" inputmode="numeric" maxlength="4" aria-label="รหัส PIN" style="font-family:var(--mono);font-size:26px;letter-spacing:.35em;text-align:center"></div>
     <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-pin-go">ยืนยัน</button></div>`);
   $('#in-pin').focus();
@@ -1971,6 +2006,27 @@ function openBankerPanel() {
   wireBankerPanel();
 }
 
+// ---------- PIN แบงก์เกอร์ (ให้เจ้าของห้องดู/แจกได้เอง โดยไม่ต้องเป็นแอดมิน) ----------
+function hostBankPinHtml(s) {
+  return `<div class="muted" style="font-size:13.5px">🏠 คุณคือเจ้าของห้อง — ดูรหัสนี้แจกให้คนถือเงินสดธนาคารจริงบนโต๊ะได้เลย</div>
+    <div class="panel stack" style="padding:12px 14px">
+      <div class="label">รหัส PIN แบงก์เกอร์</div>
+      <div class="row" style="flex-wrap:nowrap"><span class="num" style="font-size:26px;letter-spacing:.2em;color:var(--jade)">${s.bankPin}</span>
+        <button class="sm" id="hp-copy-bankpin" style="margin-left:auto">คัดลอก</button></div>
+      <div class="muted" style="font-size:12.5px">คนที่ถือรหัสนี้กดปุ่ม "เข้าโหมดแบงก์เกอร์" ที่หน้าแรกของแอป แล้วใส่รหัส — ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว แก้ไขค่าอื่นในเกมไม่ได้</div>
+      <div class="muted" style="font-size:12px">รหัสหลุดหรืออยากสร้างใหม่ ต้องให้แอดมิน (มีรหัสผ่านแอดมิน) เป็นคนกดในแผงแอดมิน</div>
+    </div>`;
+}
+function wireHostBankPin() {
+  const bd = $('#modal-root .bd'); if (!bd) return;
+  const btn = $('#hp-copy-bankpin', bd); if (btn) btn.onclick = () => copyText(S().bankPin);
+}
+function openHostBankPin() {
+  if (!isHostUser()) return;
+  openModal('🔑 PIN แบงก์เกอร์', hostBankPinHtml(S()), () => { const bd = $('#modal-root .bd'); if (bd) { bd.innerHTML = hostBankPinHtml(S()); wireHostBankPin(); } });
+  wireHostBankPin();
+}
+
 // ---------- ปุ่มทั้งหมด ----------
 document.addEventListener('pointerdown', unlockAudio, { once: true });
 document.addEventListener('click', e => {
@@ -2010,6 +2066,7 @@ document.addEventListener('click', e => {
     case 'howto': return openHowToPlay();
     case 'admin': return isAdmin() ? openAdminPanel() : openAdminClaim();
     case 'banker': return isBanker() ? openBankerPanel() : openBankerClaim();
+    case 'bankpin': return openHostBankPin();
     case 'invite': return openInvite();
     case 'copy': return copyText(inviteLink());
     case 'sound': App.sound = !App.sound; store('bb_sound', App.sound ? 'on' : 'off'); if (App.sound) { unlockAudio(); beep('ping'); buzz(60); } return render();
