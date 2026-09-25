@@ -117,6 +117,7 @@ td.r,th.r{text-align:right}
 .hist .ic{font-size:26px;line-height:1}
 .hist small{color:var(--muted);font-family:var(--mono)}
 .log{display:grid;gap:2px;font-size:13.5px}
+.howto{margin:0;padding-left:1.3em;display:grid;gap:8px;font-size:14.5px;line-height:1.45}
 .log div{padding:5px 0;border-bottom:1px dashed var(--line);display:grid;grid-template-columns:34px 1fr;gap:6px}
 .log small{font-family:var(--mono);color:var(--muted)}
 
@@ -252,6 +253,7 @@ const DEFAULT_SETTINGS = {
   goSalary: 2000,     // เงินผ่านจุดเริ่มต้น (กดรับเข้าบัญชี)
   autoPay: true,      // อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ
   cashConfirm: true,  // ฝาก/ถอนเงินสดต้องให้แอดมินยืนยัน
+  turnHelp: true,      // เด้งป๊อปอัพวิธีเล่น ตอนเริ่มเกม + ทุกตา
 };
 const EVENT_MODES = { every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', chance: 'สุ่ม 50% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร' };
@@ -273,9 +275,10 @@ function log(s, msg) { s.log.push({ r: s.round || 0, m: msg }); if (s.log.length
 const nm = (s, i) => i == null ? 'ธนาคาร' : s.players[i].name;
 const active = s => s.order.filter(i => !s.players[i].out);
 const hasEffect = (s, key) => (s.effects || []).some(e => e.key === key);
-// ---------- แอดมิน (กรรมการ): เจ้าของห้อง + ใครก็ตามที่ใส่ PIN ถูก ไม่ต้องเป็นผู้เล่นก็ได้ ----------
+// ---------- แอดมิน (หลังบ้าน): เข้าได้เฉพาะคนที่รู้รหัสผ่านตายตัวนี้เท่านั้น เจ้าของห้อง/ใครสร้างห้องก็ไม่ได้สิทธิ์อัตโนมัติ ----------
 const genPin = () => String(Math.floor(1000 + Math.random() * 9000));
-const isAdminUid = (s, uid) => uid === s.hostUid || (s.admins || []).includes(uid);
+const ADMIN_PASSWORD = 'Focus3256';
+const isAdminUid = (s, uid) => (s.admins || []).includes(uid);
 // ---------- แบงก์เกอร์: คนถือเงินสดธนาคาร มีรหัส PIN แยกจากแอดมิน ทำได้แค่ยืนยันฝาก/ถอน/รับเงิน (แอดมินทำแทนได้เสมอ) ----------
 const isBankerUid = (s, uid) => isAdminUid(s, uid) || (s.bankers || []).includes(uid);
 
@@ -496,12 +499,12 @@ function nextTurn(s, rng) {
 
 // ================== ตัวหลัก ==================
 function newRoom(hostUid) {
-  return { v: 3, status: 'lobby', hostUid, pin: genPin(), admins: [], bankPin: genPin(), bankers: [], players: [], settings: { ...DEFAULT_SETTINGS }, log: [], seq: 0 };
+  return { v: 3, status: 'lobby', hostUid, admins: [], bankPin: genPin(), bankers: [], players: [], settings: { ...DEFAULT_SETTINGS }, log: [], seq: 0 };
 }
 
 // คำสั่งเหล่านี้เป็นของแอดมิน/แบงก์เกอร์ (กรรมการ) ไม่จำเป็นต้องเป็นผู้เล่นในห้องก็สั่งได้
 const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
-  'setRound', 'resetPin', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary'];
+  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary'];
 
 function applyAction(state, uid, act, rng = Math.random) {
   const s = clone(state);
@@ -527,9 +530,9 @@ function applyAction(state, uid, act, rng = Math.random) {
     return s;
   }
   if (act.type === 'claimAdmin') {
-    need(String(act.pin || '').trim() === s.pin, 'รหัส PIN ไม่ถูกต้อง');
+    need(String(act.password || '').trim() === ADMIN_PASSWORD, 'รหัสผ่านไม่ถูกต้อง');
     s.admins = s.admins || [];
-    if (uid !== s.hostUid && !s.admins.includes(uid)) { s.admins.push(uid); log(s, `🛡️ มีคนเข้าสู่โหมดแอดมินด้วยรหัส PIN`); }
+    if (!s.admins.includes(uid)) { s.admins.push(uid); log(s, `🔒 มีคนเข้าสู่ระบบแอดมินด้วยรหัสผ่าน`); }
     return s;
   }
   if (act.type === 'claimBanker') {
@@ -570,6 +573,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.goSalary != null) { const x = Math.round(+v.goSalary); need(x >= 0 && x <= 100000000, 'เงินผ่านจุดเริ่มต้นไม่ถูกต้อง'); st.goSalary = x; }
       if (v.autoPay != null) st.autoPay = !!v.autoPay;
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
+      if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
       if (s.status === 'playing') log(s, `⚙️ แอดมินปรับการตั้งค่า`);
       break;
     }
@@ -591,15 +595,10 @@ function applyAction(state, uid, act, rng = Math.random) {
       log(s, `🎲 เริ่มเกม! ลำดับ: ${s.players.map(p => p.name).join(' → ')}`);
       log(s, `▶️ ตาของ ${s.players[0].name}`);
       break;
-    case 'resetPin':
-      need(isHost, 'เฉพาะเจ้าของห้องเท่านั้น');
-      s.pin = genPin(); s.admins = [];
-      log(s, `🛡️ เจ้าของห้องสร้างรหัส PIN แอดมินใหม่ (แอดมินคนอื่นหลุดสถานะ)`);
-      break;
     case 'resetBankPin':
-      need(isHost, 'เฉพาะเจ้าของห้องเท่านั้น');
+      need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
       s.bankPin = genPin(); s.bankers = [];
-      log(s, `🏧 เจ้าของห้องสร้างรหัส PIN แบงก์เกอร์ใหม่ (แบงก์เกอร์คนอื่นหลุดสถานะ)`);
+      log(s, `🏧 แอดมินสร้างรหัส PIN แบงก์เกอร์ใหม่ (แบงก์เกอร์คนอื่นหลุดสถานะ)`);
       break;
     case 'declareWorth': {
       // แจ้งเงินสดกระดาษ + มูลค่าทรัพย์สินบนกระดาน (ใช้ตอนจบเกม) — ทำได้ทั้งระหว่างเกมและหลังจบ
@@ -893,7 +892,7 @@ function applyReq(s, r) {
 }
 
 if (typeof module !== 'undefined') module.exports = { applyAction, newRoom, EVENTS, EVENT_BY_ID, CREDIT, TOKENS, GameError, bankCap, bankDebt, debtOf, lentOf, loanRate, bankRate,
-  unitOf, money, EVENT_MODES, isAdminUid, isBankerUid, netWorth, gameStats, REQ_KIND, findEvent };
+  unitOf, money, EVENT_MODES, isAdminUid, isBankerUid, netWorth, gameStats, REQ_KIND, findEvent, ADMIN_PASSWORD };
 
 </script>
 
@@ -910,7 +909,7 @@ const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
 
 const App = { mode: null, state: null, room: null, uid: null, busy: false, unsub: null, tab: 'me', actor: 0, seenEvent: null,
-  token: +(store('bb_token') || 0), sound: store('bb_sound') !== 'off', audio: null, titleTimer: null };
+  token: +(store('bb_token') || 0), sound: store('bb_sound') !== 'off', audio: null, titleTimer: null, seenHowTo: false, seenTurnHelpKey: null };
 function getUid() {
   let u = null; try { u = sessionStorage.getItem('bb_uid'); } catch (e) {}
   if (!u) { u = 'u' + Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('bb_uid', u); } catch (e) {} }
@@ -919,8 +918,8 @@ function getUid() {
 const S = () => App.state;
 const mySeat = () => App.mode === 'online' && S() ? S().players.findIndex(p => p.uid === App.uid) : -1;
 const viewSeat = () => App.mode === 'local' ? App.actor : mySeat();       // บัญชีที่กำลังดูอยู่
-const isHostUser = () => !!S() && S().hostUid === App.uid;          // เจ้าของห้องตัวจริง (ตั้ง/รีเซ็ต PIN ได้)
-const isAdmin = () => App.mode === 'local' || (!!S() && isAdminUid(S(), App.uid)); // เจ้าของห้อง หรือใครก็ตามที่ใส่ PIN แอดมินถูก
+const isHostUser = () => !!S() && S().hostUid === App.uid;          // เจ้าของห้อง (แค่ตำแหน่งในห้อง ไม่ได้แปลว่าเป็นแอดมิน)
+const isAdmin = () => App.mode === 'local' || (!!S() && isAdminUid(S(), App.uid)); // เฉพาะคนที่ใส่รหัสผ่านแอดมินถูกเท่านั้น
 const isBanker = () => App.mode === 'local' || (!!S() && isBankerUid(S(), App.uid)); // แอดมิน หรือคนถือเงินสดธนาคารที่ใส่ PIN แบงก์เกอร์ถูก
 const canAct = seat => App.mode === 'local' || seat === mySeat();
 const P = i => S().players[i];
@@ -1050,7 +1049,7 @@ async function roomTx(code, act) {
   enterRoom(code);
 }
 const joinRoom = (code, name) => roomTx(code, { type: 'join', name, token: App.token });
-const adminEnterRoom = (code, pin) => roomTx(code, { type: 'claimAdmin', pin });
+const adminEnterRoom = (code, password) => roomTx(code, { type: 'claimAdmin', password });
 const bankerEnterRoom = (code, pin) => roomTx(code, { type: 'claimBanker', pin });
 function enterRoom(code) {
   App.mode = 'online'; App.room = code;
@@ -1063,7 +1062,7 @@ function startLocal(names) {
   let s = newRoom('L0');
   names.forEach((n, i) => { s = applyAction(s, 'L' + i, { type: 'join', name: n, token: i }); });
   s = applyAction(s, 'L0', { type: 'settings', settings: { cashConfirm: false } }); // เครื่องเดียว: คนถือเครื่องคือแบงก์เกอร์อยู่แล้ว
-  App.seenEvent = null; App.actor = 0;
+  App.seenEvent = null; App.actor = 0; App.seenHowTo = false; App.seenTurnHelpKey = null;
   setState(s);
 }
 function setState(s) {
@@ -1073,11 +1072,12 @@ function setState(s) {
   if (prev && prev.status === 'playing' && s.status === 'over') App.tab = 'result';
   if (s.status === 'playing' && App.tab === 'result') App.tab = 'me';
   notifyChanges(prev, s);
+  if (prev && prev.status === 'lobby' && s.status === 'playing' && s.settings.turnHelp !== false) showHowToPlay();
   render();
 }
 function leaveToHome() {
   if (App.unsub) App.unsub();
-  Object.assign(App, { unsub: null, state: null, mode: null, room: null, seenEvent: null, tab: 'me' });
+  Object.assign(App, { unsub: null, state: null, mode: null, room: null, seenEvent: null, tab: 'me', seenHowTo: false, seenTurnHelpKey: null });
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
   closeModal(); $('#ev-root').innerHTML = ''; render();
 }
@@ -1107,7 +1107,7 @@ function renderHome() {
     <ul class="features">
       <li><b>💳 บัญชีธนาคาร</b>โอนค่าเช่า ฝาก/ถอนเงินสดกับแบงก์เกอร์ รับเงินผ่านจุดเริ่มต้นเข้าบัญชี</li>
       <li><b>🏦 กู้ยืม</b>กู้ธนาคารหรือกู้กันเอง ดอกเบี้ยคิดทุกรอบ เครดิตขึ้นลงตามพฤติกรรม</li>
-      <li><b>🎴 อีเว้นท์พิเศษ</b>${EVENTS.length} แบบ + แอดมินสร้างเองได้ ตัด/เติมเงินในบัญชีให้อัตโนมัติ</li>
+      <li><b>🎴 อีเว้นท์พิเศษ</b>${EVENTS.length} แบบ ตัด/เติมเงินในบัญชีให้อัตโนมัติ</li>
     </ul>
     <div class="home-grid">
       <section class="panel stack" aria-labelledby="h-on">
@@ -1136,7 +1136,7 @@ function renderHome() {
   $('#b-admin-enter').onclick = () => {
     const c = $('#in-code').value.trim();
     if (c.length !== 5) return toast('ใส่รหัสห้อง 5 ตัวอักษรก่อน');
-    openPinPrompt(pin => adminEnterRoom(c, pin)); // ให้ error (PIN ผิด/ไม่พบห้อง) โยนขึ้นไปให้ openPinPrompt จัดการเอง
+    openAdminLogin(pw => adminEnterRoom(c, pw)); // ให้ error (รหัสผ่านผิด/ไม่พบห้อง) โยนขึ้นไปให้ openAdminLogin จัดการเอง
   };
   $('#b-banker-enter').onclick = () => {
     const c = $('#in-code').value.trim();
@@ -1164,11 +1164,12 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
   </div>
   <div class="field"><label for="${pf}-ev">อีเว้นท์พิเศษ</label><select id="${pf}-ev" ${d}>${Object.entries(EVENT_MODES).map(([k, v]) => `<option value="${k}" ${st.eventMode === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
   ${chk(pf + '-auto', st.autoPay, 'อีเว้นท์ตัด/เติมเงินในบัญชีอัตโนมัติ', 'ปิดไว้ถ้าอยากจ่ายเงินสดกระดาษตามการ์ดเอง')}
-  ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}`;
+  ${App.mode === 'online' ? chk(pf + '-confirm', st.cashConfirm, 'ฝาก/ถอนเงินสดต้องให้แบงก์เกอร์ยืนยัน', 'แบงก์เกอร์ (หรือแอดมิน) = คนถือเงินธนาคาร ต้องกดยืนยันหลังรับ/ส่งแบงก์จริง') : ''}
+  ${chk(pf + '-help', st.turnHelp !== false, 'ป๊อปอัพวิธีเล่น ตอนเริ่มเกม + ทุกตา', 'เตือนขั้นตอนเล่นให้อัตโนมัติ เหมาะกับมือใหม่ ปิดได้ถ้าเล่นคล่องแล้ว')}`;
 }
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, rate: +v('rate').value,
-    capPct: +v('cap').value, penalty: +v('pen').value, eventMode: v('ev').value, autoPay: v('auto').checked,
+    capPct: +v('cap').value, penalty: +v('pen').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 const soundBtn = () => `<button class="sm" data-a="sound" aria-pressed="${App.sound}" title="เสียงและการสั่นเตือน">${App.sound ? '🔔' : '🔕'}</button>`;
@@ -1188,7 +1189,6 @@ function invitePanel(s) {
       <div class="num" style="font-size:32px;letter-spacing:.18em;color:var(--jade);line-height:1.1">${App.room}</div>
       <div class="muted" style="font-size:12.5px;overflow-wrap:anywhere">${esc(inviteLink())}</div>
       <div class="row"><button class="sm" data-a="copy">คัดลอกลิงก์</button></div>
-      ${isAdmin() ? `<div class="muted" style="font-size:13px">PIN แอดมิน: <b class="num" style="color:var(--jade)">${s.pin}</b></div>` : ''}
     </div></div>`;
 }
 
@@ -1267,6 +1267,7 @@ function renderGame() {
     <section id="tab">${({ result: tabResult, me: tabMe, all: tabAll, ev: tabEv, log: tabLog })[App.tab](s)}</section>
   </main>`;
   showEventIfNew(s);
+  showTurnHelpIfNew(s);
   refreshModal();
 }
 
@@ -1438,6 +1439,43 @@ function showEventIfNew(s) {
     <div class="tx">${esc(e.text)}</div><div class="ft"><button class="primary big" data-evclose>รับทราบ</button></div></div></div>`;
 }
 
+// ---------- ป๊อปอัพวิธีเล่น (ตอนเริ่มเกม + ทุกตา) ----------
+function howToStepsHtml(steps) {
+  return `<ol class="howto">${steps.map(t => `<li>${t}</li>`).join('')}</ol>`;
+}
+function showHowToPlay() {
+  if (App.seenHowTo) return;
+  App.seenHowTo = true;
+  const s = S();
+  const steps = [
+    'เล่นบนกระดานจริงตามปกติ: ทอยลูกเต๋า เดินตัวเดิน ทำตามช่องที่ตก (จ่ายค่าเช่า ซื้อที่ดิน จับการ์ด ฯลฯ)',
+    'จ่าย/รับเงินได้ 2 ทาง — ใช้เงินสดกระดาษตามปกติ หรือกดปุ่มในแอป (โอน, จ่ายธนาคาร) ก็ได้ แล้วแต่สะดวก',
+    'อยากแปลงเงินสด ↔ เงินในบัญชีแอป กด "ฝากเงินสด" / "ถอนเงินสด" แล้วยื่น-รับแบงก์จริงกับคนถือธนาคาร',
+    'ผ่านจุดเริ่มต้น กด "🏁 ผ่านจุดเริ่มต้น" เพื่อรับเงินเดือนเข้าบัญชีทันที',
+    'อยากกู้เงิน กด "กู้ธนาคาร" หรือ "ให้เพื่อนกู้" ระบบคิดดอกเบี้ยและเตือนวันครบกำหนดให้เอง',
+    'เล่นเสร็จตาตัวเองแล้ว กด "จบตา ➜" เพื่อส่งไม้ต่อให้คนถัดไป (ระบบจะสุ่มอีเว้นท์พิเศษขึ้นเป็นระยะ ทำตามข้อความบนการ์ดได้เลย)',
+    'ใครแพ้ทางการเงิน ให้แอดมินตั้งเป็น "ล้มละลาย" เกมจบเมื่อกดปุ่ม "จบเกม" แล้วทุกคนแจ้งเงินสด/ทรัพย์สินในแท็บ "ผลการแข่งขัน" เพื่อจัดอันดับ',
+  ];
+  openModal('🎲 วิธีเล่นธนาคารเศรษฐี', `${howToStepsHtml(steps)}
+    <p class="muted" style="margin:0;font-size:12.5px">ทุกตาจะมีป๊อปอัพเตือนขั้นตอนสั้นๆ ให้อีกครั้ง ปิดได้ที่กติกาเสริมถ้าไม่ต้องการแล้ว</p>
+    <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว เริ่มเล่นเลย</button></div>`);
+}
+function showTurnHelpIfNew(s) {
+  if (s.status !== 'playing' || s.settings.turnHelp === false) return;
+  if ($('#modal-root').innerHTML || $('#ev-root').innerHTML) return; // มีป๊อปอัพ/การ์ดอีเว้นท์เปิดอยู่ ไม่แย่งจอ
+  const key = s.round + ':' + s.turn;
+  if (viewSeat() !== s.turn || key === App.seenTurnHelpKey) return;
+  App.seenTurnHelpKey = key;
+  const steps = [
+    '🎲 ทอยลูกเต๋าบนกระดานจริง แล้วเดินตัวเดินตามแต้ม',
+    '📍 ทำตามช่องที่ตก (จ่ายค่าเช่า/ซื้อที่ดิน/จับการ์ด ฯลฯ) ด้วยเงินสดหรือปุ่มในแอป',
+    goAmount(s) > 0 ? '🏁 ถ้าผ่านจุดเริ่มต้น กด "ผ่านจุดเริ่มต้น" เพื่อรับเงินเดือน' : null,
+    '✅ เล่นเสร็จแล้วกด "จบตา ➜" เพื่อส่งไม้ต่อ',
+  ].filter(Boolean);
+  openModal(`👉 ถึงตาของ ${esc(P(s.turn).name)}`, `${howToStepsHtml(steps)}
+    <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เข้าใจแล้ว</button></div>`);
+}
+
 // ---------- ป๊อปอัปฟอร์ม ----------
 let modalRefresh = null;
 function openModal(title, body, refresher) {
@@ -1445,7 +1483,7 @@ function openModal(title, body, refresher) {
   $('#modal-root').innerHTML = `<div class="modal" data-backdrop><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="hd"><h2>${title}</h2><button class="sm" data-close aria-label="ปิด">✕</button></div><div class="bd">${body}</div></div></div>`;
 }
-function closeModal() { $('#modal-root').innerHTML = ''; modalRefresh = null; }
+function closeModal() { $('#modal-root').innerHTML = ''; modalRefresh = null; if (S() && S().status === 'playing') showTurnHelpIfNew(S()); }
 function refreshModal() { if (modalRefresh) modalRefresh(); }
 function confirmBox(title, text, ok, fn) {
   openModal(title, `<p style="margin:0">${esc(text)}</p><div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-ok">${ok}</button></div>`);
@@ -1567,10 +1605,10 @@ function openDeclareFor(seat) {
   $('#b-go').onclick = async () => { if (await dispatch(null, { type: 'declareWorth', seat, cash: +$('#d-cash').value || 0, assets: +$('#d-assets').value || 0 })) closeModal(); };
 }
 
-// ---------- แอดมิน (กรรมการ) ----------
+// ---------- แบงก์เกอร์ ----------
 function openPinPrompt(onSubmit, title, successMsg) {
-  openModal(title || '🛡️ กรอกรหัส PIN แอดมิน', `
-    <p class="muted" style="margin:0;font-size:14px">ขอรหัส PIN 4 หลักจากเจ้าของห้อง (ดูได้ในห้องรอเริ่ม หรือแผงแอดมิน)</p>
+  openModal(title || '🏧 กรอกรหัส PIN แบงก์เกอร์', `
+    <p class="muted" style="margin:0;font-size:14px">ขอรหัส PIN 4 หลักจากแอดมิน (ดูได้ในแผงแอดมิน)</p>
     <div class="field"><input id="in-pin" inputmode="numeric" maxlength="4" aria-label="รหัส PIN" style="font-family:var(--mono);font-size:26px;letter-spacing:.35em;text-align:center"></div>
     <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-pin-go">ยืนยัน</button></div>`);
   $('#in-pin').focus();
@@ -1580,19 +1618,38 @@ function openPinPrompt(onSubmit, title, successMsg) {
     const btn = $('#b-pin-go'); btn.disabled = true;
     try {
       const ok = await onSubmit(pin);
-      if (ok !== false) { closeModal(); toast(successMsg || 'เข้าสู่โหมดแอดมินแล้ว'); }
+      if (ok !== false) { closeModal(); toast(successMsg || 'เข้าสู่ระบบแล้ว'); }
     } catch (e) { toast(e.message || 'รหัส PIN ไม่ถูกต้อง'); }
     finally { const b2 = $('#b-pin-go'); if (b2) b2.disabled = false; }
   };
 }
-function openAdminClaim() { openPinPrompt(pin => dispatch(null, { type: 'claimAdmin', pin })); }
 function openBankerClaim() { openPinPrompt(pin => dispatch(null, { type: 'claimBanker', pin }), '🏧 กรอกรหัส PIN แบงก์เกอร์', 'เข้าสู่โหมดแบงก์เกอร์แล้ว'); }
+
+// ---------- แอดมิน (หลังบ้าน — รหัสผ่านตายตัว รู้เฉพาะเจ้าของระบบ) ----------
+function openAdminLogin(onSubmit) {
+  openModal('🔒 เข้าสู่ระบบแอดมิน', `
+    <p class="muted" style="margin:0;font-size:14px">เฉพาะเจ้าของระบบเท่านั้นที่มีรหัสผ่านนี้</p>
+    <div class="field"><input id="in-adm-pw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="รหัสผ่านแอดมิน" style="font-family:var(--mono);font-size:20px;letter-spacing:.08em;text-align:center"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-adm-go">เข้าสู่ระบบ</button></div>`);
+  $('#in-adm-pw').focus();
+  $('#b-adm-go').onclick = async () => {
+    const pw = $('#in-adm-pw').value;
+    if (!pw) return toast('กรุณาใส่รหัสผ่าน');
+    const btn = $('#b-adm-go'); btn.disabled = true;
+    try {
+      const ok = await onSubmit(pw);
+      if (ok !== false) { closeModal(); toast('เข้าสู่ระบบแอดมินแล้ว'); }
+    } catch (e) { toast(e.message || 'รหัสผ่านไม่ถูกต้อง'); }
+    finally { const b2 = $('#b-adm-go'); if (b2) b2.disabled = false; }
+  };
+}
+function openAdminClaim() { openAdminLogin(pw => dispatch(null, { type: 'claimAdmin', password: pw })); }
 
 const LOAN_STATUS_LABEL = { active: 'ใช้งานอยู่', paid: 'ปิดแล้ว', forgiven: 'ยกหนี้แล้ว', declined: 'ยกเลิก/ปฏิเสธ' };
 const EV_ICONS = ['⭐', '🍺', '🎉', '💣', '🧨', '🎁', '💔', '👑', '🐍', '🍀', '🚓', '🏥'];
 function adminPanelHtml(s) {
   const online = App.mode === 'online', playing = s.status === 'playing';
-  const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง' : (isHostUser() ? '🏅 คุณเป็นเจ้าของห้อง (แอดมินสูงสุด) ดูแล/แก้ไขได้ทุกอย่าง' : '🛡️ คุณอยู่ในโหมดแอดมิน ดูแล/แก้ไขได้ทุกอย่าง (รวมหน้าที่แบงก์เกอร์ด้วย)');
+  const roleLine = App.mode === 'local' ? 'โหมดเครื่องเดียว: คนถือเครื่องคือแอดมิน+แบงก์เกอร์ ควบคุมได้ทุกอย่าง' : '🔒 คุณเข้าสู่ระบบแอดมินด้วยรหัสผ่านแล้ว ดูแล/แก้ไขได้ทุกอย่าง (รวมหน้าที่แบงก์เกอร์ด้วย)';
   let html = `<div class="muted" style="font-size:13.5px">${roleLine}</div>`;
   const reqs = s.reqs || [];
   if (playing && reqs.length) html += `<div class="section-h"><h2>คำขอรอยืนยัน</h2><span class="count">${reqs.length}</span></div>
@@ -1600,15 +1657,9 @@ function adminPanelHtml(s) {
       <div class="muted" style="font-size:13px">${r.kind === 'deposit' ? 'รับแบงก์จากผู้เล่นแล้วค่อยกดยืนยัน' : r.kind === 'withdraw' ? `ส่งแบงก์ให้ผู้เล่นแล้วค่อยกดยืนยัน (ยอดในบัญชี ${baht(P(r.seat).bal)})` : esc(r.note || 'ไม่ระบุเหตุผล')}</div>
       <div class="row"><button class="sm primary" data-req-ok="${r.id}">ยืนยัน</button><button class="sm danger" data-req-no="${r.id}">ปฏิเสธ</button></div></div>`).join('')}`;
   if (online) html += `<div class="panel stack" style="padding:12px 14px">
-      <div class="label">รหัส PIN แอดมิน</div>
-      <div class="row" style="flex-wrap:nowrap"><span class="num" style="font-size:26px;letter-spacing:.2em;color:var(--jade)">${s.pin}</span>
-        <button class="sm" id="ap-copy-pin" style="margin-left:auto">คัดลอก</button>${isHostUser() ? '<button class="sm danger" id="ap-reset-pin">สร้างรหัสใหม่</button>' : ''}</div>
-      <div class="muted" style="font-size:12.5px">ให้รหัสนี้กับกรรมการที่ดูแล/แก้ไขเกมได้ทั้งหมด (เข้าจากหน้าแรก ปุ่ม "เข้าแบบแอดมิน")</div>
-    </div>
-    <div class="panel stack" style="padding:12px 14px">
       <div class="label">รหัส PIN แบงก์เกอร์</div>
       <div class="row" style="flex-wrap:nowrap"><span class="num" style="font-size:26px;letter-spacing:.2em;color:var(--jade)">${s.bankPin}</span>
-        <button class="sm" id="ap-copy-bankpin" style="margin-left:auto">คัดลอก</button>${isHostUser() ? '<button class="sm danger" id="ap-reset-bankpin">สร้างรหัสใหม่</button>' : ''}</div>
+        <button class="sm" id="ap-copy-bankpin" style="margin-left:auto">คัดลอก</button><button class="sm danger" id="ap-reset-bankpin">สร้างรหัสใหม่</button></div>
       <div class="muted" style="font-size:12.5px">ให้รหัสนี้กับคนถือเงินสดธนาคารเท่านั้น — ยืนยันฝาก/ถอน/รับเงินได้อย่างเดียว แก้ไขค่าอื่นในเกมไม่ได้ (เข้าจากหน้าแรก ปุ่ม "เข้าแบบแบงก์เกอร์")</div>
     </div>`;
   if (playing) {
@@ -1665,8 +1716,6 @@ function adminPanelHtml(s) {
 function wireAdminPanel() {
   const bd = $('#modal-root .bd'); if (!bd) return;
   const on = (sel, fn) => { const el = $(sel, bd); if (el) el.onclick = fn; };
-  on('#ap-copy-pin', () => copyText(S().pin));
-  on('#ap-reset-pin', () => confirmBox('สร้างรหัส PIN ใหม่?', 'แอดมินคนอื่นที่เคยใส่รหัสเดิมจะหลุดสถานะ ต้องขอรหัสใหม่จากคุณ', 'สร้างใหม่', () => dispatch(null, { type: 'resetPin' })));
   on('#ap-copy-bankpin', () => copyText(S().bankPin));
   on('#ap-reset-bankpin', () => confirmBox('สร้างรหัส PIN แบงก์เกอร์ใหม่?', 'แบงก์เกอร์คนอื่นที่เคยใส่รหัสเดิมจะหลุดสถานะ ต้องขอรหัสใหม่จากคุณ', 'สร้างใหม่', () => dispatch(null, { type: 'resetBankPin' })));
   on('#ap-save-settings', async () => { if (await dispatch(null, { type: 'settings', settings: readSettings('ap') })) toast('บันทึกแล้ว'); });
@@ -1756,7 +1805,7 @@ function openBankerPanel() {
 // ---------- ปุ่มทั้งหมด ----------
 document.addEventListener('pointerdown', unlockAudio, { once: true });
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-evclose]') && (e.target.matches('[data-evclose]') || e.target.closest('button[data-evclose]'))) { $('#ev-root').innerHTML = ''; return; }
+  if (e.target.closest('[data-evclose]') && (e.target.matches('[data-evclose]') || e.target.closest('button[data-evclose]'))) { $('#ev-root').innerHTML = ''; if (S() && S().status === 'playing') showTurnHelpIfNew(S()); return; }
   if (e.target.matches('[data-backdrop]') || e.target.closest('[data-close]')) return closeModal();
   const tab = e.target.closest('[data-tab]'); if (tab) { App.tab = tab.dataset.tab; return render(); }
   const ac = e.target.closest('[data-actor]'); if (ac) { App.actor = +ac.dataset.actor; return render(); }
