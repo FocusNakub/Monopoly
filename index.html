@@ -1537,6 +1537,43 @@ details.pg[open]{display:grid;gap:6px}
 .g5v .g5-main .pol-save.on{position:fixed;left:50%;transform:translateX(-50%);width:min(868px,calc(100% - 24px));bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:31;box-sizing:border-box}
 .g5-main:has(.pol-save.on){padding-bottom:calc(200px + env(safe-area-inset-bottom,0px))}
 
+/* v5.3 โฉนดทั้งหมด */
+.dd-g{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.dd-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.dd-list{display:grid;gap:6px;max-height:52vh;overflow:auto;margin:6px 0}
+.dd-card{border:1px solid var(--line,#e3e6e0);border-radius:12px;background:var(--surface,#fff);padding:0 12px}
+.dd-card summary{display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;list-style:none;flex-wrap:wrap}.dd-card summary::-webkit-details-marker{display:none}
+.dd-card summary small{margin-left:auto}
+.dd-no{min-width:28px;height:28px;border-radius:8px;color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+.dd-t{width:100%;border-collapse:collapse;margin:0 0 10px;font-size:14px}.dd-t td{padding:5px 0;border-top:1px solid var(--line,#e3e6e0)}.dd-t td.num{text-align:right;font-weight:600}
+
+/* v5.3.2 ปุ่มเลือกแต้มเต๋า (กดง่าย บนมือถือ) */
+.dice-row{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.die{font-size:22px;font-weight:700;padding:12px 0;border-radius:12px;border:2px solid var(--line,#d8ddd6);background:var(--surface,#fff);cursor:pointer}
+.die.on{background:#2a78d6;color:#fff;border-color:#2a78d6}
+
+/* v5.3.3 แอนิเมชันเดินหมาก */
+.walk-ov{position:fixed;inset:0;z-index:300;display:grid;place-items:center;background:rgba(10,20,30,.55);transition:opacity .45s}
+.walk-ov.out{opacity:0}
+.walk-card{background:var(--surface,#fff);color:var(--ink,#1d2b26);border-radius:18px;padding:16px 14px;width:min(92vw,420px);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.walk-title{font-weight:700;margin-bottom:10px;text-align:center}
+.walk-track{position:relative;display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.walk-track i{display:block;height:22px;border-radius:6px;background:var(--line,#e3e6e0);transition:background .15s,transform .15s}
+.walk-track i.sp{background:#f3d37a}
+.walk-track i.hot{background:#2a78d6;transform:scale(1.15)}
+.walk-tok{position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;background:var(--tc,#2a78d6);color:#fff;display:grid;place-items:center;font-size:12px;transition:transform .22s cubic-bezier(.3,1.4,.6,1);pointer-events:none;box-shadow:0 0 0 2px #fff}
+.walk-land{min-height:26px;margin-top:12px;text-align:center;font-size:16px;animation:walkPop .4s ease-out}
+@keyframes walkPop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+
+/* v5.3.4 โหมด 3D */
+body[data-fx="css"] .die,body[data-fx="board"] .die{transform-style:preserve-3d}
+body[data-fx="css"] .die.tumble,body[data-fx="board"] .die.tumble{animation:dieTumble .75s cubic-bezier(.2,.7,.3,1)}
+@keyframes dieTumble{0%{transform:perspective(300px) rotateX(0) rotateY(0)}50%{transform:perspective(300px) rotateX(360deg) rotateY(200deg) translateY(-10px)}100%{transform:perspective(300px) rotateX(720deg) rotateY(360deg)}}
+body[data-fx="css"] .walk-card,body[data-fx="board"] .walk-card{transform:perspective(900px) rotateX(10deg);transition:transform .4s}
+.walk-stage{min-height:60px}
+.board3d-cv{display:block;margin:0 auto;border-radius:14px;touch-action:none;cursor:grab}
+.fx-opt{display:grid;gap:2px;text-align:left;width:100%;margin:6px 0;padding:12px;border-radius:12px;border:2px solid var(--line,#d8ddd6);background:var(--surface,#fff);cursor:pointer}
+.fx-opt.on{border-color:#2a78d6}.fx-opt small{color:var(--muted,#5d6d68)}
+
 </style>
 
 </head>
@@ -1596,6 +1633,7 @@ const DEFAULT_SETTINGS = {
   cashConfirm: true,  // ฝาก/ถอนเงินสดต้องให้แอดมินยืนยัน
   turnHelp: false,     // เด้งป๊อปอัพวิธีเล่นซ้ำทุกตา (ปิดอยู่โดยค่าเริ่มต้น เปิดเป็นตัวเลือกได้ — มีปุ่ม "❓ วิธีเล่น" กดดูเองได้เสมออยู่แล้ว)
   disabledEvents: [],  // รหัสอีเว้นท์ที่แอดมินปิดไว้ (ไม่ให้สุ่มขึ้นอัตโนมัติ) — ต่อใบ
+  negBankrupt: 100,    // ล้มละลายทันทีเมื่อยอดบัญชี (เงินสดในบัญชี) ติดลบถึงจำนวนนี้ (บาท) · 0 = ปิด
   minBalPct: 13,       // ยอดเงินขั้นต่ำในบัญชี (% ของเงินเริ่มต้นบนกระดาน) ต่ำกว่านี้ถือว่าล้มละลายอัตโนมัติทันที — ค่าเริ่มต้น 13% ≈ 2,000 ที่กระดาน 15,000 — ตั้งเป็น 0 เพื่อปิดฟีเจอร์นี้
   bankBudgetPct: 0,    // งบกลางเริ่มต้นของธนาคาร (% ของเงินเริ่มต้นบนกระดาน คูณจำนวนผู้เล่น) — ธนาคารต้องบริหารเงินตัวเอง จ่ายเกินงบไม่ได้ (0 = ปิดฟีเจอร์นี้ = งบไม่จำกัดแบบเดิม)
   // ---- นโยบายธนาคาร (ธนาคารปรับเองได้ระหว่างเกม) ----
@@ -1632,7 +1670,7 @@ const POLICY = [
 const EVENT_MODES = { smart: 'พอดีๆ (แนะนำ) — สุ่ม ~35% ไม่ขึ้นติดกัน และไม่เงียบเกิน 3 รอบ', every: 'ทุกรอบ', every2: 'ทุก 2 รอบ', every3: 'ทุก 3 รอบ', chance: 'สุ่ม 50% ต่อรอบ', c30: 'สุ่ม 30% ต่อรอบ', manual: 'กดสุ่มเองเท่านั้น' };
 // ระดับความถี่อีเว้นท์ (น้ำหนักในการสุ่ม)
 const EV_TIERS = [[10, 'บ่อย'], [6, 'ปกติ'], [3, 'น้อย'], [1, 'หายาก'], [0, 'ปิด']];
-const REQ_KIND = { deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร', payBank: 'จ่ายธนาคาร', loan: 'กู้ธนาคาร', mortgage: 'จำนองที่ดิน' };
+const REQ_KIND = { deed: 'ซื้อโฉนดจากธนาคาร', deposit: 'ฝากเงินสดเข้าบัญชี', withdraw: 'ถอนเป็นเงินสด', claim: 'ขอรับเงินจากธนาคาร', payBank: 'จ่ายธนาคาร', loan: 'กู้ธนาคาร', mortgage: 'จำนองที่ดิน' };
 
 const fmt = n => Number(n).toLocaleString('en-US');
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -1863,14 +1901,18 @@ function customFx(c) {
 }
 const findEvent = (s, id) => EVENT_BY_ID[id] || (s.customEvents || []).map(c => ({ id: c.id, icon: c.icon, title: c.title, fx: customFx(c), custom: true })).find(e => e.id === id);
 
-function drawEvent(s, rng, forceId, adhoc) {
+// focus = ที่นั่งที่ธนาคารเลือกสุ่มอีเว้นท์ให้เฉพาะคน (ใบที่ต้องมีผู้โชคดี/โชคร้ายจะตกที่คนนี้)
+const evPersonal = e => { const f = String(e.fx || ''); return e.custom ? e.target === 'random' : /pick\(|mostDebt|richestLender/.test(f); };
+function drawEvent(s, rng, forceId, adhoc, focus) {
   if (!active(s).length) return;
+  if (focus != null && !active(s).includes(focus)) focus = null;
   let e;
   if (adhoc) e = adhoc;
   else if (forceId) e = findEvent(s, forceId); // เรียกเจาะจงจากแอดมิน: เรียกได้แม้เป็นใบที่ปิดไว้
   else {
     // สุ่มแบบถ่วงน้ำหนัก: ใบ "บ่อย" โผล่บ่อยกว่าใบ "หายาก" และไม่ซ้ำกับ 3 ใบล่าสุด (ถ้ายังมีใบอื่นให้เลือก)
-    const ch = Object.entries(evChances(s)).filter(x => x[1] > 0);
+    let ch = Object.entries(evChances(s)).filter(x => x[1] > 0);
+    if (focus != null) ch = ch.filter(x => { const ev = findEvent(s, x[0]); return ev && evPersonal(ev.custom ? { custom: true, target: ((s.customEvents || []).find(c => c.id === ev.id) || {}).target } : ev); });
     if (!ch.length) return; // ปิดอีเว้นท์ไว้หมดแล้ว
     const recent = s.evRecent || [];
     const pool = ch.filter(x => !recent.includes(x[0])).length ? ch.filter(x => !recent.includes(x[0])) : ch;
@@ -1889,11 +1931,11 @@ function drawEvent(s, rng, forceId, adhoc) {
     n: i => s.players[i].name,
     all,
     roll: () => 1 + Math.floor(rng() * 6),
-    pick: k => shuffle(all().slice(), rng).slice(0, k),
+    pick: k => { const L = shuffle(all().slice(), rng); if (focus != null) L.splice(0, L.length, focus, ...L.filter(i => i !== focus)); return L.slice(0, k); },
     skip: i => { s.skip[i] = (s.skip[i] || 0) + 1; },
     effect: (key, label, rounds) => { s.effects = s.effects.filter(x => x.key !== key); s.effects.push({ key, label, icon: e.icon, until: s.round + rounds - 1 }); },
-    mostDebt: () => { const d = all().map(i => [i, debtOf(s, i)]).filter(x => x[1] > 0).sort((p, q) => q[1] - p[1]); return d.length ? d[0][0] : null; },
-    richestLender: () => { const l = all().map(i => [i, lentOf(s, i)]).sort((p, q) => q[1] - p[1]); return l[0][1] > 0 ? l[0][0] : api.pick(1)[0]; },
+    mostDebt: () => { if (focus != null) return debtOf(s, focus) > 0 ? focus : null; const d = all().map(i => [i, debtOf(s, i)]).filter(x => x[1] > 0).sort((p, q) => q[1] - p[1]); return d.length ? d[0][0] : null; },
+    richestLender: () => { if (focus != null) return focus; const l = all().map(i => [i, lentOf(s, i)]).sort((p, q) => q[1] - p[1]); return l[0][1] > 0 ? l[0][0] : api.pick(1)[0]; },
     // เงินเข้า/ออกบัญชีตามอีเว้นท์ (ยอดฐานอิงกระดาน 1,500 จะถูกปรับสัดส่วนให้)
     // give/take เป็นเงินจาก/เข้าธนาคารจริง (นับงบกลางธนาคารด้วย ถ้าเปิดฟีเจอร์ไว้) ส่วน pay เป็นการโอนกันเองระหว่างผู้เล่น ไม่กระทบงบธนาคาร
     give: (i, base) => { if (auto) { const amt = money(s, base); bankSpend(s, amt); credit(s, i, amt, 'event', e.title); moved = true; } },
@@ -1945,6 +1987,13 @@ function newRound(s, rng) {
       log(s, `🚨 ${nm(s, L.borrower)} ค้างชำระหนี้${L.lender == null ? 'ธนาคาร' : 'ของ ' + nm(s, L.lender)} โดนค่าปรับ ${fmt(pen)} ยอดค้าง ${fmt(L.balance)}`);
       bumpCredit(s, L.borrower, -1);
     }
+  }
+  // ใบแจ้งหนี้ธนาคาร: เลยกำหนด = โดนค่าปรับครั้งเดียว + เครดิตลด 1 ขั้น
+  for (const B of s.bills || []) {
+    if (B.st !== 'open' || B.late || s.round <= B.due || s.players[B.seat].out) continue;
+    B.late = true; B.pen = Math.ceil(B.amt * (+s.settings.penalty || 0) / 100);
+    log(s, `🚨 ${nm(s, B.seat)} จ่ายใบแจ้งหนี้ #${B.id} ไม่ทัน${B.pen ? ` โดนค่าปรับ ${fmt(B.pen)}` : ''} ยอดค้าง ${fmt(B.amt + B.pen - B.paid)}`);
+    bumpCredit(s, B.seat, -1);
   }
   // จำนอง: ดอกเบี้ยทบทุกรอบ
   for (const M of s.morts || []) if (!s.players[M.seat].out && s.settings.mortRate > 0) { const a = Math.ceil(M.bal * s.settings.mortRate / 100); M.bal += a; bst(s, 'int', a); }
@@ -2070,17 +2119,17 @@ function newRoom(hostUid) {
 }
 
 // คำสั่งเหล่านี้เป็นของแอดมิน/ธนาคาร (กรรมการ) ไม่จำเป็นต้องเป็นผู้เล่นในห้องก็สั่งได้
-const ADMIN_NO_SEAT = ['settings', 'reorder', 'start', 'setOut', 'kickPlayer', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
-  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary', 'undo', 'restart', 'bankerTransfer', 'setHold', 'bankPolicy', 'auctionOpen', 'auctionKnock', 'auctionCancel', 'dun', 'announce', 'collectDebt', 'seize', 'setMarket', 'policyCancel'];
+const ADMIN_NO_SEAT = ['deedGive', 'deedBack', 'deedHouses', 'rentCollect', 'move', 'settings', 'reorder', 'start', 'setOut', 'kickPlayer', 'endGame', 'endTurn', 'drawEvent', 'editLoan', 'adjustCredit', 'forceEvent',
+  'setRound', 'resetBankPin', 'resolveReq', 'adjustBalance', 'addCustomEvent', 'deleteCustomEvent', 'declareWorth', 'goSalary', 'undo', 'restart', 'bankerTransfer', 'setHold', 'bankPolicy', 'auctionOpen', 'auctionKnock', 'auctionCancel', 'dun', 'announce', 'collectDebt', 'seize', 'setMarket', 'policyCancel', 'bankerPay', 'billCreate', 'billCancel', 'billCollect'];
 // คำอธิบายสั้นๆ ของคำสั่งไว้โชว์ตอนย้อนกลับ
 const UNDO_DESC = { transfer: 'โอนเงิน', payBank: 'จ่ายธนาคาร', deposit: 'ฝากเงินสด', withdraw: 'ถอนเงินสด', claim: 'ขอรับจากธนาคาร',
   resolveReq: 'ยืนยัน/ปฏิเสธคำขอ', adjustBalance: 'ปรับยอดบัญชี', adjustCredit: 'ปรับเครดิต', setOut: 'ตั้งล้มละลาย/กลับเข้าเกม', kickPlayer: 'เตะผู้เล่นออก',
-  drawEvent: 'สุ่มอีเว้นท์', forceEvent: 'เรียกอีเว้นท์', endTurn: 'จบตา', goSalary: 'ผ่านจุดเริ่มต้น', settings: 'แก้กติกาเสริม', editLoan: 'แก้สัญญาเงินกู้',
+  move: 'เดินหมาก', drawEvent: 'สุ่มอีเว้นท์', forceEvent: 'เรียกอีเว้นท์', endTurn: 'จบตา', goSalary: 'ผ่านจุดเริ่มต้น', settings: 'แก้กติกาเสริม', editLoan: 'แก้สัญญาเงินกู้',
   bankLoan: 'กู้ธนาคาร', offer: 'เสนอให้กู้', acceptLoan: 'รับข้อเสนอกู้', cancelLoan: 'ยกเลิกสัญญา', repay: 'คืนหนี้', forgive: 'ยกหนี้',
   declareWorth: 'แจ้งเงินสด/ทรัพย์สิน', setRound: 'ปรับรอบ', addCustomEvent: 'สร้างอีเว้นท์เอง', deleteCustomEvent: 'ลบอีเว้นท์ที่สร้างเอง', endGame: 'จบเกม',
   bankerTransfer: 'ธนาคารตัดเงินบัญชี', setHold: 'อายัด/ปลดอายัดวงเงิน',
   buyStock: 'ซื้อหุ้น', sellStock: 'ขายหุ้น', openDep: 'เปิดฝากประจำ', breakDep: 'ถอนฝากประจำก่อนกำหนด', mortgage: 'จำนองที่ดิน', redeem: 'ไถ่ถอนจำนอง', bankPolicy: 'ปรับนโยบายธนาคาร', auctionOpen: 'เปิดประมูล', bid: 'เสนอราคาประมูล', auctionKnock: 'เคาะประมูล', auctionCancel: 'ยกเลิกประมูล',
-  dun: 'ทวงหนี้', announce: 'ประกาศ', collectDebt: 'หักบัญชีชำระหนี้', seize: 'ยึดที่ดิน', setMarket: 'ตั้งทิศทางดอกเบี้ย', policyCancel: 'ยกเลิกประกาศดอกเบี้ย' };
+  dun: 'ทวงหนี้', announce: 'ประกาศ', collectDebt: 'หักบัญชีชำระหนี้', seize: 'ยึดที่ดิน', setMarket: 'ตั้งทิศทางดอกเบี้ย', policyCancel: 'ยกเลิกประกาศดอกเบี้ย', bankerPay: 'ธนาคารจ่ายเงินเข้าบัญชี', billCreate: 'ออกใบแจ้งหนี้', payBill: 'จ่ายใบแจ้งหนี้', billCancel: 'ยกเลิกใบแจ้งหนี้', billCollect: 'หักบัญชีจ่ายใบแจ้งหนี้' };
 
 // เติมค่าตั้งต้นที่ห้องเก่ายังไม่มี (ห้องที่สร้างก่อนอัปเดตนี้จะได้ใช้ฟีเจอร์ใหม่ได้ทันที)
 function normalize(s) {
@@ -2152,13 +2201,13 @@ function checkAch(s) {
 // ตรวจทุกคนหลังทำรายการ: ใครยอดบัญชี (รวมหุ้น + ฝากประจำที่ขายคืนได้) ต่ำกว่าขั้นต่ำ ให้ล้มละลายอัตโนมัติทันที (เหมือนโดนตั้งล้มละลายเอง)
 function sweepAutoBankrupt(s, rng) {
   if (s.status !== 'playing') return;
-  const min = minBalOf(s);
-  if (min <= 0) return;
+  const min = minBalOf(s), neg = +(s.settings.negBankrupt || 0);
+  if (min <= 0 && neg <= 0) return;
   for (const i of active(s)) {
     const p = s.players[i];
-    if (p.bal + stockValue(s, i) + depValue(s, i) < min) {
-      p.out = true;
-      log(s, `💀 ${p.name} ยอดบัญชีต่ำกว่าขั้นต่ำที่ตั้งไว้ (${fmt(min)}) — ล้มละลายอัตโนมัติ`);
+    if ((min > 0 && p.bal + stockValue(s, i) + depValue(s, i) < min) || (neg > 0 && p.bal <= -neg)) {
+      p.out = true; releaseDeeds(s, i);
+      log(s, p.bal <= -neg && neg > 0 ? `💀 ${p.name} ยอดบัญชีติดลบ ${fmt(neg)} ขึ้นไป — ล้มละลายอัตโนมัติ` : `💀 ${p.name} ยอดบัญชีต่ำกว่าขั้นต่ำที่ตั้งไว้ (${fmt(min)}) — ล้มละลายอัตโนมัติ`);
       for (const L of s.loans) if (L.status === 'offer' && (L.lender === i || L.borrower === i)) L.status = 'declined';
       s.reqs = (s.reqs || []).filter(r => r.seat !== i);
       if (s.turn === i && active(s).length) nextTurn(s, rng);
@@ -2193,6 +2242,49 @@ function staffName(s, uid, name, role) {
   const n = String(name || (p && p.name) || (s.staff[uid] || {}).name || '').trim().slice(0, 16);
   s.staff[uid] = { name: n || (role === 'admin' ? 'แอดมิน' : 'ธนาคาร'), role: role === 'admin' || (s.staff[uid] || {}).role === 'admin' ? 'admin' : 'bank' };
 }
+// ลำดับวงรอบกระดาน 39 ช่อง (0 = รับเงินเดือน เดินตามเข็มนาฬิกา) ตามรูปกระดานจริง
+const RING = [
+  ['s','รับเงินเดือน 2,000'], ['l','กรุงเทพฯ'], ['c','ทีบสมบัติ'], ['l','นครปฐม'], ['l','เซ็นทรัล'], ['l','การ์เด้น'], ['c','ประตูดวง'], ['l','ตลาดโบ๊เบ๊'], ['l','เยาวราช'], ['l','จันทบุรี'],
+  ['j','เข้าคุก'], ['l','กาญจนบุรี'], ['l','การไฟฟ้า'], ['l','ระยอง'], ['l','สุโขทัย'], ['l','เอเมอรัล'], ['l','ภูเก็ต'], ['c','ทีบสมบัติ'], ['l','สุราษฎร์ธานี'], ['l','สงขลา'],
+  ['p','แวะพักผ่อนพักยา'], ['l','เพชรบุรี'], ['c','ประตูดวง'], ['l','เชียงใหม่'], ['l','เชียงราย'], ['l','แกรนด์จอมเทียน'], ['l','แม่ฮ่องสอน'], ['l','ลำปาง'], ['l','การประปา'], ['l','โคราช'],
+  ['g','ไปเข้าคุก'], ['l','แดนเนรมิต'], ['l','สุรินทร์'], ['c','ทีบสมบัติ'], ['l','อุบลราชธานี'], ['l','โนโวเทล'], ['c','ประตูดวง'], ['l','ดอนเมือง'], ['l','เสาชิงช้า'],
+];
+const RING_LEN = RING.length;
+// ---------- โฉนดในธนาคาร (v5.3.5): ธนาคารถือโฉนดทั้งหมดไว้ก่อน แล้วขาย/ให้/คืนตามจริง ----------
+// k: p = ที่ดิน (rent[0..4] = ที่ดินเปล่า/บ้าน1-4 · rent[5] = กับโรงแรม) · h = โรงแรม (rent[จำนวนที่ถือ-1]) · u = ไฟฟ้า/ประปา (rent[จำนวนที่ถือ-1])
+const DEED_BOOK = {
+  1: { n: 'กรุงเทพฯ', k: 'p', price: 600, rent: [20, 100, 300, 900, 1600, 2500], house: 500 }, 2: { n: 'นครปฐม', k: 'p', price: 600, rent: [40, 200, 600, 1800, 3200, 4500], house: 500 },
+  3: { n: 'เซ็นทรัล', k: 'h', price: 2000, rent: [250, 300, 350, 400, 450] }, 4: { n: 'การ์เด้น', k: 'h', price: 2000, rent: [250, 300, 350, 400, 450] },
+  5: { n: 'ตลาดโบ๊เบ๊', k: 'p', price: 1000, rent: [60, 300, 900, 2700, 4000, 5500], house: 500 }, 6: { n: 'เยาวราช', k: 'p', price: 1000, rent: [60, 300, 900, 2700, 4000, 5500], house: 500 },
+  7: { n: 'จันทบุรี', k: 'p', price: 1200, rent: [80, 400, 1000, 3000, 4500, 6000], house: 500 }, 8: { n: 'กาญจนบุรี', k: 'p', price: 1400, rent: [100, 500, 1500, 4500, 6250, 7500], house: 1000 },
+  9: { n: 'การไฟฟ้า', k: 'u', price: 1500, rent: [300, 800] }, 10: { n: 'ระยอง', k: 'p', price: 1400, rent: [100, 500, 1500, 4500, 6250, 7500], house: 1000 },
+  11: { n: 'สุโขทัย', k: 'p', price: 1600, rent: [120, 600, 1800, 5000, 7000, 9000], house: 1000 }, 12: { n: 'เอเมอรัล', k: 'h', price: 2000, rent: [250, 300, 350, 400, 450] },
+  13: { n: 'ภูเก็ต', k: 'p', price: 1800, rent: [140, 700, 2000, 5500, 7500, 9500], house: 1000 }, 14: { n: 'สุราษฎร์ธานี', k: 'p', price: 1800, rent: [140, 700, 2000, 5500, 7500, 9500], house: 1000 },
+  15: { n: 'สงขลา', k: 'p', price: 2000, rent: [160, 800, 2200, 6000, 8000, 10000], house: 1000 }, 16: { n: 'เพชรบุรี', k: 'p', price: 2200, rent: [180, 900, 2500, 7000, 8750, 10500], house: 1500 },
+  17: { n: 'เชียงใหม่', k: 'p', price: 2200, rent: [180, 900, 2500, 7000, 8750, 10500], house: 1500 }, 18: { n: 'เชียงราย', k: 'p', price: 2400, rent: [200, 1000, 2500, 7500, 9250, 11000], house: 1500 },
+  19: { n: 'แกรนด์จอมเทียน', k: 'h', price: 2000, rent: [250, 300, 350, 400, 450] }, 20: { n: 'แม่ฮ่องสอน', k: 'p', price: 2600, rent: [220, 1100, 3300, 8000, 9750, 11500], house: 1500 },
+  21: { n: 'ลำปาง', k: 'p', price: 2600, rent: [220, 1100, 3300, 8000, 9750, 11500], house: 1500 }, 22: { n: 'การประปา', k: 'u', price: 1500, rent: [300, 800] },
+  23: { n: 'โคราช', k: 'p', price: 2800, rent: [220, 1200, 3600, 8500, 10250, 12000], house: 1500 }, 24: { n: 'แดนเนรมิต', k: 'p', price: 3000, rent: [260, 1300, 3900, 9000, 11000, 12750], house: 2000 },
+  25: { n: 'สุรินทร์', k: 'p', price: 3000, rent: [260, 1300, 3900, 9000, 11000, 12750], house: 2000 }, 26: { n: 'อุบลราชธานี', k: 'p', price: 3200, rent: [280, 1500, 4500, 10000, 12000, 14000], house: 2000 },
+  27: { n: 'โนโวเทล', k: 'h', price: 2000, rent: [250, 300, 350, 400, 450] }, 28: { n: 'ดอนเมือง', k: 'p', price: 3500, rent: [350, 1750, 5000, 11000, 13000, 15000], house: 2000 },
+  29: { n: 'เสาชิงช้า', k: 'p', price: 4000, rent: [500, 2000, 6000, 14000, 17000, 20000], house: 2000 },
+};
+const DEED_BY_NAME = Object.fromEntries(Object.entries(DEED_BOOK).map(([no, d]) => [d.n, +no]));
+const dOwner = (s, no) => ((s.deeds || {})[no] || {}).owner ?? null;
+const dHouses = (s, no) => ((s.deeds || {})[no] || {}).h || 0;
+// ค่าเช่าของโฉนดหนึ่งใบ (ตามเจ้าของและจำนวนบ้าน/โรงแรม/ไฟที่เจ้าของถืออยู่)
+// คืนโฉนดทั้งหมดของคนที่ล้มละลาย/ถูกเตะ ให้กลับเป็นของธนาคาร (ไม่งั้นยังรับค่าเช่าอยู่)
+function releaseDeeds(s, seat) {
+  for (const k of Object.keys(s.deeds || {})) if (s.deeds[k].owner === seat) s.deeds[k] = { owner: null, h: 0 };
+  s.rentDue = (s.rentDue || []).filter(R => R.payer !== seat && R.to !== seat);
+}
+function deedRent(s, no) {
+  const d = DEED_BOOK[no], o = dOwner(s, no); if (!d || o == null || (s.players[o] && s.players[o].out)) return 0;
+  if ((s.morts || []).some(m => m.name === d.n && m.seat === o)) return 0; // จำนองอยู่ = ไม่เก็บค่าเช่า
+  if (d.k === 'h' || d.k === 'u') { const c = Object.keys(DEED_BOOK).filter(x => DEED_BOOK[x].k === d.k && dOwner(s, +x) === o).length; return c ? d.rent[Math.min(c, d.rent.length) - 1] : 0; }
+  return d.rent[Math.min(dHouses(s, no), 5)];
+}
+
 function applyAction(state, uid, act, rng = Math.random) {
   const s = normalize(clone(state));
   s.seq = (s.seq || 0) + 1;
@@ -2288,7 +2380,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       } else {
         // ระหว่างเล่น: เอาออกจากเกมถาวร (คงตำแหน่งในอาเรย์ไว้ ไม่งั้นข้อมูลอ้างอิงอื่นพัง) ห้ามกลับเข้ามาอีก
         need(!kp.kicked, 'ผู้เล่นนี้ถูกเตะออกไปแล้ว');
-        kp.out = true; kp.kicked = true;
+        kp.out = true; kp.kicked = true; releaseDeeds(s, kseat);
         for (const L of s.loans) if (L.status === 'offer' && (L.lender === kseat || L.borrower === kseat)) L.status = 'declined';
         s.reqs = (s.reqs || []).filter(r => r.seat !== kseat);
         if (s.turn === kseat && active(s).length) nextTurn(s, rng);
@@ -2319,6 +2411,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       if (v.autoRate != null) st.autoRate = !!v.autoRate;
       if (v.cashConfirm != null) st.cashConfirm = !!v.cashConfirm;
       if (v.turnHelp != null) st.turnHelp = !!v.turnHelp;
+      if (v.negBankrupt != null) { const x = Math.round(+v.negBankrupt); need(x >= 0 && isFinite(x), 'ยอดติดลบที่ล้มละลายต้องเป็นตัวเลข 0 ขึ้นไป'); st.negBankrupt = x; }
       if (v.minBalPct != null) { const x = +v.minBalPct; need(x >= 0 && x <= 100, 'ยอดขั้นต่ำต้องอยู่ระหว่าง 0–100%'); st.minBalPct = x; }
       if (v.bankBudgetPct != null) { const x = +v.bankBudgetPct; need(x >= 0 && x <= 1000, 'งบกลางธนาคารต้องอยู่ระหว่าง 0–1000%'); st.bankBudgetPct = x; }
       if (v.disabledEvents != null) {
@@ -2378,7 +2471,7 @@ function applyAction(state, uid, act, rng = Math.random) {
       s.status = 'lobby';
       s.players.forEach(p => { p.credit = 2; p.out = false; p.kicked = false; p.bal = 0; p.cash = null; p.assets = null; p.hold = 0; p.sh = {}; p.st = {}; p.ach = []; p.fl = null; });
       Object.assign(s, { order: s.players.map((_, i) => i), turn: 0, round: 1, loans: [], effects: [], skip: {},
-        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0, bankBankrupt: false,
+        event: null, eventHistory: [], eventDeck: null, nextLoan: 1, tx: [], nextTx: 1, reqs: [], nextReq: 1, goCount: 0, bankBankrupt: false, deeds: {}, rentDue: [], nextRent: 0,
         marketMod: 0, bankNews: null, deps: [], morts: [], hist: [], mkt: null, evRecent: [], evGap: 0, auction: null, seized: [], bst: {}, notice: null });
       log(s, `🔁 ${isAdmin ? 'แอดมิน' : 'เจ้าของห้อง'}เริ่มเกมใหม่ในห้องเดิม (ผู้เล่นชุดเดิม รีเซ็ตยอดทั้งหมด)`);
       break;
@@ -2413,17 +2506,96 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
   const notOut = () => need(!me.out, 'คุณออกจากเกมแล้ว');
   switch (act.type) {
     // ---------- ตา / รอบ ----------
+    // ---------- โฉนดธนาคาร ----------
+    case 'deedBuy': {
+      // ผู้เล่นขอซื้อโฉนดจากธนาคาร → ธนาคารต้องยืนยันก่อน (ถ้าเปิดยืนยันไว้)
+      notOut(); const no = +act.no; need(DEED_BOOK[no], 'ไม่พบโฉนดนี้'); need(dOwner(s, no) == null, `${DEED_BOOK[no].n} มีเจ้าของแล้ว`);
+      if (!s.settings.cashConfirm || isBanker) { deedTransfer(s, seat, no, true); break; }
+      need(!(s.reqs || []).some(r => r.kind === 'deed' && r.no === no), 'มีคำขอซื้อโฉนดนี้ค้างอยู่แล้ว');
+      s.reqs.push({ id: s.nextReq++, seat, kind: 'deed', no, amt: DEED_BOOK[no].price, note: DEED_BOOK[no].n, r: s.round });
+      log(s, `🙋 ${me.name} ขอซื้อโฉนด "${DEED_BOOK[no].n}" ราคา ${fmt(DEED_BOOK[no].price)}`);
+      break;
+    }
+    case 'deedGive': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมิน'); const no = +act.no, to = +act.seat;
+      need(s.players[to] && !s.players[to].out, 'เลือกผู้เล่นให้ถูกต้อง');
+      deedTransfer(s, to, no, !!act.charge); break;
+    }
+    case 'deedBack': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมิน'); const no = +act.no, o = dOwner(s, no);
+      need(o != null, 'โฉนดนี้เป็นของธนาคารอยู่แล้ว');
+      if (act.refund) { bankSpend(s, DEED_BOOK[no].price); credit(s, o, DEED_BOOK[no].price, 'deed', `คืนโฉนด ${DEED_BOOK[no].n}`); }
+      s.deeds[no] = { owner: null, h: 0 }; log(s, `🏦 ${nm(s, o)} คืนโฉนด "${DEED_BOOK[no].n}" ให้ธนาคาร${act.refund ? ` (คืนเงิน ${fmt(DEED_BOOK[no].price)})` : ''}`); break;
+    }
+    case 'deedHouses': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมิน'); const no = +act.no, h = Math.floor(+act.h), d = DEED_BOOK[no], o = dOwner(s, no);
+      need(d && d.k === 'p', 'ปรับบ้านได้เฉพาะที่ดิน'); need(o != null, 'โฉนดนี้ยังไม่มีเจ้าของ'); need(h >= 0 && h <= 5, 'จำนวนบ้านต้องอยู่ระหว่าง 0–5 (5 = โรงแรม)');
+      const cur = dHouses(s, no);
+      if (h > cur) { // เก็บค่าก่อสร้างจากเจ้าของ (บ้านทีละหลัง · โรงแรมเป็นขั้นที่ 5)
+        let cost = 0; for (let k = cur + 1; k <= h; k++) cost += k === 5 ? d.house * 5 : d.house;
+        need(avail(s, o) >= cost, `${nm(s, o)} ยอดไม่พอจ่ายค่าก่อสร้าง ${fmt(cost)}`);
+        debit(s, o, cost, 'build', `ก่อสร้าง ${d.n}`); bankReceive(s, cost);
+      }
+      s.deeds[no] = { owner: o, h }; log(s, `🏗️ ${d.n} ของ ${nm(s, o)} ตอนนี้ ${h === 5 ? 'มีโรงแรม' : `มีบ้าน ${h} หลัง`}`); break;
+    }
+    case 'rentCollect': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมิน');
+      s.rentDue = s.rentDue || []; const R = s.rentDue.find(x => x.id === act.id); need(R, 'ใบค่าเช่านี้ถูกจัดการไปแล้ว');
+      const pay = Math.min(R.amt, Math.max(0, avail(s, R.payer)));
+      need(pay > 0, `${nm(s, R.payer)} ยอดที่ใช้ได้เป็น 0 — ค้างไว้ก่อน`);
+      debit(s, R.payer, pay, 'rent', `ค่าเช่า ${DEED_BOOK[R.no].n}`); credit(s, R.to, pay, 'rent', `ค่าเช่า ${DEED_BOOK[R.no].n} จาก ${nm(s, R.payer)}`);
+      R.amt -= pay; if (R.amt <= 0) s.rentDue = s.rentDue.filter(x => x.id !== R.id);
+      log(s, `🧾 ธนาคารหักค่าเช่า ${DEED_BOOK[R.no].n} จาก ${nm(s, R.payer)} ${fmt(pay)} ให้ ${nm(s, R.to)}${R.amt > 0 ? ` (ค้าง ${fmt(R.amt)})` : ''}`); break;
+    }
+    case 'move': {
+      // ทอยเต๋า 2 ลูกแล้วขยับหมากตามวงรอบ · ผู้เล่นทอยเองตอนถึงตา หรือธนาคาร/แอดมินทอยแทนได้ (ส่ง seat)
+      const who = act.seat != null && (isBanker || isAdmin) ? +act.seat : seat;
+      need(who >= 0 && s.players[who] && !s.players[who].out, 'เลือกผู้เล่นให้ถูกต้อง');
+      need(who === s.turn, 'ยังไม่ถึงตาของคนนี้');
+      need(!(s.rolledBy && s.rolledBy.turn === s.turn && s.rolledBy.round === s.round), 'ตานี้ทอยเต๋าไปแล้ว');
+      const d1 = Math.floor(+act.d1), d2 = Math.floor(+act.d2);
+      need(d1 >= 1 && d1 <= 6 && d2 >= 1 && d2 <= 6, 'แต้มเต๋าต้องเป็น 1–6');
+      const p = s.players[who], from = p.pos || 0, steps = d1 + d2, raw = from + steps, to = raw % RING_LEN;
+      p.pos = to; s.rolledBy = { turn: s.turn, round: s.round };
+      if (raw >= RING_LEN) { // ผ่านจุดเริ่มต้น = รับเงินเดือนอัตโนมัติ
+        const amt = s.settings.goSalary * (hasEffect(s, 'go2') ? 2 : 1);
+        if (amt > 0) { bankSpend(s, amt); credit(s, who, amt, 'go', 'ผ่านจุดเริ่มต้น'); }
+        s.goCount = 2; // ผ่านจุดเริ่มต้นจากการทอยแล้ว = ตานี้กดรับเงินเดือนซ้ำไม่ได้
+        log(s, `🏁 ${p.name} ผ่านจุดเริ่มต้น รับ ${fmt(amt)} เข้าบัญชี`);
+      }
+      const [kind, name] = RING[to];
+      s.landed = { seat: who, pos: to, kind, name, dice: [d1, d2], round: s.round };
+      const dTxt = `🎲 ${d1}+${d2}=${steps}`;
+      const what = kind === 'l' ? `ตกที่ ${name}` : kind === 'c' ? `ตกช่องโอกาส (${name}) — ธนาคารกำหนดการ์ดเอง` : kind === 'j' ? `ตกช่อง ${name}` : kind === 'g' ? 'ถูกส่งไปเข้าคุก' : kind === 's' ? 'ถึงจุดเริ่มต้นพอดี' : `พักที่ ${name}`;
+      log(s, `🚶 ${p.name} ${dTxt} ${what}`);
+      const dn = kind === 'l' ? DEED_BY_NAME[name] : null, dOw = dn ? dOwner(s, dn) : null;
+      if (dn && dOw != null && dOw !== who) { const amt = deedRent(s, dn) * (hasEffect(s, 'rent2') ? 2 : 1);
+        if (amt > 0) { s.rentDue = s.rentDue || []; s.rentDue.push({ id: s.nextRent = (s.nextRent || 0) + 1, payer: who, to: dOw, no: dn, amt, r: s.round });
+          log(s, `🏠 ${p.name} ต้องจ่ายค่าเช่า ${DEED_BOOK[dn].n} ${fmt(amt)} ให้ ${nm(s, dOw)} — รอธนาคารหักบัญชี`); } }
+      break;
+    }
     case 'endTurn':
       // ธนาคาร (ธนาคาร/แอดมิน) ไม่ต้องมีตาเดินเอง แต่คุมจังหวะเกมได้ กดจบตาแทนคนอื่นได้เลย
       need(seat === s.turn || isAdmin || isBanker, 'ยังไม่ถึงตาของคุณ');
       log(s, `⏭️ ${s.players[s.turn].name} จบตา`);
       nextTurn(s, rng);
       break;
-    case 'drawEvent':
+    case 'drawEvent': {
+      // ธนาคารสุ่มอีเว้นท์ให้เฉพาะคน (act.to) — คนถือธนาคารทำได้ · สุ่มทั้งโต๊ะยังเป็นของแอดมิน
+      if (act.to != null) {
+        need(isBanker, 'เฉพาะคนถือธนาคารหรือแอดมิน');
+        const to = +act.to; need(s.players[to] && !s.players[to].out, 'เลือกผู้เล่นให้ถูกต้อง');
+        const n0 = s.event ? s.event.n : 0;
+        drawEvent(s, rng, null, null, to);
+        need((s.event ? s.event.n : 0) !== n0, 'ไม่มีอีเว้นท์แบบเจาะจงคนที่เปิดใช้อยู่ (เช็คการตั้งค่าอีเว้นท์)');
+        log(s, `🎴 ธนาคารสุ่มอีเว้นท์ให้ ${s.players[to].name} โดยเฉพาะ`);
+        break;
+      }
       // สุ่มอีเว้นท์ด้วยตัวเอง (นอกเหนือจากที่สุ่มอัตโนมัติตามรอบ) สงวนไว้ให้แอดมินเท่านั้น — ธนาคารกดไม่ได้ กันผู้เล่น/ธนาคารกดรัวหาใบที่ถูกใจ
       need(isAdmin, 'สุ่มอีเว้นท์เองได้เฉพาะแอดมินเท่านั้น (อีเว้นท์ปกติจะสุ่มขึ้นอัตโนมัติตามรอบอยู่แล้ว)');
       drawEvent(s, rng);
       break;
+    }
     case 'goSalary': {
       // ผ่านจุดเริ่มต้น: บอกธนาคารด้วยวาจา แล้วให้ธนาคาร (หรือแอดมิน) เป็นคนกดให้เท่านั้น — เงินเดือนเข้าบัญชีคนที่ถึงตา (กดได้ไม่เกิน 2 ครั้งต่อตา กันกดซ้ำ)
       need(isBanker, 'กดได้เฉพาะธนาคารหรือแอดมินเท่านั้น — บอกธนาคารให้กดให้');
@@ -2486,6 +2658,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const r = s.reqs[i];
       if (act.ok) {
         // ยอดอาจเปลี่ยนไปตั้งแต่ผู้เล่นยื่นคำขอ ตรวจซ้ำอีกครั้งก่อนอนุมัติจริง
+        if (r.kind === 'deed') { need(dOwner(s, r.no) == null, `โฉนด ${DEED_BOOK[r.no].n} มีเจ้าของแล้ว`); need(avail(s, r.seat) >= r.amt, `${s.players[r.seat].name} ยอดที่ใช้ได้ไม่พอ`); }
         if (r.kind === 'withdraw' || r.kind === 'payBank') need(avail(s, r.seat) >= r.amt, `${s.players[r.seat].name} ยอดที่ใช้ได้ไม่พอแล้ว`);
         if (r.kind === 'loan') {
           need(!s.loans.some(L => L.borrower === r.seat && L.status === 'active' && L.overdue), `${s.players[r.seat].name} มีหนี้ค้างชำระอยู่ ธนาคารไม่ให้กู้เพิ่ม`);
@@ -2495,6 +2668,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
         s.reqs.splice(i, 1);
         if (r.kind === 'loan') issueLoan(s, r.seat, r.amt, r.rounds, r.into);
         else if (r.kind === 'mortgage') issueMort(s, r.seat, r.name, r.value);
+        else if (r.kind === 'deed') deedTransfer(s, r.seat, r.no, true);
         else applyReq(s, r);
       } else {
         s.reqs.splice(i, 1);
@@ -2601,7 +2775,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const from = act.from, p = s.players[from];
       need(p && !p.out, 'ไม่พบบัญชีผู้เล่นนี้');
       const amt = posInt(act.amount);
-      need(p.bal >= amt, `${p.name} ยอดในบัญชีไม่พอ (มี ${fmt(p.bal)})`);
+      need(act.allowNeg || p.bal >= amt, `${p.name} ยอดในบัญชีไม่พอ (มี ${fmt(p.bal)}) — ถ้าจะตัดให้ติดลบ (โดนดอกเบิกเกิน) ติ๊ก "ยอมให้ติดลบ" หรือออกใบแจ้งหนี้แทน`);
       const note = String(act.note || '').slice(0, 40);
       if (act.to === 'bank') {
         debit(s, from, amt, 'bankerCut', note || 'ธนาคารตัดเงินเข้าธนาคาร');
@@ -2613,6 +2787,58 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
         xfer(s, from, to, amt, 'bankerCut', note);
         log(s, `🏦 ธนาคารตัดเงิน ${p.name} ${fmt(amt)} ให้ ${s.players[to].name}${note ? ` (${note})` : ''}`);
       }
+      break;
+    }
+    // ---------- ธนาคารจ่ายเงินเข้าบัญชีผู้เล่นโดยตรง (เกมไร้เงินสด: เงินเดือนพิเศษ รางวัล คืนเงิน) ----------
+    case 'bankerPay': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมินเท่านั้น');
+      const to = act.to, p = s.players[to]; need(p && !p.out, 'ไม่พบบัญชีผู้เล่นนี้');
+      const amt = posInt(act.amount), note = String(act.note || '').trim().slice(0, 40);
+      bankSpend(s, amt); credit(s, to, amt, 'claim', note || 'ธนาคารจ่ายเข้าบัญชี');
+      log(s, `🏦 ธนาคารจ่าย ${fmt(amt)} เข้าบัญชี ${p.name}${note ? ` (${note})` : ''}`);
+      break;
+    }
+    // ---------- ใบแจ้งหนี้จากธนาคาร: ระบุยอด เหตุผล กำหนดชำระ — ผู้เล่นกดจ่ายเอง / ธนาคารหักบัญชีให้ได้ / เลยกำหนดโดนปรับ ----------
+    case 'billCreate': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมินเท่านั้น'); need(s.status === 'playing', 'ออกใบแจ้งหนี้ได้เฉพาะตอนเล่นเกม');
+      const to = act.to, p = s.players[to]; need(p && !p.out, 'ไม่พบบัญชีผู้เล่นนี้');
+      const amt = posInt(act.amount), note = String(act.note || '').trim().slice(0, 60); need(note, 'ใส่เหตุผลของใบแจ้งหนี้ก่อน');
+      const dueIn = Math.round(+act.dueIn); need(Number.isFinite(dueIn) && dueIn >= 0 && dueIn <= 10, 'กำหนดชำระต้องอยู่ใน 0–10 รอบ');
+      s.bills = s.bills || []; s.nextBill = s.nextBill || 1;
+      need(s.bills.filter(b => b.seat === to && b.st === 'open').length < 5, `${p.name} มีใบแจ้งหนี้ค้างหลายใบแล้ว`);
+      const B = { id: s.nextBill++, seat: to, amt, pen: 0, paid: 0, note, r: s.round, due: s.round + dueIn, st: 'open', late: false };
+      s.bills.push(B); if (s.bills.length > 80) s.bills = s.bills.filter(b => b.st === 'open').concat(s.bills.filter(b => b.st !== 'open').slice(-40));
+      s.notice = { n: ((s.notice || {}).n || 0) + 1, to, icon: '🧾', title: 'ใบแจ้งหนี้จากธนาคาร', cat: 'warn', pri: 'high', r: s.round,
+        text: `${note} — กรุณาชำระ ${fmt(amt)} ภายในรอบที่ ${B.due}${dueIn === 0 ? ' (รอบนี้)' : ''} ไม่งั้นโดนค่าปรับและเครดิตลด`,
+        rows: [['ใบแจ้งหนี้เลขที่', '#' + B.id], ['ยอดที่ต้องชำระ', fmt(amt)], ['เหตุผล', note], ['ครบกำหนด', `รอบที่ ${B.due}`]] };
+      log(s, `🧾 ธนาคารออกใบแจ้งหนี้ #${B.id} ให้ ${p.name} ${fmt(amt)} (${note}) ครบรอบ ${B.due}`);
+      break;
+    }
+    case 'payBill': {
+      notOut();
+      const B = (s.bills || []).find(b => b.id === +act.id); need(B && B.st === 'open' && B.seat === seat, 'ไม่พบใบแจ้งหนี้นี้');
+      const rem = B.amt + B.pen - B.paid, amt = act.amount != null ? posInt(act.amount) : rem;
+      need(amt <= rem, `ยอดค้างเหลือ ${fmt(rem)}`);
+      need(avail(s, seat) >= amt, me.hold ? `ยอดที่ใช้ได้ไม่พอ (มี ${fmt(me.bal)} แต่ถูกอายัด ${fmt(me.hold)})` : `ยอดในบัญชีไม่พอ (มี ${fmt(me.bal)})`);
+      debit(s, seat, amt, 'payBank', `ใบแจ้งหนี้ #${B.id} ${B.note}`.slice(0, 40)); bankReceive(s, amt); B.paid += amt;
+      if (B.paid >= B.amt + B.pen) { B.st = 'paid'; B.at = s.round; if (!B.late) stat(me).billOk = (stat(me).billOk || 0) + 1; }
+      log(s, `🧾 ${me.name} จ่ายใบแจ้งหนี้ #${B.id} ${fmt(amt)}${B.st === 'paid' ? ' ครบแล้ว' : ` (ค้างอีก ${fmt(rem - amt)})`}`);
+      break;
+    }
+    case 'billCancel': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมินเท่านั้น');
+      const B = (s.bills || []).find(b => b.id === +act.id); need(B && B.st === 'open', 'ไม่พบใบแจ้งหนี้ที่ยังค้าง');
+      B.st = 'cancelled'; log(s, `↩️ ธนาคารยกเลิกใบแจ้งหนี้ #${B.id} ของ ${nm(s, B.seat)}`);
+      break;
+    }
+    case 'billCollect': {
+      need(isBanker, 'เฉพาะธนาคารหรือแอดมินเท่านั้น');
+      const B = (s.bills || []).find(b => b.id === +act.id); need(B && B.st === 'open', 'ไม่พบใบแจ้งหนี้ที่ยังค้าง');
+      const p = s.players[B.seat]; need(!p.out, 'ผู้เล่นออกจากเกมแล้ว');
+      const rem = B.amt + B.pen - B.paid, x = Math.min(rem, Math.max(0, avail(s, B.seat))); need(x > 0, `${p.name} ไม่มีเงินในบัญชีให้หัก`);
+      debit(s, B.seat, x, 'bankerCut', `หักชำระใบแจ้งหนี้ #${B.id}`); bankReceive(s, x); B.paid += x;
+      if (B.paid >= B.amt + B.pen) { B.st = 'paid'; B.at = s.round; }
+      log(s, `✂️ ธนาคารหักบัญชี ${p.name} ${fmt(x)} ชำระใบแจ้งหนี้ #${B.id}${B.st === 'paid' ? ' ครบ' : ` (ค้างอีก ${fmt(rem - x)})`}`);
       break;
     }
     case 'setHold': {
@@ -2766,6 +2992,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       if (avail(s, w) < A.hi.amt || s.players[w].out) { log(s, `⚠️ ${nm(s, w)} เงินไม่พอจ่ายราคาประมูล ยกเลิกราคานี้`); A.hi = null; A.knock = 0; A.bids = A.bids.filter(b => b.seat !== w); break; }
       if (A.seller == null) { debit(s, w, A.hi.amt, 'auction', `ชนะประมูล "${A.name}"`); bankReceive(s, A.hi.amt); bst(s, 'auc', A.hi.amt); }
       else xfer(s, w, A.seller, A.hi.amt, 'auction', `ประมูล "${A.name}"`);
+      { const no = DEED_BY_NAME[A.name]; if (no) { s.deeds = s.deeds || {}; s.deeds[no] = { owner: w, h: 0 }; } }
       A.open = false; A.win = { seat: w, amt: A.hi.amt };
       stat(s.players[w]).auc = (stat(s.players[w]).auc || 0) + 1;
       log(s, `🔨 เคาะ! ${nm(s, w)} ชนะประมูล "${A.name}" ราคา ${fmt(A.hi.amt)} — รับโฉนดจาก${A.seller == null ? 'ธนาคาร' : ' ' + nm(s, A.seller)}ได้เลย`);
@@ -2826,6 +3053,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       const M = (s.morts || []).find(m => m.id === act.id); need(M, 'ไม่พบรายการจำนองนี้');
       need(s.round > M.due || s.players[M.seat].out, `ยังไม่ถึงกำหนด (ไถ่ถอนได้ถึงรอบ ${M.due})`);
       s.morts.splice(s.morts.indexOf(M), 1);
+      { const no = DEED_BY_NAME[M.name]; if (no && dOwner(s, no) === M.seat) s.deeds[no] = { owner: null, h: 0 }; }
       s.seized = [{ name: M.name, value: M.value }, ...(s.seized || [])].slice(0, 10);
       bumpCredit(s, M.seat, -1);
       log(s, `🏚️ ธนาคารยึด "${M.name}" จาก ${nm(s, M.seat)} (ไม่ไถ่ถอนตามกำหนด) — คืนโฉนดให้ธนาคาร แล้วเอาไปประมูลต่อได้`);
@@ -2901,7 +3129,7 @@ function playAction(s, seat, me, isAdmin, isBanker, isHost, act, rng) {
       need(isAdmin, 'เฉพาะแอดมินเท่านั้น');
       const p = s.players[act.seat]; need(p, 'ไม่พบผู้เล่น');
       need(!p.kicked, 'ผู้เล่นนี้ถูกเตะออกจากเกมแล้ว ไม่สามารถกลับเข้าเกมได้');
-      p.out = !p.out;
+      p.out = !p.out; if (p.out) releaseDeeds(s, act.seat);
       log(s, p.out ? `💀 ${p.name} ออกจากเกม (ล้มละลาย)` : `↩️ ${p.name} กลับเข้าเกม`);
       if (p.out) {
         for (const L of s.loans) if (L.status === 'offer' && (L.lender === act.seat || L.borrower === act.seat)) L.status = 'declined';
@@ -2930,6 +3158,13 @@ function applyReq(s, r) {
   if (r.kind === 'payBank') { debit(s, r.seat, r.amt, 'payBank', r.note || 'จ่ายธนาคาร'); bankReceive(s, r.amt); log(s, `🏦 ${p.name} จ่ายธนาคาร ${fmt(r.amt)}${r.note ? ` (${r.note})` : ''} (ธนาคารยืนยันแล้ว)`); }
 }
 // อนุมัติจำนอง: ธนาคารจ่าย mortPct% ของราคาโฉนดเข้าบัญชี แล้วคิดดอกเบี้ยทบทุกรอบจนกว่าจะไถ่ถอน
+// โอนโฉนด: ถ้า charge = ผู้ซื้อจ่ายราคาเข้าธนาคาร
+function deedTransfer(s, seat, no, charge) {
+  const d = DEED_BOOK[no]; need(d, 'ไม่พบโฉนดนี้'); need(dOwner(s, no) == null, `โฉนด ${d.n} มีเจ้าของแล้ว`);
+  if (charge) { need(avail(s, seat) >= d.price, `ยอดที่ใช้ได้ไม่พอซื้อ ${d.n} (ราคา ${fmt(d.price)})`); debit(s, seat, d.price, 'deed', `ซื้อโฉนด ${d.n}`); bankReceive(s, d.price); }
+  s.deeds = s.deeds || {}; s.deeds[no] = { owner: seat, h: 0 };
+  log(s, `🗺️ ${nm(s, seat)} ได้โฉนด "${d.n}" ${charge ? `(จ่ายธนาคาร ${fmt(d.price)})` : '(ธนาคารมอบให้)'}`);
+}
 function issueMort(s, seat, name, value) {
   const amt = roundUnit(s, value * s.settings.mortPct / 100);
   need(amt > 0, 'ยอดจำนองน้อยเกินไป');
@@ -2984,8 +3219,11 @@ async function doInstall() {
   </ol><small class="muted">ต้องเปิดผ่าน Safari เท่านั้นถึงจะมีปุ่มนี้ (เบราว์เซอร์อื่นบน iOS ไม่รองรับ)</small>`);
 }
 function getUid() {
-  let u = null; try { u = sessionStorage.getItem('bb_uid'); } catch (e) {}
-  if (!u) { u = 'u' + Math.random().toString(36).slice(2, 10); try { sessionStorage.setItem('bb_uid', u); } catch (e) {} }
+  let u = null;
+  try { u = localStorage.getItem('bb_uid') || sessionStorage.getItem('bb_uid'); } catch (e) {}
+  if (!u) u = 'u' + Math.random().toString(36).slice(2, 10);
+  try { localStorage.setItem('bb_uid', u); } catch (e) {}
+  try { sessionStorage.setItem('bb_uid', u); } catch (e) {}
   return u;
 }
 const S = () => App.state;
@@ -3135,6 +3373,7 @@ const bankerEnterRoom = (code, pin, name) => roomTx(code, { type: 'claimBanker',
 function enterRoom(code) {
   App.mode = 'online'; App.room = code;
   try { history.replaceState(null, '', '?room=' + code); } catch (e) {}
+  try { localStorage.setItem('bb_room', code); } catch (e) {}
   subscribe();
 }
 // ฟังการเปลี่ยนแปลงของห้องแบบเรียลไทม์ (เรียกซ้ำได้ = ต่อสายใหม่)
@@ -3195,6 +3434,7 @@ function leaveToHome() {
   if (App.unsub) App.unsub();
   Object.assign(App, { unsub: null, state: null, mode: null, room: null, seenEvent: null, tab: 'me', seenHowTo: false, seenTurnHelpKey: null, homeStep: 'pick', view: null, btab: 'home' });
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  try { localStorage.removeItem('bb_room'); } catch (e) {}
   closeModal(); $('#ev-root').innerHTML = ''; render();
 }
 async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('คัดลอกแล้ว'); } catch (e) { toast('คัดลอกไม่ได้ — เลือกข้อความแล้วคัดลอกเอง'); } }
@@ -3255,6 +3495,7 @@ function settingsFields(st, dis, pf = 'st') { // pf = คำนำหน้า i
     <div class="field"><label for="${pf}-start">เงินเริ่มต้นบนกระดาน</label><input id="${pf}-start" type="number" inputmode="numeric" value="${st.start}" ${d}><small>ใช้คิดสัดส่วนเงินในอีเว้นท์และวงเงินกู้</small></div>
     <div class="field"><label for="${pf}-go">เงินผ่านจุดเริ่มต้น</label><input id="${pf}-go" type="number" inputmode="numeric" value="${st.goSalary}" ${d}><small>กดรับเข้าบัญชีได้ตอนถึงตา</small></div>
     <div class="field"><label for="${pf}-bal">ยอดในบัญชีตอนเริ่ม (ถ้าปิด "เริ่มด้วยเงินในระบบทั้งหมด")</label><input id="${pf}-bal" type="number" inputmode="numeric" value="${st.startBal}" ${d}><small>0 = เริ่มด้วยเงินสดกระดาษอย่างเดียว</small></div>
+    <div class="field"><label for="${pf}-neg">ล้มละลายเมื่อบัญชีติดลบถึง (บาท)</label><input id="${pf}-neg" type="number" inputmode="numeric" value="${st.negBankrupt ?? 100}" ${d}><small>ยอดบัญชี (เงินสด) ติดลบถึงจำนวนนี้ = ล้มละลายทันที (0 = ปิด)</small></div>
     <div class="field"><label for="${pf}-minbal">ยอดขั้นต่ำในบัญชี (% ของเงินเริ่มต้น)</label><input id="${pf}-minbal" type="number" inputmode="numeric" value="${st.minBalPct ?? 13}" ${d}><small>ต่ำกว่านี้ = ล้มละลายอัตโนมัติทันที (0 = ปิด)</small></div>
     <div class="field"><label for="${pf}-bankbud">งบกลางธนาคาร (% ของเงินเริ่มต้น × จำนวนผู้เล่น)</label><input id="${pf}-bankbud" type="number" inputmode="numeric" value="${st.bankBudgetPct ?? 0}" ${d}><small>⚠️ ถ้าธนาคารจ่ายเงินเกินงบที่ตั้งไว้จริง ถือว่าธนาคารล้มละลาย เกมจบทันทีทุกคนแพ้ (0 = ปิด งบไม่จำกัด ล้มละลายไม่ได้)</small></div>
   </div>
@@ -3276,7 +3517,7 @@ function policyFields(st, dis, pf) {
 const readPolicy = pf => Object.fromEntries(POLICY.map(([k]) => [k, $(`#${pf}-p-${k}`)]).filter(x => x[1]).map(([k, el]) => [k, +el.value]));
 const readSettings = (pf = 'st') => { const v = k => $(`#${pf}-${k}`);
   return { start: +v('start').value, goSalary: +v('go').value, startBal: +v('bal').value, startAllInApp: v('allin').checked, ...readPolicy(pf),
-    stocks: v('stocks').checked, ...(v('autorate') ? { autoRate: v('autorate').checked } : {}), minBalPct: +v('minbal').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
+    stocks: v('stocks').checked, ...(v('autorate') ? { autoRate: v('autorate').checked } : {}), minBalPct: +v('minbal').value, negBankrupt: +v('neg').value, bankBudgetPct: +v('bankbud').value, eventMode: v('ev').value, autoPay: v('auto').checked, turnHelp: v('help').checked,
     ...(v('confirm') ? { cashConfirm: v('confirm').checked } : {}) }; };
 
 // ---------- แถบบนแบบแอปธนาคาร + เมนูรวมปุ่มทั้งหมด (แทนปุ่มเรียงเต็มหัวจอแบบเดิม) ----------
@@ -3315,6 +3556,7 @@ function menuItems() {
   const it = [];
   if (online) it.push(['📷', 'ชวนเพื่อนเข้าห้อง', `QR และลิงก์ห้อง ${App.room}`, 'invite']);
   it.push(['❓', 'ศูนย์ช่วยเหลือ & วิธีเล่น', 'คู่มือทุกเรื่อง + ทัวร์สอนเล่นทีละจุด', 'howto']);
+  it.push(['🎨', 'ภาพเคลื่อนไหว 3D', `ตอนนี้: ${FX_LABEL[fxMode()]}`, 'fx']);
   it.push([App.sound ? '🔔' : '🔕', App.sound ? 'ปิดเสียง' : 'เปิดเสียง', 'เสียงเอฟเฟกต์ + สั่น (เงินเข้า ประมูล อีเว้นท์)', 'sound']);
   it.push('-');
   // ย้อนกลับได้เฉพาะแอดมิน/ธนาคาร/เจ้าของห้อง และต้องมีคำสั่งให้ย้อนจริง
@@ -3357,7 +3599,7 @@ async function shareText(t) { try { if (navigator.share) { await navigator.share
 function rulesSummary(st) {
   const c = [`💵 เริ่ม ${fmt(st.start)}`, `🏁 ผ่านจุดเริ่ม +${fmt(st.goSalary)}`, `🎴 อีเว้นท์: ${(EVENT_MODES[st.eventMode] || '').split(' —')[0]}`,
     `🏦 กู้ ${st.rate}%/รอบ`, st.stocks ? '📈 ตลาดหุ้นเปิด' : '📈 ตลาดหุ้นปิด', st.taxEvery > 0 ? `🧾 ภาษีทุก ${st.taxEvery} รอบ` : '🧾 ไม่มีภาษี',
-    st.minBalPct > 0 ? `💀 ล้มละลายเมื่อต่ำกว่า ${fmt(Math.round(st.start * st.minBalPct / 100))}` : '💀 ไม่ตัดล้มละลายอัตโนมัติ'];
+    [st.negBankrupt > 0 ? `💀 ล้มละลายเมื่อบัญชีติดลบ ${fmt(st.negBankrupt)}` : '', st.minBalPct > 0 ? `💀 ล้มละลายเมื่อต่ำกว่า ${fmt(Math.round(st.start * st.minBalPct / 100))}` : ''].filter(Boolean).join(' · ') || '💀 ไม่ตัดล้มละลายอัตโนมัติ'];
   return `<div class="chips">${c.map(x => `<span class="chip">${x}</span>`).join('')}</div>`;
 }
 // PIN ธนาคารแบบซ่อนไว้ก่อน กดดูแล้วซ่อนเองใน 8 วินาที (กันคนแอบดูจอตอนยื่นให้สแกน QR)
@@ -3483,7 +3725,7 @@ function nextSeat(s) {
 }
 function myAlerts(s, seat) {
   if (seat < 0) return 0;
-  return s.loans.filter(L => (L.status === 'offer' && L.borrower === seat) || (L.status === 'active' && L.borrower === seat && L.overdue)).length + (P(seat).bal < 0 ? 1 : 0);
+  return s.loans.filter(L => (L.status === 'offer' && L.borrower === seat) || (L.status === 'active' && L.borrower === seat && L.overdue)).length + (P(seat).bal < 0 ? 1 : 0) + (s.bills || []).filter(b => b.st === 'open' && b.seat === seat).length;
 }
 const goAmount = s => s.settings.goSalary * ((s.effects || []).some(e => e.key === 'go2') ? 2 : 1);
 
@@ -3853,16 +4095,18 @@ function queueHtml(s) {
     if (r.kind === 'deposit') return `① รับแบงก์ ${a} จาก ${who} ② กดยืนยัน → เงินเข้าบัญชีเขา`;
     if (r.kind === 'withdraw') return `① ส่งแบงก์ ${a} ให้ ${who} ② กดยืนยัน → หักบัญชีเขา (มี ${baht(P(r.seat).bal)})`;
     if (r.kind === 'payBank') return `ค่า: <b>${esc(r.note || 'ไม่ระบุ')}</b> — ถูกต้องแล้วกดยืนยัน → หักบัญชีเข้าธนาคาร`;
+    if (r.kind === 'deed') return `ธนาคารมอบโฉนด <b>${esc(DEED_OF_RING(r.no))}</b> ให้ ${who} — รับเงิน ${a} แล้วกดยืนยัน (ระบบบันทึกเป็นของเขาทันที)`;
     if (r.kind === 'mortgage') return `โฉนด <b>${esc(r.name)}</b> ราคา ${fmt(r.value)} — ดูว่าเขาถือโฉนดนี้จริง ให้คว่ำไว้ แล้วกดอนุมัติ`;
     if (r.kind === 'loan') return `คืนภายใน <b>${r.rounds} รอบ</b> · รับเป็น${r.into === 'cash' ? 'เงินสด (ส่งแบงก์ให้เขา)' : 'เงินเข้าบัญชี'} — กดอนุมัติได้เลย`;
     return `เหตุผล: <b>${esc(r.note || 'ไม่ระบุ')}</b> — ถูกต้องแล้วกดอนุมัติ → ธนาคารจ่ายเข้าบัญชีเขา`;
   };
-  const kind = { deposit: ['in', '📥 ฝากเงินสด'], withdraw: ['out', '📤 ถอนเงินสด'], claim: ['out', '🙋 ขอเงินจากธนาคาร'], payBank: ['in', '🏦 จ่ายธนาคาร'], loan: ['out', '🧾 ขอกู้'], mortgage: ['out', '📜 ขอจำนอง'] };
-  return reqs.length ? reqs.map(r => `<div class="q">
+  const kind = { deed: ['out', '🗺️ ซื้อโฉนด'], deposit: ['in', '📥 ฝากเงินสด'], withdraw: ['out', '📤 ถอนเงินสด'], claim: ['out', '🙋 ขอเงินจากธนาคาร'], payBank: ['in', '🏦 จ่ายธนาคาร'], loan: ['out', '🧾 ขอกู้'], mortgage: ['out', '📜 ขอจำนอง'] };
+  const rentQ = (s.rentDue || []).map(R => `<div class="q"><div class="qh"><div><b>${esc(P(R.payer).name)}</b><br><span class="qk out">🧾 ค่าเช่า ${esc(DEED_OF_RING(R.no))}</span></div><span class="qamt">${fmt(R.amt)}</span></div><div class="qdo">จ่ายให้ ${esc(P(R.to).name)} — ยอดที่ใช้ได้ของเขา ${baht(avail(s, R.payer))} กดหักให้ได้เท่าที่มี</div><div class="row"><button class="primary" data-a="rentc:${R.id}">✓ หักค่าเช่า</button></div></div>`).join('');
+  return rentQ + (reqs.length ? reqs.map(r => `<div class="q">
       <div class="qh">${tokHtml(r.seat)}<div><b>${esc(P(r.seat).name)}</b><br><span class="qk ${kind[r.kind][0]}">${kind[r.kind][1]}</span></div><span class="qamt">${fmt(r.amt)}</span></div>
       <div class="qdo">${how(r)}</div>
       <div class="row"><button class="danger" data-a="reqNo:${r.id}">ปฏิเสธ</button><button class="primary" data-a="reqOk:${r.id}">${['claim', 'loan', 'mortgage'].includes(r.kind) ? '✓ อนุมัติ' : '✓ ยืนยัน'}</button></div>
-    </div>`).join('') : '<div class="emptybig">☕<b>ไม่มีงานค้าง</b><small>มีคนขอฝาก-ถอน กู้ หรือจำนองเมื่อไหร่ จะขึ้นตรงนี้พร้อมเสียงเตือน</small></div>';
+    </div>`).join('') : '<div class="emptybig">☕<b>ไม่มีงานค้าง</b><small>มีคนขอฝาก-ถอน กู้ หรือจำนองเมื่อไหร่ จะขึ้นตรงนี้พร้อมเสียงเตือน</small></div>');
 }
 function tabCounter(s) {
   const reqs = s.reqs || [], rows = debtorRows(s), bad = rows.filter(d => d.bad).length, A = s.auction;
@@ -3875,13 +4119,13 @@ function tabCounter(s) {
   let body = '';
   if (cur === 'queue') body = queueHtml(s);
   else if (cur === 'people') {
-    body = `<div class="section-h"><h2>ลูกหนี้</h2><span class="muted num">${rows.length}</span></div>${bankToolsDebtors(s)}
+    body = `${posPanel(s)}${billsPanel(s)}${deedBankHtml(s)}<div class="section-h"><h2>ลูกหนี้</h2><span class="muted num">${rows.length}</span></div>${bankToolsDebtors(s)}
       <div class="section-h"><h2>บัญชีทุกคน</h2></div>
       <div class="panel" style="padding:2px 12px">${s.order.map(i => { const p = P(i); return `<div class="acc" style="${p.out ? 'opacity:.5' : ''}">${tokHtml(i)}
         <div><b>${esc(p.name)}</b> ${creditHtml(i)}${p.out ? ' <span class="badge">ออก</span>' : ''}${p.hold ? ' <span class="badge bad">🔒 ' + fmt(p.hold) + '</span>' : ''}<small>หนี้ ${fmt(debtOf(s, i) + mortOf(s, i))}</small></div>
         <b class="num" style="${p.bal < 0 ? 'color:var(--danger)' : ''}">${baht(p.bal)}</b>
-        <span class="acc-actions">${!p.out ? `<button class="sm" data-a="bankerCut:${i}">✂️ ตัดเงิน</button><button class="sm" data-a="hold:${i}">🔒 อายัด</button>` : ''}</span></div>`; }).join('')}</div>
-      <small class="muted">✂️ ตัดเงิน = หักบัญชีทันทีไม่ต้องรอเขายืนยัน (เช่น ไม่ยอมจ่ายค่าเช่า) · 🔒 อายัด = ล็อกเงินไว้ใช้ไม่ได้</small>`;
+        <span class="acc-actions">${!p.out ? `<button class="sm" data-a="bpay:${i}">💵 จ่ายให้</button><button class="sm" data-a="bill:${i}">🧾 ใบแจ้งหนี้</button><button class="sm" data-a="evto:${i}">🎴 อีเว้นท์</button><button class="sm" data-a="bankerCut:${i}">✂️ ตัดเงิน</button><button class="sm" data-a="hold:${i}">🔒 อายัด</button>` : ''}</span></div>`; }).join('')}</div>
+      <small class="muted">💵 จ่ายให้ = ธนาคารโอนเงินเข้าบัญชีเขาทันที · 🧾 ใบแจ้งหนี้ = ให้เขาจ่ายเองภายในกำหนด (เลยกำหนดโดนปรับ) · ✂️ ตัดเงิน = หักบัญชีทันที · 🔒 อายัด = ล็อกเงิน · 🎴 อีเว้นท์ = สุ่มการ์ดให้คนนี้โดยเฉพาะ</small>`;
   } else if (cur === 'rates') body = rateDesk(s);
   else if (cur === 'auction') body = bankToolsAuction(s);
   else body = `<button class="dash-open" data-view="dash"><span>📊</span><b>เปิดแดชบอร์ดธนาคาร</b><small>กราฟเงินฝาก-สินเชื่อ · กำไรรายรอบ · ดอกเบี้ยย้อนหลัง · สมุดสินเชื่อ</small><i>›</i></button>${bankKpi(s)}
@@ -4409,11 +4653,12 @@ function openBankerCut(seat) {
     <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
     <div class="field"><label for="bc-to">โอนเข้า</label><select id="bc-to"><option value="bank">🏦 ธนาคาร (ยึดเข้าธนาคาร)</option>${players.map(i => `<option value="${i}">${pn(i)}</option>`).join('')}</select></div>
     <div class="field"><label for="in-note">เหตุผล</label><input id="in-note" maxlength="40" placeholder="เช่น ไม่ยอมจ่ายค่าเช่าเอง"></div>
+    <label class="check" for="bc-neg"><input type="checkbox" id="bc-neg"><span><b>ยอมให้บัญชีติดลบ</b><small>ถ้าเงินเขาไม่พอ ตัดเกินได้ (โดนดอกเบิกเกินบัญชีทุกรอบ) — ไม่ติ๊ก = ตัดได้ไม่เกินที่มี</small></span></label>
     <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary danger" id="b-go">ตัดเงิน</button></div>`);
   $('#in-amt').focus();
   $('#b-go').onclick = async () => {
     const from = +$('#bc-from').value, amt = +$('#in-amt').value, toRaw = $('#bc-to').value, note = $('#in-note').value;
-    const act = { type: 'bankerTransfer', from, amount: amt, to: toRaw === 'bank' ? 'bank' : +toRaw, note };
+    const act = { type: 'bankerTransfer', from, amount: amt, to: toRaw === 'bank' ? 'bank' : +toRaw, note, allowNeg: $('#bc-neg').checked };
     if (await dispatch(null, act)) { closeModal(); toast(`✂️ ตัดเงิน ${fmt(amt)} จาก ${esc(P(from).name)} แล้ว`); }
   };
 }
@@ -4792,8 +5037,25 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal
 // ==================================================================
 
 // ---------- เวอร์ชัน + บันทึกการอัปเดต (เพิ่มเวอร์ชันใหม่ไว้บนสุด) ----------
-const APP_VERSION = '5.2';
+const APP_VERSION = '5.4';
 const CHANGELOG = [
+  { v: '5.4', d: 'ต.ค. 2026', items: [
+    '🏦 โฉนดอยู่ที่ธนาคาร: ธนาคารถือโฉนดทุกใบไว้ก่อน ผู้เล่นกด 🛒 ขอซื้อ → ธนาคารยืนยันแล้วบันทึกเป็นของเขาทันที',
+    '🧾 ตกช่องโฉนดคนอื่น → เกิดใบค่าเช่า ธนาคารกดหักบัญชีให้เอง (ไม่มีการโอนกันเองให้โกงได้)',
+    '🗺️ สมุดโฉนดของธนาคาร: มอบให้ / ขายให้ / คืนธนาคาร (คืนเงินได้) / ปรับบ้าน-โรงแรม (เก็บค่าก่อสร้างจากเจ้าของ)',
+  ] },
+  { v: '5.3', d: 'ต.ค. 2026', items: [
+    ['💵', 'ธนาคารจ่ายเงินเข้าบัญชีผู้เล่นได้ทันที (โบนัส คืนเงิน ชดเชย) — ปุ่ม "จ่ายให้" ในแท็บลูกค้า'],
+    ['🧾', 'ออกใบแจ้งหนี้พร้อมกำหนดจ่าย ผู้เล่นเห็นแจ้งเตือนแล้วกด "จ่ายเลย" · เลยกำหนดโดนค่าปรับและเครดิตลด'],
+    ['🛠️', 'แก้บั๊ก: กดเริ่มเกมแล้วจอขึ้นแสดงผลผิดพลาด (ปุ่มทอยเต๋าใช้ตัวแปรผิด) และหน้าธนาคารที่ตั้งผู้เล่นไม่ครบ'],
+    ['🎨', 'ภาพ 3D ตั้งค่าได้ในเมนู ☰ → 🎨 ภาพเคลื่อนไหว 3D: ปกติ / 3D ด้วย CSS / 3D กระดานเต็ม (ตั้งค่าต่อเครื่อง)'],
+    ['✨', 'มีแอนิเมชันเต๋าสั่นและหมากเดินทีละช่องก่อนแสดงช่องที่ตก'],
+    ['🎲', 'ทอยเต๋า 2 ลูกแล้วหมากขยับตามวงรอบ 39 ช่องเอง · ผ่านจุดเริ่มต้นรับเงินเดือนอัตโนมัติ · ธนาคารทอยแทนคนที่ไม่ว่างได้ (แท็บลูกค้า > 📍 ตำแหน่งบนกระดาน)'],
+    ['🗺️', 'โฉนดทั้งหมด 29 ใบ: ดูค่าเช่า ราคาบ้าน/โรงแรม แยกตามกลุ่มสี (เมนูลงทุน) และเลือกโฉนดตอนจำนองได้เลย'],
+    ['🎴', 'ธนาคารสุ่มอีเว้นท์ให้เฉพาะคนได้ — ปุ่ม "อีเว้นท์" ที่บัญชีลูกค้า (ได้แต่การ์ดแบบเจาะจงตัวบุคคล)'],
+    ['📶', 'แก้ปัญหาหลุดกลางเกม: แอปจำตัวผู้เล่นถาวร ปิดแอป/เบราว์เซอร์เด้งแล้วเปิดใหม่จะกลับเข้าห้องเดิมให้เอง'],
+    ['✂️', 'ธนาคารหักบัญชีให้ได้ทั้งแบบใบแจ้งหนี้ และตัดเงินแบบ "ยอมให้ติดลบ" เมื่อเงินเขาไม่พอ'],
+  ] },
   { v: '5.2', d: 'ต.ค. 2026', items: [
     ['📊', 'แดชบอร์ดธนาคาร: กราฟเงินฝาก-สินเชื่อ กำไรรายรอบ ดอกเบี้ยย้อนหลัง งบดุลลูกค้า สมุดสินเชื่อ/เงินฝาก + ตัวเลข LDR, NPL, Gini'],
     ['🎚️', 'ปรับดอกเบี้ยละเอียดทีละ 0.25% หรือพิมพ์ตัวเลขเอง · แยกดอกตามเครดิตแต่ละระดับ · ฝากประจำแต่ละระยะ · ดอกเลยกำหนด · ดอกบัญชีติดลบ'],
@@ -4913,7 +5175,7 @@ function turnCard(s) {
       <div class="h-rd"><small>รอบ</small><b>${s.round}</b></div>
     </div>
     ${note}${tip}
-    ${ctl ? `<div class="h-act">${isBanker() && goAmt > 0 ? `<button class="h-go" data-a="go" ${goUsed ? 'disabled' : ''}><span>🏁 เงินเดือน</span><b>+${fmt(goAmt)}</b></button>` : ''}<button class="h-end" data-a="endTurn" data-tour="endturn">จบตา ➜</button></div>` : ''}
+    ${ctl ? `<div class="h-act">${ctl && !rolledNow(s) ? `<button class="h-go" data-a="roll" data-as="${s.turn}">🎲 ทอยเต๋า</button>` : ''}${isBanker() && goAmt > 0 ? `<button class="h-go" data-a="go" ${goUsed ? 'disabled' : ''}><span>🏁 เงินเดือน</span><b>+${fmt(goAmt)}</b></button>` : ''}<button class="h-end" data-a="endTurn" data-tour="endturn">จบตา ➜</button></div>` : ''}
     ${isAdmin() && App.mode === 'online' ? '<button class="h-ev" data-a="drawEvent" title="สุ่มอีเว้นท์" aria-label="สุ่มอีเว้นท์">🎴</button>' : ''}
   </section>`;
 }
@@ -4944,6 +5206,7 @@ function walletInline(s) {
   const todo = [
     ...offers.map(L => `<div class="w-todo gold"><span>✉️</span><div><b>${pn(L.lender)} เสนอให้กู้ ${fmt(L.principal)}</b><small>ดอก ${L.rate}%/รอบ · คืนใน ${L.rounds} รอบ</small></div>
       ${live ? `<span class="c-btn"><button class="sm danger" data-a="cancel:${L.id}" data-as="${v}">ไม่รับ</button><button class="sm primary" data-a="accept:${L.id}" data-as="${v}">รับเงิน</button></span>` : ''}</div>`),
+    ...billTodos(s, v, live),
     ...overdue.map(L => `<div class="w-todo bad"><span>🚨</span><div><b>หนี้เลยกำหนด ${fmt(L.balance)}</b><small>กับ${L.lender == null ? 'ธนาคาร' : ' ' + esc(P(L.lender).name)} · เครดิตลดทุกรอบที่ค้าง</small></div>
       ${live ? `<button class="sm primary" data-a="repayAcc:${L.id}" data-as="${v}">คืนเลย</button>` : ''}</div>`),
     ...reqs.map(r => `<div class="w-todo"><span>⏳</span><div><b>รอธนาคาร: ${REQ_TXT[r.kind] || r.kind} ${fmt(r.amt)}</b><small>${r.kind === 'deposit' ? 'ยื่นแบงก์ให้คนถือธนาคาร' : r.kind === 'withdraw' ? 'รอรับแบงก์จากคนถือธนาคาร' : 'รออนุมัติ'}</small></div>
@@ -5072,6 +5335,7 @@ function bankHome(s) {
     !p.out && p.bal < 0 ? `<div class="notice bad"><span class="ni">🔴</span><div><b>บัญชีติดลบ ${baht(p.bal)}</b><small>โดนดอกเบี้ยทุกรอบ — ฝากเงินสดเข้าบัญชีเพื่อปิดยอดติดลบ</small></div>${helpDot('overdraft')}</div>` : '',
     !p.out && p.hold > 0 ? `<div class="notice"><span class="ni">🔒</span><div><b>วงเงินถูกอายัด ${fmt(p.hold)}</b><small>ใช้ได้ไม่เกิน ${fmt(Math.max(0, p.bal - p.hold))}</small></div>${helpDot('overdraft')}</div>` : '',
     overdue ? `<div class="notice bad"><span class="ni">🚨</span><div><b>มีหนี้เลยกำหนด ${overdue} สัญญา</b><small>รีบคืนก่อนเครดิตลดลงอีก (ดูด้านล่าง)</small></div>${helpDot('credit')}</div>` : '',
+    ...billNotices(s, v, live),
     ...reqs.map(r => `<div class="notice"><span class="ni">⏳</span><div><b>${REQ_KIND[r.kind]} ${fmt(r.amt)}</b>
       <small>${r.kind === 'deposit' ? 'ยื่นแบงก์ให้คนถือธนาคาร แล้วรอเขากดยืนยัน' : r.kind === 'withdraw' ? 'รอธนาคารส่งแบงก์ให้และกดยืนยัน' : 'รอธนาคารอนุมัติ' + (r.note ? ` · ${esc(r.note)}` : '')}</small></div>
       ${canAct(v) ? `<button class="sm" data-a="cancelReq:${r.id}" data-as="${v}">ยกเลิก</button>` : '<span></span>'}</div>`),
@@ -5730,7 +5994,7 @@ function odShow(s) { return r2(rateForCredit(s, 2) + (+s.settings.odAdd || 0)); 
 
 // กระดาน "ธนาคารวันนี้" (ทับของเดิม) — ตารางอัตรา + ข่าว + สถานะลูกหนี้
 function bankBoard(s, ro) {
-  const act = s.order.filter(i => !P(i).out), rows = debtorRows(s), ed = isBanker() && !ro;
+  const act = s.players.map((_, i) => i).filter(i => !P(i).out), rows = debtorRows(s), ed = isBanker() && !ro;
   const x = bankSnap(s);
   return `<section class="panel stack board">
     <div class="bd-h"><b>🏦 ธนาคารวันนี้</b><span class="live-dot">สด · รอบ ${s.round}</span></div>
@@ -5750,7 +6014,7 @@ function bankBoard(s, ro) {
 
 // ---------- ประมาณการกระแสดอกเบี้ยต่อรอบ (ใช้เทียบ "ก่อน/หลัง" ปรับนโยบาย) ----------
 function estFlows(s, over) {
-  const sx = over ? { ...s, settings: { ...s.settings, ...over } } : s, st = sx.settings, act = s.order.filter(i => !P(i).out);
+  const sx = over ? { ...s, settings: { ...s.settings, ...over } } : s, st = sx.settings, act = s.players.map((_, i) => i).filter(i => !P(i).out);
   const loanInt = s.loans.filter(L => L.lender == null && L.status === 'active').reduce((a, L) => a + L.balance * loanRate(sx, L) / 100, 0);
   const mortInt = (s.morts || []).reduce((a, m) => a + m.bal * (+st.mortRate || 0) / 100, 0);
   const odInt = act.reduce((a, i) => a + Math.max(0, -P(i).bal) * odRateOf(sx, i) / 100, 0);
@@ -6083,7 +6347,7 @@ function renderDash(s) {
   const ldrPrev = prev && (prev[1] + prev[2]) ? (prev[3] + prev[4] + prev[5]) / (prev[1] + prev[2]) * 100 : null;
   const nplPrev = prev && (prev[3] + prev[4] + prev[5]) ? prev[6] / (prev[3] + prev[4] + prev[5]) * 100 : null;
   const txRound = s.tx.filter(t => t.r === s.round), vol = txRound.filter(t => t.k === 'transfer' || t.k === 'auction').reduce((a, t) => a + t.a, 0);
-  const act = s.order.filter(i => !P(i).out), g = gini(act.map(i => netWorth(s, i)));
+  const act = s.players.map((_, i) => i).filter(i => !P(i).out), g = gini(act.map(i => netWorth(s, i)));
   const est = estFlows(s), profit = x.inc - x.exp, dProfit = prev ? profit - (prev[7] - prev[8]) : null;
   // การ์ดตัวเลข: [ชื่อ, ค่า, เปลี่ยน, ขึ้นดีไหม, เส้นจิ๋ว, คำอธิบาย]
   // d = undefined → ไม่โชว์บรรทัดเปลี่ยนแปลง · null → ยังไม่มีรอบก่อนให้เทียบ
@@ -6188,11 +6452,357 @@ function rateHistCard(s) {
 // จำว่าหมวดไหนกาง/พับไว้ (กันวาดใหม่แล้วพับกลับเอง)
 document.addEventListener('toggle', e => { const d = e.target; if (d.matches && d.matches('details.pg[data-pg]') && !d.closest('.modal')) { App.pgOpen = App.pgOpen || {}; App.pgOpen[d.dataset.pg] = d.open ? 1 : 0; } }, true);
 
+// ==================================================================
+// v5.2.1 — ธนาคารจ่ายเงินเข้าบัญชี + ใบแจ้งหนี้ (เกมไร้เงินสด)
+// ==================================================================
+const billRem = B => B.amt + B.pen - B.paid;
+const billLeft = (s, B) => B.due - s.round; // เหลืออีกกี่รอบ (ติดลบ = เลยกำหนด)
+const billWhen = (s, B) => B.late ? '🔴 เลยกำหนด' : billLeft(s, B) <= 0 ? '🟡 ครบกำหนดรอบนี้' : `ภายในรอบ ${B.due} (อีก ${billLeft(s, B)} รอบ)`;
+// รายการใบแจ้งหนี้ที่ผู้เล่นต้องจ่าย (โชว์บนหน้าเล่น)
+function billTodos(s, v, live) {
+  return (s.bills || []).filter(b => b.st === 'open' && b.seat === v).map(B => `<div class="w-todo ${B.late ? 'bad' : 'gold'}"><span>🧾</span><div><b>ใบแจ้งหนี้ #${B.id} · ${fmt(billRem(B))}</b><small>${esc(B.note)} · ${billWhen(s, B)}${B.pen ? ` · รวมค่าปรับ ${fmt(B.pen)}` : ''}</small></div>
+    ${live ? `<button class="sm primary" data-a="billPay:${B.id}" data-as="${v}">จ่ายเลย</button>` : ''}</div>`);
+}
+// แบบเดียวกัน สำหรับหน้า "ต้องจัดการ" ในแอปธนาคาร
+function billNotices(s, v, live) {
+  return (s.bills || []).filter(b => b.st === 'open' && b.seat === v).map(B => `<div class="notice ${B.late ? 'bad' : 'gold'}"><span class="ni">🧾</span><div><b>ใบแจ้งหนี้ #${B.id} · ต้องจ่าย ${fmt(billRem(B))}</b><small>${esc(B.note)} · ${billWhen(s, B)}${B.pen ? ` · รวมค่าปรับ ${fmt(B.pen)}` : ''}</small></div>
+    ${live ? `<button class="sm primary" data-a="billPay:${B.id}" data-as="${v}">จ่ายเลย</button>` : '<span></span>'}</div>`);
+}
+// แผงใบแจ้งหนี้ของธนาคาร (แท็บ "ลูกค้า")
+function billsPanel(s) {
+  const open = (s.bills || []).filter(b => b.st === 'open').sort((a, b) => b.late - a.late || a.due - b.due), done = (s.bills || []).filter(b => b.st !== 'open').slice(-4).reverse();
+  const row = B => `<div class="dm ${B.late ? 'bad' : 'warn'}"><div class="row" style="flex-wrap:nowrap">${tokHtml(B.seat)}<b style="flex:1;min-width:0">${esc(P(B.seat).name)} <small class="muted">#${B.id} · ${esc(B.note)}</small></b><b class="num">${fmt(billRem(B))}</b></div>
+    <div class="meta"><span>${billWhen(s, B)}</span>${B.paid ? `<span>จ่ายแล้ว ${fmt(B.paid)}</span>` : ''}${B.pen ? `<span>ค่าปรับ ${fmt(B.pen)}</span>` : ''}</div>
+    <div class="row" style="gap:6px"><button class="sm" data-a="billCut:${B.id}">✂️ หักบัญชีให้</button><button class="sm danger" data-a="billNo:${B.id}">ยกเลิก</button></div></div>`;
+  return `<div class="section-h"><h2>🧾 ใบแจ้งหนี้ที่รอชำระ</h2><span class="muted num">${open.length}</span></div>
+    ${open.length ? open.map(row).join('') : '<div class="emptybig" style="padding:14px;font-size:22px">📄<small>ยังไม่มีใบแจ้งหนี้ค้าง — กด "🧾 ใบแจ้งหนี้" ที่บัญชีลูกค้าด้านล่างเพื่อออกใบ</small></div>'}
+    ${done.length ? `<small class="muted">ล่าสุด: ${done.map(B => `#${B.id} ${esc(P(B.seat).name)} ${B.st === 'paid' ? '✅ จ่ายแล้ว' : '↩️ ยกเลิก'}`).join(' · ')}</small>` : ''}`;
+}
+function openBankerPay(seat) {
+  const s = S(), players = s.players.map((_, i) => i).filter(i => !P(i).out); if (!players.length) return toast('ไม่มีผู้เล่น');
+  const to0 = players.includes(seat) ? seat : players[0];
+  openModal('💵 ธนาคารจ่ายเงินเข้าบัญชี', `
+    <p class="muted" style="margin:0;font-size:13.5px">โอนเงินจากธนาคารเข้าบัญชีผู้เล่นทันที ไม่ต้องรอเขากดขอ — ใช้จ่ายเงินเดือนพิเศษ รางวัล คืนเงิน หรือชดเชย${s.bankBudget != null ? ` · งบกลางเหลือ ${fmt(s.bankBudget)}` : ''}</p>
+    <div class="field"><label for="bp-to">จ่ายให้</label><select id="bp-to">${players.map(i => `<option value="${i}" ${i === to0 ? 'selected' : ''}>${pn(i)} (มี ${fmt(P(i).bal)})</option>`).join('')}</select></div>
+    <div class="field"><label for="in-amt">จำนวนเงิน</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    <div class="quick">${[500, 1000, 2000, 5000].map(q => `<button class="sm" data-q="${q}">${fmt(q)}</button>`).join('')}</div>
+    <div class="field"><label for="in-note">เหตุผล</label><input id="in-note" maxlength="40" placeholder="เช่น โบนัส / คืนค่าปรับ"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">💵 จ่ายเงิน</button></div>`);
+  $$('#modal-root [data-q]').forEach(b => b.onclick = () => { $('#in-amt').value = b.dataset.q; });
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => { const to = +$('#bp-to').value, amt = +$('#in-amt').value;
+    if (await dispatch(null, { type: 'bankerPay', to, amount: amt, note: $('#in-note').value })) { closeModal(); toast(`💵 จ่าย ${fmt(amt)} เข้าบัญชี ${P(to).name} แล้ว`, 'ok'); } };
+}
+function openBillForm(seat) {
+  const s = S(), players = s.players.map((_, i) => i).filter(i => !P(i).out); if (!players.length) return toast('ไม่มีผู้เล่น');
+  const to0 = players.includes(seat) ? seat : players[0];
+  openModal('🧾 ออกใบแจ้งหนี้', `
+    <p class="muted" style="margin:0;font-size:13.5px">ผู้เล่นจะเห็นใบแจ้งหนี้เด้งขึ้นจอ แล้วกด "จ่ายเลย" เอง · ถ้าเลยกำหนดโดนค่าปรับ ${s.settings.penalty}% และเครดิตลด 1 ขั้น · จ่ายไม่ไหวก็กด "หักบัญชีให้" ได้</p>
+    <div class="field"><label for="bl-to">ออกให้</label><select id="bl-to">${players.map(i => `<option value="${i}" ${i === to0 ? 'selected' : ''}>${pn(i)} (มี ${fmt(P(i).bal)})</option>`).join('')}</select></div>
+    <div class="field"><label for="in-amt">ยอดที่ต้องชำระ</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    <div class="field"><label for="in-note">เรื่อง / เหตุผล</label><input id="in-note" maxlength="60" placeholder="เช่น ค่าเช่าสีลม / ค่าปรับจอดผิดที่"></div>
+    <div class="field"><label for="bl-due">กำหนดจ่าย</label><select id="bl-due">${[[0, 'ภายในรอบนี้'], [1, 'อีก 1 รอบ (รอบ ' + (s.round + 1) + ')'], [2, 'อีก 2 รอบ'], [3, 'อีก 3 รอบ'], [5, 'อีก 5 รอบ']].map(([d, l], k) => `<option value="${d}" ${d === 1 ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">🧾 ส่งใบแจ้งหนี้</button></div>`);
+  $('#in-amt').focus();
+  $('#b-go').onclick = async () => { const to = +$('#bl-to').value;
+    if (await dispatch(null, { type: 'billCreate', to, amount: +$('#in-amt').value, note: $('#in-note').value, dueIn: +$('#bl-due').value })) { closeModal(); toast(`🧾 ส่งใบแจ้งหนี้ให้ ${P(to).name} แล้ว`, 'ok'); } };
+}
+Object.assign(G5_ACTIONS, {
+  bpay: x => openBankerPay(x !== '' && x != null ? +x : null),
+  bill: x => openBillForm(x !== '' && x != null ? +x : null),
+  billPay: (x, b) => { const as = b && b.dataset.as != null ? +b.dataset.as : null, B = (S().bills || []).find(y => y.id === +x); if (!B) return;
+    dispatch(as, { type: 'payBill', id: +x }).then(ok => { if (ok) toast(`✓ จ่ายใบแจ้งหนี้ #${x} แล้ว — ${fmt(billRem(B))}`, 'ok'); }); },
+  billNo: x => confirmBox(`ยกเลิกใบแจ้งหนี้ #${x}?`, 'ผู้เล่นไม่ต้องจ่ายแล้ว และไม่โดนค่าปรับ', 'ยกเลิกใบ', () => dispatch(null, { type: 'billCancel', id: +x })),
+  billCut: x => { const B = (S().bills || []).find(y => y.id === +x); if (!B) return;
+    confirmBox(`หักบัญชี ${P(B.seat).name}?`, `หักเงินจากบัญชีเขาชำระใบแจ้งหนี้ #${x} (ยอดค้าง ${fmt(billRem(B))}) เท่าที่มีให้ใช้`, 'หักเลย', () => dispatch(null, { type: 'billCollect', id: +x })); },
+});
+
+// สุ่มอีเว้นท์ให้เฉพาะคน (ธนาคาร/แอดมิน)
+Object.assign(G5_ACTIONS, {
+  evto: x => { const i = +x; confirmBox(`สุ่มอีเว้นท์ให้ ${P(i).name}?`, 'สุ่มเฉพาะการ์ดที่เจาะจงตัวบุคคล (โชคดี/โชคร้ายรายคน) แล้วตกที่คนนี้ — ทุกคนจะเห็นการ์ดเด้งขึ้นจอ', '🎴 สุ่มเลย', () => dispatch(null, { type: 'drawEvent', to: i })); },
+});
+
+// ---------- v5.3.1 ทอยเต๋า 2 ลูก + ตำแหน่งบนกระดาน ----------
+const rolledNow = s => !!(s.rolledBy && s.rolledBy.turn === s.turn && s.rolledBy.round === s.round);
+// แสดงว่าใครอยู่ช่องไหน (แผงของธนาคาร)
+function posPanel(s) {
+  const rows = s.players.map((_, i) => i).filter(i => !P(i).out).map(i => { const q = P(i).pos || 0, [k, n] = RING[q]; const tag = k === 'l' ? '' : ({ s: '🏁', c: '🎴', j: '🚓', g: '🚓', p: '🅿️' })[k] || '';
+    return `<div class="dm"><div class="row" style="flex-wrap:nowrap">${tokHtml(i)}<b style="flex:1;min-width:0">${esc(P(i).name)}</b><span class="num">ช่อง ${q}</span></div>
+      <div class="meta"><span>${tag} ${esc(n)}</span>${i === s.turn ? '<span>🎲 ตาของคนนี้</span>' : ''}</div>
+      <div class="row" style="gap:6px"><button class="sm" data-a="roll:${i}" ${rolledNow(s) && i === s.turn ? 'disabled' : ''}>🎲 ทอยแทน</button></div></div>`; });
+  return `<div class="section-h"><h2>📍 ตำแหน่งบนกระดาน</h2></div>${rows.join('') || '<small class="muted">ยังไม่มีผู้เล่น</small>'}`;
+}
+// ป๊อปอัปทอยเต๋า: ผู้เล่นทอยเอง หรือธนาคารทอยแทน (ส่ง seat)
+function openDice(seat) {
+  const s = S();
+  if (rolledNow(s)) return toast('ตานี้ทอยเต๋าไปแล้ว');
+  const who = seat != null ? seat : s.turn;
+  openModal(`🎲 ทอยเต๋า — ${esc(P(who).name)}`, `
+    <p class="muted" style="margin:0;font-size:13.5px">ใส่แต้มเต๋า 2 ลูกที่ทอยได้จริงบนโต๊ะ แอปจะขยับหมากให้เอง</p>
+    <div class="row" style="gap:8px"><div class="field" style="flex:1"><label for="d1">ลูกที่ 1</label><input id="d1" type="number" min="1" max="6" inputmode="numeric"></div><div class="field" style="flex:1"><label for="d2">ลูกที่ 2</label><input id="d2" type="number" min="1" max="6" inputmode="numeric"></div></div>
+    <div class="row" style="justify-content:flex-end;gap:8px"><button id="dice-rnd">🎲 สุ่มให้</button></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">ขยับหมาก</button></div>`);
+  $('#dice-rnd').onclick = () => { $('#d1').value = 1 + Math.floor(Math.random() * 6); $('#d2').value = 1 + Math.floor(Math.random() * 6); };
+  $('#dice-rnd').click();
+  $('#b-go').onclick = async () => {
+    const d1 = +$('#d1').value, d2 = +$('#d2').value;
+    if (await dispatch(null, { type: 'move', seat: who, d1, d2 })) {
+      closeModal(); const L = S().landed || {};
+      toast(`🚶 ${P(who).name} ${d1}+${d2} → ${RING[L.pos] ? RING[L.pos][1] : ''}`, 'ok');
+    }
+  };
+}
+Object.assign(G5_ACTIONS, {
+  roll: (x, b) => { const as = b && b.dataset.as != null ? +b.dataset.as : (x !== '' && x != null ? +x : null); openDice(as); },
+});
+
+// v5.3.2 ป๊อปอัปทอยเต๋า: กดตัวเลข 1–6 ของแต่ละลูกได้เลย ไม่ต้องพิมพ์
+function openDice(seat) {
+  const s = S();
+  if (rolledNow(s)) return toast('ตานี้ทอยเต๋าไปแล้ว');
+  const who = seat != null ? seat : s.turn, pick = { d1: 0, d2: 0 };
+  const grid = k => `<div class="dice-row">${[1, 2, 3, 4, 5, 6].map(n => `<button class="die" data-k="${k}" data-n="${n}">${n}</button>`).join('')}</div>`;
+  openModal(`🎲 ทอยเต๋า — ${esc(P(who).name)}`, `
+    <p class="muted" style="margin:0;font-size:13.5px">กดแต้มของเต๋าแต่ละลูกที่ทอยได้จริงบนโต๊ะ</p>
+    <div class="field"><label>ลูกที่ 1</label>${grid('d1')}</div>
+    <div class="field"><label>ลูกที่ 2</label>${grid('d2')}</div>
+    <div class="preview" id="dice-sum">ยังไม่ได้เลือก</div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go" disabled>ขยับหมาก</button></div>`);
+  const upd = () => { $('#dice-sum').innerHTML = pick.d1 && pick.d2 ? `<b class="num">${pick.d1} + ${pick.d2} = ${pick.d1 + pick.d2}</b> ช่อง` : 'เลือกแต้มให้ครบทั้งสองลูก'; $('#b-go').disabled = !(pick.d1 && pick.d2); };
+  $$('#modal-root .die').forEach(btn => btn.onclick = () => {
+    pick[btn.dataset.k] = +btn.dataset.n;
+    $$(`#modal-root .die[data-k="${btn.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === btn));
+    upd();
+  });
+  $('#b-go').onclick = async () => {
+    const from = P(who).pos || 0; $('#b-go').disabled = true;
+    // แอนิเมชันเต๋าสั่น 0.7 วินาที แล้วค่อยส่งคำสั่งจริง
+    const faces = $$('#modal-root .die'); const t0 = Date.now();
+    faces.forEach(f => f.classList.add('tumble')); setTimeout(() => faces.forEach(f => f.classList.remove('tumble')), 800);
+    const tm = setInterval(() => { $$('#modal-root .die.on').forEach(x => x.classList.remove('on')); const r = () => 1 + Math.floor(Math.random() * 6); faces.forEach(f => f.textContent = r()); if (Date.now() - t0 > 700) { clearInterval(tm); } }, 70);
+    await new Promise(r => setTimeout(r, 760));
+    $$('#modal-root .die').forEach(f => f.textContent = f.dataset.n);
+    $$('#modal-root .die').forEach(f => { if (+f.dataset.n === pick[f.dataset.k]) f.classList.add('on'); });
+    if (await dispatch(null, { type: 'move', seat: who, d1: pick.d1, d2: pick.d2 })) {
+      closeModal(); walkAnim(who, from, pick.d1 + pick.d2);
+    } else $('#b-go').disabled = false;
+  };
+}
+// ---------- v5.3.4 ภาพเคลื่อนไหว 3D (ตั้งค่าได้ต่อเครื่อง) ----------
+// flat = ปกติ · css = 3D ด้วย CSS (เต๋า/การ์ด) · board = 3D กระดาน (three.js โหลดเมื่อจำเป็น)
+const FX_LABEL = { flat: 'ปกติ (ไม่มี 3D)', css: '3D ด้วย CSS (เต๋า & การ์ด)', board: '3D กระดานเต็ม (หมากเดินบนกระดาน)' };
+function fxMode() { try { return localStorage.getItem('bb_fx') || 'css'; } catch (e) { return 'css'; } }
+function fxSet(m) { try { localStorage.setItem('bb_fx', m); } catch (e) {} document.body.dataset.fx = m; }
+document.body.dataset.fx = fxMode();
+function openFx() {
+  const cur = fxMode();
+  openModal('🎨 ภาพเคลื่อนไหว 3D', `
+    <p class="muted" style="margin:0;font-size:13.5px">ตั้งค่าเฉพาะเครื่องนี้ ไม่กระทบเพื่อน</p>
+    ${Object.entries(FX_LABEL).map(([k, l]) => `<button class="fx-opt ${cur === k ? 'on' : ''}" data-fx="${k}"><b>${l}</b><small>${k === 'flat' ? 'เรียบ เบาที่สุด' : k === 'css' ? 'เต๋าหมุนในอากาศ การ์ดเอียงได้ เบาเครื่อง' : 'หมากเดินบนกระดาน 3D หมุนดูได้ ต้องโหลดเพิ่มเล็กน้อย'}</small></button>`).join('')}
+    <div class="row" style="justify-content:flex-end"><button class="primary" data-close>เสร็จ</button></div>`);
+  $$('#modal-root [data-fx]').forEach(b => b.onclick = () => { fxSet(b.dataset.fx); openFx(); toast(`🎨 ${FX_LABEL[b.dataset.fx]}`, 'ok'); });
+}
+Object.assign(G5_ACTIONS, { fx: () => openFx() });
+
+// โหลด three.js จากไฟล์ในเว็บเราเอง (ไม่ต้องพึ่ง CDN) เฉพาะตอนเปิดโหมดกระดาน
+let _T3 = null;
+async function loadThree() { if (!_T3) _T3 = import('./vendor/three.module.min.js'); return _T3; }
+// สร้างฉาก 3D กระดาน: วงรอบ 39 ช่อง + หมากทรงกลมที่เด้งไปตามช่อง
+async function board3D(container, who) {
+  const T = await loadThree(); const W = Math.min(container.clientWidth || 340, 360), H = Math.round(W * 0.9);
+  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2)); renderer.setSize(W, H);
+  renderer.domElement.className = 'board3d-cv'; container.appendChild(renderer.domElement);
+  const scene = new T.Scene(), cam = new T.PerspectiveCamera(42, W / H, 0.1, 100); cam.position.set(0, 17, 10); cam.lookAt(0, 0, 0);
+  scene.add(new T.AmbientLight(0xffffff, 0.85)); const dl = new T.DirectionalLight(0xffffff, 0.8); dl.position.set(5, 10, 6); scene.add(dl);
+  const g = new T.Group(); scene.add(g);
+  const N = RING.length, R = 5.2, pos = i => { const a = (i / N) * Math.PI * 2 - Math.PI / 2; return new T.Vector3(R * Math.cos(a), 0, R * Math.sin(a)); };
+  const COL = { s: 0xf2c94c, j: 0xeb5757, g: 0xeb5757, p: 0x56ccf2, c: 0xbb6bd9, l: 0x6fcf97 };
+  const tiles = RING.map(([k], i) => { const m = new T.Mesh(new T.BoxGeometry(0.8, 0.3, 0.8), new T.MeshStandardMaterial({ color: COL[k] || 0x9aa8a2 }));
+    m.position.copy(pos(i)); m.position.y = 0.15; g.add(m); return m; });
+  const p = (window.P ? P(who) : null) || { token: 0 }; const tc = TOKENS[p.token] ? parseInt(TOKENS[p.token].color.slice(1), 16) : 0x2a78d6;
+  const tok = new T.Mesh(new T.SphereGeometry(0.42, 24, 16), new T.MeshStandardMaterial({ color: tc, emissive: tc, emissiveIntensity: 0.25 }));
+  tok.position.copy(pos(0)); tok.position.y = 0.6; g.add(tok);
+  let target = pos(0), hi = null, drag = null, alive = true, lastX = 0;
+  const setPos = i => { target = pos(i); const k = RING[i][0]; if (hi) hi.material.emissive.setHex(0); hi = tiles[i]; hi.material.emissive.setHex(0x333333); };
+  renderer.domElement.addEventListener('pointerdown', e => { drag = true; lastX = e.clientX; });
+  window.addEventListener('pointerup', () => { drag = false; });
+  renderer.domElement.addEventListener('pointermove', e => { if (drag) { g.rotation.y += (e.clientX - lastX) * 0.01; lastX = e.clientX; } });
+  let t = 0; (function loop() { if (!alive) return; t++; tok.position.x += (target.x - tok.position.x) * 0.18; tok.position.z += (target.z - tok.position.z) * 0.18;
+    tok.position.y = 0.6 + Math.abs(Math.sin(t * 0.15)) * 0.0 + (Math.hypot(target.x - tok.position.x, target.z - tok.position.z) > 0.05 ? 0.5 : 0); if (!drag) g.rotation.y += 0.002;
+    renderer.render(scene, cam); requestAnimationFrame(loop); })();
+  return { setPos, dispose() { alive = false; renderer.forceContextLoss(); renderer.domElement.remove(); } };
+}
+// แอนิเมชันเดินหมากทีละช่องตามวงรอบ แล้วโชว์ช่องที่ตก
+function walkAnim(who, from, steps) {
+  const s = S(), p = P(who), name = p.name, total = RING.length, fx = fxMode();
+  const ov = document.createElement('div'); ov.className = 'walk-ov'; ov.setAttribute('role', 'status');
+  ov.innerHTML = `<div class="walk-card"><div class="walk-title">🎲 ${esc(name)} เดิน ${steps} ช่อง</div><div class="walk-stage"></div><div class="walk-land" id="walk-land"></div></div>`;
+  document.body.appendChild(ov);
+  const stage = ov.querySelector('.walk-stage');
+  let place, dispose = () => {};
+  const flatTrack = () => {
+    const track = Array.from({ length: total }, (_, i) => `<i data-i="${i}" class="${RING[i][0] === 'l' ? '' : 'sp'}" title="${esc(RING[i][1])}"></i>`).join('');
+    stage.innerHTML = `<div class="walk-track">${track}<b class="walk-tok" style="--tc:${TOKENS[p.token].color}">${TOKENS[p.token].icon || '●'}</b></div>`;
+    const tok = stage.querySelector('.walk-tok'), cells = stage.querySelectorAll('.walk-track i');
+    place = i => { const c = cells[i]; if (!c) return; tok.style.transform = `translate(${c.offsetLeft}px,${c.offsetTop}px)`; cells.forEach(x => x.classList.remove('hot')); c.classList.add('hot'); };
+    setTimeout(() => place(from), 0);
+  };
+  if (fx === 'board') {
+    board3D(stage, who).then(b => { dispose = b.dispose; place = b.setPos; b.setPos(from); }).catch(() => { toast('โหลดกระดาน 3D ไม่ได้ ใช้แบบปกติแทน'); flatTrack(); });
+  } else flatTrack();
+  let k = 0; const stepTimer = setInterval(() => {
+    k++; if (place) place((from + k) % total);
+    if (k >= steps) {
+      clearInterval(stepTimer); const L = S().landed || {}; const [kind, lname] = RING[L.pos] || ['l', ''];
+      const what = kind === 'l' ? `ตกที่ ${lname}` : kind === 'c' ? `ตกช่องโอกาส — ธนาคารจะกำหนดการ์ดเอง` : kind === 'j' ? 'ช่องเข้าคุก' : kind === 'g' ? '🚓 ถูกส่งไปเข้าคุก' : kind === 's' ? '🏁 ถึงจุดเริ่มต้น' : `🅿️ พักที่ ${lname}`;
+      ov.querySelector('#walk-land').innerHTML = `<b>${esc(what)}</b>`;
+      setTimeout(() => { ov.classList.add('out'); dispose(); }, 1800); setTimeout(() => ov.remove(), 2300);
+    }
+  }, 260);
+}
+
+// ==================================================================
+// v5.3 — โฉนดทั้งหมดในเกม (29 ใบ): ดูค่าเช่า/ราคาบ้าน + เลือกโฉนดตอนจำนอง
+// ข้อมูลค่าเช่าถอดจากโฉนดจริงของกลุ่ม · "ราคาที่ดิน" เป็นค่าประมาณ (ไม่ได้พิมพ์บนใบ) แก้ได้ในฟอร์มจำนอง
+// ==================================================================
+const DEED_GROUPS = { brown: ['น้ำตาล', '#8b5a3c'], lblue: ['ฟ้าอ่อน', '#4aa8d8'], pink: ['ชมพู', '#d6479b'], orange: ['ส้ม', '#e8872b'], red: ['แดง', '#d63c3c'], yellow: ['เหลือง', '#d9aa00'], green: ['เขียว', '#2f9e5b'], dblue: ['น้ำเงินเข้ม', '#2a4cb0'], hotel: ['โรงแรม ร.ร.', '#55616b'], util: ['สาธารณูปโภค', '#7a8a96'] };
+// [เลขที่, ชื่อ, กลุ่ม, ราคาที่ดิน(โดยประมาณ), ค่าเช่า[ที่ดินเปล่า, 1 หลัง, 2, 3, 4, โรงแรม], ราคาบ้านหลังละ]
+const DEEDS = [
+  [1, 'กรุงเทพฯ', 'brown', 600, [20, 100, 300, 900, 1600, 2500], 500], [2, 'นครปฐม', 'brown', 600, [40, 200, 600, 1800, 3200, 4500], 500],
+  [3, 'เซ็นทรัล', 'hotel', 2000], [4, 'การ์เด้น', 'hotel', 2000],
+  [5, 'ตลาดโบ๊เบ๊', 'lblue', 1000, [60, 300, 900, 2700, 4000, 5500], 500], [6, 'เยาวราช', 'lblue', 1000, [60, 300, 900, 2700, 4000, 5500], 500], [7, 'จันทบุรี', 'lblue', 1200, [80, 400, 1000, 3000, 4500, 6000], 500],
+  [8, 'กาญจนบุรี', 'pink', 1400, [100, 500, 1500, 4500, 6250, 7500], 1000], [9, 'การไฟฟ้า', 'util', 1500], [10, 'ระยอง', 'pink', 1400, [100, 500, 1500, 4500, 6250, 7500], 1000], [11, 'สุโขทัย', 'pink', 1600, [120, 600, 1800, 5000, 7000, 9000], 1000],
+  [12, 'เอเมอรัล', 'hotel', 2000],
+  [13, 'ภูเก็ต', 'orange', 1800, [140, 700, 2000, 5500, 7500, 9500], 1000], [14, 'สุราษฎร์ธานี', 'orange', 1800, [140, 700, 2000, 5500, 7500, 9500], 1000], [15, 'สงขลา', 'orange', 2000, [160, 800, 2200, 6000, 8000, 10000], 1000],
+  [16, 'เพชรบุรี', 'red', 2200, [180, 900, 2500, 7000, 8750, 10500], 1500], [17, 'เชียงใหม่', 'red', 2200, [180, 900, 2500, 7000, 8750, 10500], 1500], [18, 'เชียงราย', 'red', 2400, [200, 1000, 2500, 7500, 9250, 11000], 1500],
+  [19, 'แกรนด์จอมเทียน', 'hotel', 2000],
+  [20, 'แม่ฮ่องสอน', 'yellow', 2600, [220, 1100, 3300, 8000, 9750, 11500], 1500], [21, 'ลำปาง', 'yellow', 2600, [220, 1100, 3300, 8000, 9750, 11500], 1500], [22, 'การประปา', 'util', 1500], [23, 'โคราช', 'yellow', 2800, [220, 1200, 3600, 8500, 10250, 12000], 1500],
+  [24, 'แดนเนรมิต', 'green', 3000, [260, 1300, 3900, 9000, 11000, 12750], 2000], [25, 'สุรินทร์', 'green', 3000, [260, 1300, 3900, 9000, 11000, 12750], 2000], [26, 'อุบลราชธานี', 'green', 3200, [280, 1500, 4500, 10000, 12000, 14000], 2000],
+  [27, 'โนโวเทล', 'hotel', 2000],
+  [28, 'ดอนเมือง', 'dblue', 3500, [350, 1750, 5000, 11000, 13000, 15000], 2000], [29, 'เสาชิงช้า', 'dblue', 4000, [500, 2000, 6000, 14000, 17000, 20000], 2000],
+].map(d => ({ no: d[0], name: d[1], g: d[2], price: d[3], rent: d[4] || null, house: d[5] || 0 }));
+const deedBy = no => DEEDS.find(d => d.no === no);
+// ตารางค่าเช่าของโฉนดหนึ่งใบ (HTML)
+function deedTable(d) {
+  const R = (a, b) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`;
+  if (d.g === 'hotel') return `<table class="dd-t">${R('มี ร.ร. 1 แห่ง', fmt(250))}${R('มี 2 แห่ง', fmt(300))}${R('มี 3 แห่ง', fmt(350))}${R('มี 4 แห่ง', fmt(400))}${R('มี 5 แห่ง', fmt(450))}</table>`;
+  if (d.g === 'util') return `<table class="dd-t">${R('เป็นเจ้าของใบเดียว', fmt(300))}${R('เป็นเจ้าของ ไฟฟ้า + ประปา ครบทั้งคู่', fmt(800))}</table>`;
+  const L = ['ที่ดินเปล่า', 'พร้อมบ้าน 1 หลัง', 'บ้าน 2 หลัง', 'บ้าน 3 หลัง', 'บ้าน 4 หลัง', 'กับโรงแรม'];
+  return `<table class="dd-t">${d.rent.map((v, i) => R(L[i], fmt(v))).join('')}${R('ซื้อบ้านหลังละ', fmt(d.house))}${R('ซื้อโรงแรม', fmt(d.house * 5))}${R('จำนองได้ ~', fmt(Math.round(d.price * (S() ? S().settings.mortPct : 50) / 100)))}</table>`;
+}
+function openDeeds(filter) {
+  const q = (App.deedQ || '').trim(), g = filter != null ? filter : (App.deedG || '');
+  App.deedG = g;
+  const list = DEEDS.filter(d => (!g || d.g === g) && (!q || d.name.includes(q) || String(d.no) === q));
+  openModal('🗺️ โฉนดทั้งหมดในเกม', `
+    <div class="chips dd-g"><button class="sm ${g ? '' : 'primary'}" data-dg="">ทั้งหมด ${DEEDS.length}</button>${Object.entries(DEED_GROUPS).map(([k, [n, c]]) => `<button class="sm ${g === k ? 'primary' : ''}" data-dg="${k}"><i class="dd-dot" style="background:${c}"></i>${n}</button>`).join('')}</div>
+    <div class="field"><input id="dd-q" placeholder="ค้นหาชื่อ / เลขที่โฉนด" value="${esc(q)}"></div>
+    <div class="dd-list">${list.map(d => `<details class="dd-card"><summary><span class="dd-no" style="background:${DEED_GROUPS[d.g][1]}">${d.no}</span><b>${esc(d.name)}</b><small class="muted">${DEED_GROUPS[d.g][0]}${d.rent ? ` · ค่าเช่า ${fmt(d.rent[0])}` : ''}</small></summary>${deedTable(d)}</details>`).join('') || '<div class="emptybig">🔎<small>ไม่พบโฉนด</small></div>'}</div>
+    <small class="muted">ค่าเช่า/ราคาบ้านตามโฉนดจริง · ราคาที่ดินและยอดจำนองเป็นค่าประมาณ</small>`);
+  $$('#modal-root [data-dg]').forEach(b => b.onclick = () => { openDeeds(b.dataset.dg); });
+  const qi = $('#dd-q'); qi.oninput = () => { App.deedQ = qi.value; clearTimeout(App.deedT); App.deedT = setTimeout(() => { const pos = qi.value.length; openDeeds(); const n = $('#dd-q'); n.focus(); n.setSelectionRange(pos, pos); }, 250); };
+}
+// จำนอง: เลือกโฉนดจากรายการ (ใส่ชื่อ+ราคาให้เอง) หรือพิมพ์เอง
+function openMortgage(v) {
+  const s = S(), needOk = s.settings.cashConfirm && App.mode === 'online' && !isBanker();
+  openModal('📜 จำนองที่ดิน', `${balLine(v)}
+    <p class="muted" style="margin:0;font-size:13.5px">เลือกโฉนดที่ยังไม่มีบ้าน แล้วคว่ำโฉนดไว้ ธนาคารให้ ${s.settings.mortPct}% ของราคาโฉนด คิดดอก ${s.settings.mortRate}%/รอบ ไถ่ถอนได้ตลอด</p>
+    <div class="field"><label for="dd-pick">เลือกโฉนด</label><select id="dd-pick"><option value="">— พิมพ์เอง —</option>${DEEDS.map(d => `<option value="${d.no}">${d.no}. ${d.name} (${DEED_GROUPS[d.g][0]})</option>`).join('')}</select></div>
+    <div class="field"><label for="in-note">ชื่อที่ดิน</label><input id="in-note" maxlength="30" placeholder="เช่น สยามสแควร์"></div>
+    <div class="field"><label for="in-amt">ราคาโฉนด (ตามที่ตกลง/พิมพ์บนกระดาน)</label><input id="in-amt" type="number" inputmode="numeric" min="1"></div>
+    <div class="preview" id="pv"></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">${needOk ? 'ส่งคำขอ' : 'จำนองเลย'}</button></div>`);
+  const upd = () => { const val = +$('#in-amt').value || 0; $('#pv').innerHTML = `<span>ได้รับเข้าบัญชี <b class="num">${fmt(roundUnit(s, val * s.settings.mortPct / 100))}</b></span>`; };
+  $('#in-amt').oninput = upd; upd();
+  $('#dd-pick').onchange = e => { const d = deedBy(+e.target.value); if (d) { $('#in-note').value = d.name; $('#in-amt').value = d.price; upd(); } };
+  $('#b-go').onclick = async () => { const name = $('#in-note').value, value = +$('#in-amt').value;
+    if (await dispatch(v, { type: 'mortgage', name, value })) showSlip(needOk ? 'ส่งคำขอจำนองแล้ว' : 'จำนองสำเร็จ', roundUnit(s, value * s.settings.mortPct / 100),
+      [['ที่ดิน', esc(name)], ['ราคาโฉนด', fmt(value)], ...(needOk ? [['สถานะ', 'รอธนาคารตรวจโฉนด']] : [])], needOk); };
+}
+SERVICES.push({ id: 'deeds', ic: '🗺️', label: 'โฉนดทั้งหมด', d: 'ดูค่าเช่า ราคาบ้าน ทุกใบในเกม', g: 'invest', act: 'deeds' });
+Object.assign(G5_ACTIONS, { deeds: () => openDeeds('') });
+
+// ==================================================================
+// v5.4 — โฉนดอยู่ที่ธนาคาร: ธนาคารถือโฉนดทั้งหมดไว้ก่อน · ผู้เล่นขอซื้อ → ธนาคารยืนยัน
+// ค่าเช่าเกิดเมื่อตกช่องโฉนดของคนอื่น → ธนาคารกดหักบัญชีเอง (กันโกง)
+// ==================================================================
+const DEED_OF_RING = no => DEED_BOOK[no] ? DEED_BOOK[no].n : '';
+// แผงโฉนดสำหรับธนาคาร (แสดงในแท็บลูกหนี้/บัญชี)
+function deedBankHtml(s) {
+  const due = (s.rentDue || []);
+  const dueHtml = due.length ? `<div class="section-h"><h2>🧾 ค่าเช่าที่ต้องหัก</h2><span class="muted num">${due.length}</span></div>
+    ${due.map(R => `<div class="q"><div class="qh"><div><b>${esc(P(R.payer).name)}</b> ต้องจ่าย ${esc(P(R.to).name)}<br><span class="qk out">ค่าเช่า ${esc(DEED_OF_RING(R.no))}</span></div><span class="qamt">${fmt(R.amt)}</span></div>
+      <div class="qdo">ยอดที่ใช้ได้ของเขา ${baht(avail(s, R.payer))} — กดหักให้ได้เท่าที่มี ส่วนที่เหลือจะค้างไว้</div>
+      <div class="row"><button class="primary" data-a="rentc:${R.id}">✓ หักค่าเช่า</button></div></div>`).join('')}` : '';
+  return `<div class="section-h"><h2>🗺️ โฉนดในธนาคาร</h2><button class="sm" data-a="dbank:">เปิดสมุดโฉนด</button></div>
+    <small class="muted">ธนาคารถือโฉนดทั้งหมดไว้ก่อน · มอบ/คืน/ปรับบ้านได้จากที่นี่</small>`;
+}
+// สมุดโฉนดของธนาคาร: ใครถือใบไหน บ้านกี่หลัง
+function openDeedBank() {
+  const s = S();
+  const rows = DEED_KEYS().map(no => { const d = DEED_BOOK[no], o = dOwner(s, no), h = dHouses(s, no);
+    const who = o == null ? '<span class="muted">🏦 ธนาคาร</span>' : `<b>${esc(P(o).name)}</b>`;
+    const hs = o == null ? '' : (d.k === 'p' ? (h === 5 ? '🏨' : `🏠×${h}`) : '');
+    const acts = o == null ? `<button class="sm" data-a="dgive:${no}">มอบให้</button>`
+      : `<button class="sm" data-a="dback:${no}">คืนธนาคาร</button>${d.k === 'p' ? `<button class="sm" data-a="dhouse:${no}">บ้าน/โรงแรม</button>` : ''}`;
+    return `<div class="dm"><div class="row" style="flex-wrap:nowrap"><span class="dd-no" style="background:${DEED_GROUPS[DEEDS.find(x => x.no === no).g][1]}">${no}</span>
+      <div style="flex:1;min-width:0"><b>${esc(d.n)}</b><div class="meta"><span>${who} ${hs}</span><span class="num">ค่าเช่าตอนนี้ ${fmt(deedRent(s, no))}</span></div></div></div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${acts}</div></div>`; }).join('');
+  openModal('🗺️ สมุดโฉนดของธนาคาร', `<p class="muted" style="margin:0;font-size:13.5px">ทุกการมอบ/คืน/สร้างบ้าน ธนาคารเป็นคนกด และลงบันทึกในประวัติทันที</p>
+    <div class="dd-list">${rows}</div>`);
+}
+const DEED_KEYS = () => Object.keys(DEED_BOOK).map(Number);
+// ธนาคารเลือกคนมอบโฉนด
+function openDeedGive(no) {
+  const s = S(), d = DEED_BOOK[no];
+  const ppl = s.players.map((_, i) => i).filter(i => !P(i).out);
+  openModal(`มอบโฉนด ${esc(d.n)}`, `<p class="muted" style="margin:0;font-size:13.5px">เลือกผู้รับ · ถ้าเก็บเงิน ผู้รับต้องจ่ายราคา ${fmt(d.price)} ให้ธนาคาร</p>
+    <div class="dd-list">${ppl.map(i => `<div class="dm row" style="justify-content:space-between"><b>${esc(P(i).name)}</b>
+      <span class="row" style="gap:6px"><button class="sm" data-a="dgo:${no}:${i}:0">มอบฟรี</button><button class="sm primary" data-a="dgo:${no}:${i}:1">ขายให้ ${fmt(d.price)}</button></span></div>`).join('')}</div>`);
+}
+// ธนาคารรับเงินซื้อโฉนดคืน (ถ้าเลือกคืนเงิน) หรือเอาคืนเฉยๆ
+function openDeedBack(no) {
+  const d = DEED_BOOK[no], o = dOwner(S(), no);
+  confirmBox(`รับโฉนด ${d.n} คืน?`, `${P(o).name} จะไม่มีโฉนดนี้แล้ว · ต้องการคืนเงิน ${fmt(d.price)} ให้เขาด้วยไหม`, 'คืนเงินให้ด้วย', () => dispatch(null, { type: 'deedBack', no, refund: true }));
+}
+// ปรับบ้าน/โรงแรม ของโฉนดที่มีเจ้าของ
+function openDeedHouse(no) {
+  const d = DEED_BOOK[no], s = S(), cur = dHouses(s, no);
+  openModal(`บ้าน/โรงแรม · ${esc(d.n)}`, `<p class="muted" style="margin:0;font-size:13.5px">ตอนนี้ ${cur === 5 ? 'มีโรงแรม' : `บ้าน ${cur} หลัง`} · ค่าบ้านหลังละ ${fmt(d.house)} (โรงแรม ${fmt(d.house * 5)}) · ธนาคารเก็บจากเจ้าของ</p>
+    <div class="field"><label for="dh-n">จำนวนที่ต้องการ</label><select id="dh-n">${[0, 1, 2, 3, 4, 5].map(h => `<option value="${h}" ${h === cur ? 'selected' : ''}>${h === 5 ? 'โรงแรม 1 แห่ง' : h === 0 ? 'ไม่มีบ้าน' : `บ้าน ${h} หลัง`}</option>`).join('')}</select></div>
+    <div class="row" style="justify-content:flex-end"><button data-close>ยกเลิก</button><button class="primary" id="b-go">บันทึก</button></div>`);
+  $('#b-go').onclick = async () => { const ok = await dispatch(null, { type: 'deedHouses', no, h: +$('#dh-n').value }); if (ok) closeModal(); };
+}
+// ผู้เล่น: ดูโฉนดว่าง/ของตัวเอง แล้วขอซื้อ
+function openDeedBuy() {
+  const s = S(), me = viewSeat();
+  const list = DEED_KEYS().map(no => { const d = DEED_BOOK[no], o = dOwner(s, no);
+    const st = o == null ? (((s.reqs || []).some(r => r.kind === 'deed' && r.no === no)) ? '<span class="muted">รอธนาคารยืนยัน</span>' : `<button class="sm primary" data-a="dbuy:${no}">🛒 ขอซื้อ ${fmt(d.price)}</button>`)
+      : `<span class="${o === me ? 'ok' : 'muted'}">${o === me ? '✓ ของคุณ' : 'ถือโดย ' + esc(P(o).name)}</span>`;
+    return `<div class="dm row" style="justify-content:space-between;flex-wrap:wrap;gap:6px"><b>${esc(d.n)}</b>${st}</div>`; }).join('');
+  openModal('🏦 โฉนดกับธนาคาร', `<p class="muted" style="margin:0;font-size:13.5px">โฉนดทั้งหมดอยู่ที่ธนาคาร · ขอซื้อแล้วรอธนาคารยืนยัน ธนาคารจะมอบโฉนดให้พร้อมบันทึกว่าเป็นของคุณ</p>
+    <div class="dd-list">${list}</div>`);
+}
+Object.assign(G5_ACTIONS, {
+  dbank: () => openDeedBank(),
+  dgive: x => openDeedGive(+x),
+  dgo: x => { const [no, seat, charge] = x.split(':').map(Number); closeModal(); dispatch(null, { type: 'deedGive', no, seat, charge: !!charge }); },
+  dback: x => openDeedBack(+x),
+  dhouse: x => openDeedHouse(+x),
+  rentc: x => dispatch(null, { type: 'rentCollect', id: +x }),
+  dbuy: x => dispatch(viewSeat(), { type: 'deedBuy', no: +x }).then(ok => { if (ok) openDeedBuy(); }),
+  deedbuy: () => openDeedBuy(),
+});
+SERVICES.push({ id: 'deedbuy', ic: '🏦', label: 'ซื้อโฉนดจากธนาคาร', d: 'ดูว่าใครถือใบไหน แล้วขอซื้อใบที่ว่าง', g: 'invest', act: 'deedbuy' });
+
 // ---------- เริ่มต้น ----------
 App.uid = getUid();
 render();
 (async () => { // รีเฟรชหน้าแล้วกลับเข้าห้องเดิม
-  const code = new URLSearchParams(location.search).get('room');
+  // เปิดแอปใหม่โดยไม่มี ?room= (เช่น ปิดแอป/เบราว์เซอร์เด้ง) → ลองกลับห้องล่าสุดที่จำไว้
+  let code = new URLSearchParams(location.search).get('room');
+  if (!code) { try { code = localStorage.getItem('bb_room'); } catch (e) {} }
   if (!code || !FIREBASE_CONFIG) return;
   try { await fb(); const snap = await FB.getDoc(roomRef(code.toUpperCase()));
     if (snap.exists()) { const st = JSON.parse(snap.data().data); if (st.players.some(p => p.uid === App.uid) || isBankerUid(st, App.uid) || (st.bankWait || []).includes(App.uid) || isAdminUid(st, App.uid)) enterRoom(code.toUpperCase()); } } catch (e) { console.warn(e); }

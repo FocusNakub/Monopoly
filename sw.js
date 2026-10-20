@@ -1,8 +1,8 @@
 // Service Worker ของ "ธนาคารเศรษฐี"
 // เป้าหมาย: ให้ติดตั้งเป็นแอปได้ (installable) + เปิดได้แม้เน็ตหลุดชั่วคราว
 // แต่ "ไม่" แคชข้อมูลเกม/Firestore เด็ดขาด เพื่อไม่ให้จอค้างข้อมูลเก่า (บั๊กเดิมที่เคยแก้)
-const CACHE = 'bb-shell-v4';
-const SHELL = ['./index.html', './manifest.json', './pwa/icon-192.png', './pwa/icon-512.png'];
+const CACHE = 'bb-shell-v14';
+const SHELL = ['./index.html', './vendor/three.module.min.js', './manifest.json', './pwa/icon-192.png', './pwa/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
